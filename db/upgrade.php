@@ -21,5 +21,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$module->version  = 2014121700; // The (date) version of this module
-$module->requires = 2013101800;    // Requires this Moodle version
+defined('MOODLE_INTERNAL') || die();
+
+function xmldb_adaquiz_upgrade($oldversion) {
+
+}
