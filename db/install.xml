@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/adaquiz/db" VERSION="20130212" COMMENT="XMLDB file for Moodle mod/adaquiz"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="adaquiz" COMMENT="Adaquiz" NEXT="adaquiz_node">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="course"/>
+        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="name"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="course" NEXT="intro"/>
+        <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="name" NEXT="introformat"/>
+        <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="false" DEFAULT="1" SEQUENCE="false" PREVIOUS="intro" NEXT="timecreated"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="introformat" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="timecreated" NEXT="grade"/>
+        <FIELD NAME="grade" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="timemodified" NEXT="options"/>
+        <FIELD NAME="options" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="grade"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="adaquiz_node" COMMENT="Node" PREVIOUS="adaquiz" NEXT="adaquiz_jump">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="question"/>
+        <FIELD NAME="question" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="adaquiz"/>
+        <FIELD NAME="adaquiz" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="question" NEXT="position"/>
+        <FIELD NAME="position" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="adaquiz" NEXT="grade"/>
+        <FIELD NAME="grade" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="position" NEXT="options"/>
+        <FIELD NAME="options" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="grade"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="adaquiz_jump" COMMENT="Single jump" PREVIOUS="adaquiz_node" NEXT="adaquiz_attempt">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="type"/>
+        <FIELD NAME="type" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="position"/>
+        <FIELD NAME="position" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="type" NEXT="name"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="position" NEXT="nodefrom"/>
+        <FIELD NAME="nodefrom" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="name" NEXT="nodeto"/>
+        <FIELD NAME="nodeto" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="nodefrom" NEXT="options"/>
+        <FIELD NAME="options" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="nodeto"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="adaquiz_attempt" COMMENT="Attempt" PREVIOUS="adaquiz_jump" NEXT="adaquiz_node_attempt">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="userid"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="timecreated"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="userid" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="timecreated" NEXT="adaquiz"/>
+        <FIELD NAME="adaquiz" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="timemodified" NEXT="preview"/>
+        <FIELD NAME="preview" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="adaquiz" NEXT="sumgrades"/>
+        <FIELD NAME="sumgrades" TYPE="number" LENGTH="10" NOTNULL="false" DEFAULT="0.00000" SEQUENCE="false" DECIMALS="5" PREVIOUS="preview" NEXT="state"/>
+        <FIELD NAME="state" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="state" PREVIOUS="sumgrades" NEXT="uniqueid"/>
+        <FIELD NAME="uniqueid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="uniqueid" PREVIOUS="state" NEXT="seed"/>
+        <FIELD NAME="seed" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="seed" PREVIOUS="uniqueid"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="adaquiz_node_attempt" COMMENT="NodeAttempt" PREVIOUS="adaquiz_attempt">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="attempt"/>
+        <FIELD NAME="attempt" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="node"/>
+        <FIELD NAME="node" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="attempt" NEXT="timecreated"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="node" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="timecreated" NEXT="grade"/>
+        <FIELD NAME="grade" TYPE="number" LENGTH="10" NOTNULL="false" DEFAULT="0.00000" SEQUENCE="false" DECIMALS="5" PREVIOUS="timemodified" NEXT="position"/>
+        <FIELD NAME="position" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="grade" NEXT="jump"/>
+        <FIELD NAME="jump" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="position" NEXT="uniqueid"/>
+        <FIELD NAME="uniqueid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="question attempt unique id" PREVIOUS="jump"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>
