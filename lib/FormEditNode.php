@@ -419,7 +419,3 @@ class FormEditNode extends moodleform{
   }
 
 }
-
-
-
-?>

@@ -567,6 +567,3 @@ function adaquiz_num_attempt_summary($quiz, $cm, $returnzero = false, $currentgr
     }
     return '';
 }
-
-?>
-

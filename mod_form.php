@@ -128,5 +128,3 @@ class mod_adaquiz_mod_form extends moodleform_mod {
     }
   }
 }
-
-?>

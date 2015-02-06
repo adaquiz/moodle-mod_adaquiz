@@ -180,5 +180,3 @@ $capabilities = array(
         'archetypes' => array()
     ),
 );
-
-?>

@@ -124,5 +124,3 @@ function adaquiz_process_comment(&$question, &$state, &$attempt, $comment, $grad
   }
   
   print_footer('empty');
-  
-?>

@@ -966,4 +966,3 @@ $string['wronguse'] = 'No podeu usar així aquesta pàgina';
 $string['xhtml'] = 'XHTML';
 $string['youneedtoenrol'] = 'Per a contestar aquest qüestionari heu d\'estar inscrit en aquest curs';
 $string['yourfinalgradeis'] = 'La vostra qualificació final en aquest qüestionari és {$a}.';
-?>

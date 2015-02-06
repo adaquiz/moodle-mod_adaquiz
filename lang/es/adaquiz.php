@@ -954,4 +954,3 @@ $string['wronguse'] = 'Usted no puede usar esta página así';
 $string['xhtml'] = 'Formato XHTML';
 $string['youneedtoenrol'] = 'Necesita matricularse en este curso antes de responder al cuestionario';
 $string['yourfinalgradeis'] = 'Su calificación final en este cuestionario es {$a}';
-?>

@@ -640,4 +640,3 @@ class Adaquiz {
       return $users;
     }
 }
-?>

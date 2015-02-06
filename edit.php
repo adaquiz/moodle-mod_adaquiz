@@ -297,4 +297,3 @@ echo '</div>';
 echo '</div>';
 
 echo $OUTPUT->footer();
-?>

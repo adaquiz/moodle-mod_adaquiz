@@ -735,4 +735,3 @@ function module_specific_controls($totalnumber, $recurse, $category, $cmid){
   }
   return $out;
 }
-?>

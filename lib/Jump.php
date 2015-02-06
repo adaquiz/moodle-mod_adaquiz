@@ -365,5 +365,3 @@ function addslashes_object( $dataobject ) {
     }
     return (object)$a;
 }
-
-?>

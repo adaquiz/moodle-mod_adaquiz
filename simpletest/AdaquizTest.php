@@ -30,4 +30,3 @@ class AdaquizTest extends UnitTestCase {
       $this->assertEqual(1,1);
     }
 }
-?>
