@@ -384,7 +384,7 @@ function adaquiz_print_question_list($quiz, $pageurl, $allowdelete, $reordertool
     $questionIds = $DB->get_records_sql("SELECT question FROM {adaquiz_node} WHERE adaquiz = ? ORDER BY position ASC", array($quiz->id));
     $questionIds = implode(',', array_keys($questionIds));
     
-    if (isset($questionIds)){
+    if (!empty($questionIds)){
         list($usql, $params) = $DB->get_in_or_equal(explode(',', $questionIds));
         $params[] = $quiz->id;
         $questions = $DB->get_records_sql("SELECT q.*, qc.contextid, an.grade as maxmark
