@@ -181,9 +181,10 @@ class NodeAttempt {
   	global $DB;
   	$jump = null;
     // AQ-19
+
   	$record = $DB->get_records_sql("SELECT n.id, q.qtype, j.id AS jump, j.nodeto
     FROM {".Node::TABLE."} n, {question} q, {".Jump::TABLE."} j
-    WHERE n.id = ? AND q.id=question AND j.nodefrom=n.id LIMIT 1" , array($node));
+    WHERE n.id = ? AND q.id=question AND j.nodefrom=n.id" , array($node),1,1);
   	$questiontype = $record[$node]->qtype;
     if (NodeAttempt::is_automatic_jump_question($questiontype)) {
   		if ($record[$node]->nodeto == 0) {

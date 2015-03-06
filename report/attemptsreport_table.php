@@ -360,8 +360,6 @@ abstract class adaquiz_attempts_report_table extends table_sql {
                 quiza.id AS attempt,
                 u.id AS userid,
                 u.idnumber,'. $allnames .',
-                u.firstname,
-                u.lastname,
                 u.picture,
                 u.imagealt,
                 u.institution,
