@@ -524,7 +524,7 @@ $string['minutes'] = 'minuts';
 $string['missingcorrectanswer'] = 'S\'ha d\'especificar la resposta correcta';
 $string['missingitemtypename'] = 'Falta el nom';
 $string['missingquestion'] = 'Aquesta pregunta sembla no existir ja';
-$string['modulename'] = 'Qüestionari';
+$string['modulename'] = 'Qüestionari adaptatiu';
 $string['modulename_help'] = 'L\'activitat Qüestionari Adaptatiu permet al professor ordenar preguntes en recorreguts dinàmics que depenen de les respostes de l\'alumne. El resultat és un qüestionari que s\'adapta al rendiment de l\'alumne. Tècnicament, és un graf dirigit on els nodes són preguntes, i les arestes són salts activats per rangs de nota.
 
 L\'estudiant respon una pregunta, que es qualifica automàticament, i llavors la nota determina la següent pregunta.
@@ -532,7 +532,7 @@ habitualment, si es la resposta ha estat incorrecta la següent pregunta serà m
 
 A part d\'això, és com un qüestionari comú de Moodle.
 El professor pot usar qualsevol tipus de pregunta, i configurar els paràmetres habituals de qüestionari sobre pistes i retroalimentació.';
-$string['modulenameplural'] = 'Qüestionaris';
+$string['modulenameplural'] = 'Qüestionaris adaptatiu';
 $string['moveselectedonpage'] = 'Mou les preguntes seleccionades a la pàgina: {$a}';
 $string['multichoice'] = 'Opcions múltiples';
 $string['multipleanswers'] = 'Trieu almenys una resposta';
