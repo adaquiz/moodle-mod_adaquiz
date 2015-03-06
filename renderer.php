@@ -968,30 +968,11 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
      */
     public function questions(adaquiz_attempt $attemptobj, $reviewing, $slots, $page, $showall,
                               mod_quiz_display_options $displayoptions, $route = null) {
-        global $slot;
-        
-        $out_array = array();
         $output = '';
-        foreach($route as $key => $value){
-            if ($value != -1){
-                $route[$key] = $value - 1;
-                
-            }
+        foreach ($slots as $slot) {
+            $output .= $attemptobj->render_question($slot, $reviewing,
+                    $attemptobj->review_url($slot, $page, $showall));
         }
-
-        foreach ($slots as $key => $slot) {
-            $pos = array_search($key, $route);
-            $qnum = array_search($slot-1, $route)+1;
-            if($pos !== false){
-                $out_array[$pos] = $attemptobj->render_question($slot, $reviewing,
-                        $attemptobj->review_url($slot, $page, $showall), $qnum);
-            }
-        }
-        
-        for ($i = 0; $i < count($out_array); $i++){
-            $output .= $out_array[$i];
-        }
-        
         return $output;
     }    
     
