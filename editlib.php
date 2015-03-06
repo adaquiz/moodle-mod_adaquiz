@@ -1175,7 +1175,7 @@ function quiz_print_grading_form($quiz, $pageurl, $tabindex) {
     echo html_writer::input_hidden_params($pageurl);
     $a = '<input type="text" id="inputmaxgrade" name="maxgrade" size="' .
             ($quiz->decimalpoints + 2) . '" tabindex="' . $tabindex
-         . '" value="' . quiz_format_grade($quiz, $quiz->grade) . '" />';
+         . '" value="' . adaquiz_format_grade($quiz, $quiz->grade) . '" />';
     echo '<label for="inputmaxgrade">' . get_string('maximumgradex', '', $a) . "</label>";
     echo '<input type="hidden" name="savechanges" value="save" />';
     echo '<input type="submit" value="' . $strsave . '" />';
