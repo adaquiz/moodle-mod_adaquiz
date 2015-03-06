@@ -62,11 +62,15 @@ class adaquiz_overview_table extends adaquiz_attempts_report_table {
             $finalgrade = 0;
             $count = 0;
             foreach ($this->rawdata as $key => $value){
-                $truegrade = $value->sumgrades * $quizgrade / $value->quizsumgrades;
-                $finalgrade += $truegrade;
-                $count++;
+                if ($value->quizsumgrades) {
+                    $truegrade = $value->sumgrades * $quizgrade / $value->quizsumgrades;
+                    $finalgrade += $truegrade;
+                    $count++;
+                }
             }
-            $finalgrade = $finalgrade / $count;
+            if ($count) {
+                $finalgrade = $finalgrade / $count;
+            }
             $record = new stdClass();
             $record->grade = $finalgrade;
             $record->numaveraged = $count;
