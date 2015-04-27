@@ -1182,9 +1182,18 @@ class adaquiz_attempt {
      * @return string HTML for the question in its current state.
      */
     public function render_question_at_step($slot, $seq, $reviewing, $thispageurl = '') {
+
+        
+        // Hotfix $this->quba->get_question($slot)->_number) -> null
+        // TODO: Update to Moodle 2.6 quiz attemptlib.php.
+
         return $this->quba->render_question_at_step($slot, $seq,
                 $this->get_display_options($reviewing),
-                $this->quba->get_question($slot)->_number);
+                null);
+
+        // return $this->quba->render_question_at_step($slot, $seq,
+        //         $this->get_display_options($reviewing),
+        //         $this->quba->get_question($slot)->_number);
     }
 
     /**

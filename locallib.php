@@ -1037,7 +1037,7 @@ function quiz_get_review_options($quiz, $attempt, $context) {
     $options->readonly = true;
     $options->flags = quiz_get_flag_option($attempt, $context);
     if (!empty($attempt->id)) {
-        $options->questionreviewlink = new moodle_url('/mod/quiz/reviewquestion.php',
+        $options->questionreviewlink = new moodle_url('/mod/adaquiz/reviewquestion.php',
                 array('attempt' => $attempt->id));
     }
 
@@ -1045,7 +1045,7 @@ function quiz_get_review_options($quiz, $attempt, $context) {
     if (!empty($attempt->id) && $attempt->state == adaquiz_attempt::FINISHED && !$attempt->preview &&
             !is_null($context) && has_capability('mod/quiz:grade', $context)) {
         $options->manualcomment = question_display_options::VISIBLE;
-        $options->manualcommentlink = new moodle_url('/mod/quiz/comment.php',
+        $options->manualcommentlink = new moodle_url('/mod/adaquiz/comment.php',
                 array('attempt' => $attempt->id));
     }
 
