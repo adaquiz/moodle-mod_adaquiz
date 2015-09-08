@@ -1,12 +1,12 @@
 /**
- * The quizbase class to provide shared functionality to Modules within Moodle.
+ * The adaquizbase class to provide shared functionality to Modules within Moodle.
  *
- * @module moodle-mod_quiz-quizbase
+ * @module moodle-mod_adaquiz-adaquizbase
  */
-var QUIZBASENAME = 'mod_quiz-quizbase';
+var ADAQUIZBASENAME = 'mod_adaquiz-adaquizbase';
 
-var QUIZBASE = function() {
-    QUIZBASE.superclass.constructor.apply(this, arguments);
+var ADAQUIZBASE = function() {
+    ADAQUIZBASE.superclass.constructor.apply(this, arguments);
 };
 
 /**
@@ -16,7 +16,7 @@ var QUIZBASE = function() {
  * @class M.course.coursebase
  * @constructor
  */
-Y.extend(QUIZBASE, Y.Base, {
+Y.extend(ADAQUIZBASE, Y.Base, {
     // Registered Modules
     registermodules : [],
 
@@ -52,16 +52,16 @@ Y.extend(QUIZBASE, Y.Base, {
         return this;
     }
 }, {
-    NAME : QUIZBASENAME,
+    NAME : ADAQUIZBASENAME,
     ATTRS : {}
 });
 
 // Ensure that M.course exists and that coursebase is initialised correctly
-M.mod_quiz = M.mod_quiz || {};
-M.mod_quiz.quizbase = M.mod_quiz.quizbase || new QUIZBASE();
+M.mod_adaquiz = M.mod_adaquiz || {};
+M.mod_adaquiz.adaquizbase = M.mod_adaquiz.adaquizbase || new ADAQUIZBASE();
 
 // Abstract functions that needs to be defined per format (course/format/somename/format.js)
-M.mod_quiz.edit = M.mod_quiz.edit || {};
+M.mod_adaquiz.edit = M.mod_adaquiz.edit || {};
 
 /**
  * Swap section (should be defined in format.js if requred)
@@ -71,13 +71,13 @@ M.mod_quiz.edit = M.mod_quiz.edit || {};
  * @param {string} node2 node to swap with
  * @return {NodeList} section list
  */
-M.mod_quiz.edit.swap_sections = function(Y, node1, node2) {
+M.mod_adaquiz.edit.swap_sections = function(Y, node1, node2) {
     var CSS = {
-        COURSECONTENT : 'mod-quiz-edit-content',
+        COURSECONTENT : 'mod-adaquiz-edit-content',
         SECTIONADDMENUS : 'section_add_menus'
     };
 
-    var sectionlist = Y.Node.all('.' + CSS.COURSECONTENT + ' ' + M.mod_quiz.edit.get_section_selector(Y));
+    var sectionlist = Y.Node.all('.' + CSS.COURSECONTENT + ' ' + M.mod_adaquiz.edit.get_section_selector(Y));
     // Swap menus.
     sectionlist.item(node1).one('.' + CSS.SECTIONADDMENUS).swap(sectionlist.item(node2).one('.' + CSS.SECTIONADDMENUS));
 };
@@ -94,7 +94,7 @@ M.mod_quiz.edit.swap_sections = function(Y, node1, node2) {
  * @param {string} sectionto last affected section
  * @return void
  */
-M.mod_quiz.edit.process_sections = function(Y, sectionlist, response, sectionfrom, sectionto) {
+M.mod_adaquiz.edit.process_sections = function(Y, sectionlist, response, sectionfrom, sectionto) {
     var CSS = {
         SECTIONNAME : 'sectionname'
     },
@@ -142,7 +142,7 @@ M.mod_quiz.edit.process_sections = function(Y, sectionlist, response, sectionfro
 *
 * @return {object} section list configuration
 */
-M.mod_quiz.edit.get_config = function() {
+M.mod_adaquiz.edit.get_config = function() {
     return {
         container_node : 'ul',
         container_class : 'slots',
@@ -157,12 +157,12 @@ M.mod_quiz.edit.get_config = function() {
  * @param {YUI} Y YUI3 instance
  * @return {string} section selector
  */
-M.mod_quiz.edit.get_section_selector = function() {
-    var config = M.mod_quiz.edit.get_config();
+M.mod_adaquiz.edit.get_section_selector = function() {
+    var config = M.mod_adaquiz.edit.get_config();
     if (config.section_node && config.section_class) {
         return config.section_node + '.' + config.section_class;
     }
-    Y.log('section_node and section_class are not defined in M.mod_quiz.edit.get_config', 'warn', 'moodle-mod_quiz-quizbase');
+    Y.log('section_node and section_class are not defined in M.mod_adaquiz.edit.get_config', 'warn', 'moodle-mod_adaquiz-adaquizbase');
     return null;
 };
 
@@ -171,15 +171,15 @@ M.mod_quiz.edit.get_section_selector = function() {
  * container_node.container_class node is wrapped in some other element).
  *
  * @param {YUI} Y YUI3 instance
- * @return {string} section wrapper selector or M.mod_quiz.format.get_section_selector
+ * @return {string} section wrapper selector or M.mod_adaquiz.format.get_section_selector
  * if section_wrapper_node and section_wrapper_class are not defined in the format config.
  */
-M.mod_quiz.edit.get_section_wrapper = function(Y) {
-    var config = M.mod_quiz.edit.get_config();
+M.mod_adaquiz.edit.get_section_wrapper = function(Y) {
+    var config = M.mod_adaquiz.edit.get_config();
     if (config.section_wrapper_node && config.section_wrapper_class) {
         return config.section_wrapper_node + '.' + config.section_wrapper_class;
     }
-    return M.mod_quiz.edit.get_section_selector(Y);
+    return M.mod_adaquiz.edit.get_section_selector(Y);
 };
 
 /**
@@ -187,12 +187,12 @@ M.mod_quiz.edit.get_section_wrapper = function(Y) {
  *
  * @return {string} tag of container node.
  */
-M.mod_quiz.edit.get_containernode = function() {
-    var config = M.mod_quiz.edit.get_config();
+M.mod_adaquiz.edit.get_containernode = function() {
+    var config = M.mod_adaquiz.edit.get_config();
     if (config.container_node) {
         return config.container_node;
     } else {
-        Y.log('container_node is not defined in M.mod_quiz.edit.get_config', 'warn', 'moodle-mod_quiz-quizbase');
+        Y.log('container_node is not defined in M.mod_adaquiz.edit.get_config', 'warn', 'moodle-mod_adaquiz-adaquizbase');
     }
 };
 
@@ -201,12 +201,12 @@ M.mod_quiz.edit.get_containernode = function() {
  *
  * @return {string} class of the container node.
  */
-M.mod_quiz.edit.get_containerclass = function() {
-    var config = M.mod_quiz.edit.get_config();
+M.mod_adaquiz.edit.get_containerclass = function() {
+    var config = M.mod_adaquiz.edit.get_config();
     if (config.container_class) {
         return config.container_class;
     } else {
-        Y.log('container_class is not defined in M.mod_quiz.edit.get_config', 'warn', 'moodle-mod_quiz-quizbase');
+        Y.log('container_class is not defined in M.mod_adaquiz.edit.get_config', 'warn', 'moodle-mod_adaquiz-adaquizbase');
     }
 };
 
@@ -215,8 +215,8 @@ M.mod_quiz.edit.get_containerclass = function() {
  *
  * @return {string} tag of the draggable node.
  */
-M.mod_quiz.edit.get_sectionwrappernode = function() {
-    var config = M.mod_quiz.edit.get_config();
+M.mod_adaquiz.edit.get_sectionwrappernode = function() {
+    var config = M.mod_adaquiz.edit.get_config();
     if (config.section_wrapper_node) {
         return config.section_wrapper_node;
     } else {
@@ -229,8 +229,8 @@ M.mod_quiz.edit.get_sectionwrappernode = function() {
  *
  * @return {string} class of the draggable node.
  */
-M.mod_quiz.edit.get_sectionwrapperclass = function() {
-    var config = M.mod_quiz.edit.get_config();
+M.mod_adaquiz.edit.get_sectionwrapperclass = function() {
+    var config = M.mod_adaquiz.edit.get_config();
     if (config.section_wrapper_class) {
         return config.section_wrapper_class;
     } else {
@@ -243,12 +243,12 @@ M.mod_quiz.edit.get_sectionwrapperclass = function() {
  *
  * @return {string} tag of section node.
  */
-M.mod_quiz.edit.get_sectionnode = function() {
-    var config = M.mod_quiz.edit.get_config();
+M.mod_adaquiz.edit.get_sectionnode = function() {
+    var config = M.mod_adaquiz.edit.get_config();
     if (config.section_node) {
         return config.section_node;
     } else {
-        Y.log('section_node is not defined in M.mod_quiz.edit.get_config', 'warn', 'moodle-mod_quiz-quizbase');
+        Y.log('section_node is not defined in M.mod_adaquiz.edit.get_config', 'warn', 'moodle-mod_adaquiz-adaquizbase');
     }
 };
 
@@ -257,11 +257,11 @@ M.mod_quiz.edit.get_sectionnode = function() {
  *
  * @return {string} class of the section node.
  */
-M.mod_quiz.edit.get_sectionclass = function() {
-    var config = M.mod_quiz.edit.get_config();
+M.mod_adaquiz.edit.get_sectionclass = function() {
+    var config = M.mod_adaquiz.edit.get_config();
     if (config.section_class) {
         return config.section_class;
     } else {
-        Y.log('section_class is not defined in M.mod_quiz.edit.get_config', 'warn', 'moodle-mod_quiz-quizbase');
+        Y.log('section_class is not defined in M.mod_adaquiz.edit.get_config', 'warn', 'moodle-mod_adaquiz-adaquizbase');
     }
 };

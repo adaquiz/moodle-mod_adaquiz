@@ -15,30 +15,26 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The mod_quiz edit page viewed event.
+ * The mod_adaquiz edit page viewed event.
  *
- * @package    mod_quiz
- * @copyright  2014 Mark Nelson <markn@moodle.com>
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_quiz\event;
+namespace mod_adaquiz\event;
 
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * The mod_quiz edit page viewed event class.
+ * The mod_adaquiz edit page viewed event class.
  *
  * @property-read array $other {
  *      Extra information about event.
  *
- *      - int quizid: the id of the quiz.
+ *      - int adaquizid: the id of the adaptive quiz.
  * }
  *
- * @package    mod_quiz
- * @since      Moodle 2.7
- * @copyright  2014 Mark Nelson <markn@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class edit_page_viewed extends \core\event\base {
 
@@ -56,7 +52,7 @@ class edit_page_viewed extends \core\event\base {
      * @return string
      */
     public static function get_name() {
-        return get_string('eventeditpageviewed', 'mod_quiz');
+        return get_string('eventeditpageviewed', 'mod_adaquiz');
     }
 
     /**
@@ -65,7 +61,7 @@ class edit_page_viewed extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        return "The user with id '$this->userid' viewed the edit page for the quiz with " .
+        return "The user with id '$this->userid' viewed the edit page for the adaptive quiz with " .
             "course module id '$this->contextinstanceid'.";
     }
 
@@ -75,7 +71,7 @@ class edit_page_viewed extends \core\event\base {
      * @return \moodle_url
      */
     public function get_url() {
-        return new \moodle_url('/mod/quiz/edit.php', array('cmid' => $this->contextinstanceid));
+        return new \moodle_url('/mod/adaquiz/edit.php', array('cmid' => $this->contextinstanceid));
     }
 
     /**
@@ -84,8 +80,8 @@ class edit_page_viewed extends \core\event\base {
      * @return array
      */
     protected function get_legacy_logdata() {
-        return array($this->courseid, 'quiz', 'editquestions', 'view.php?id=' . $this->contextinstanceid,
-            $this->other['quizid'], $this->contextinstanceid);
+        return array($this->courseid, 'adaquiz', 'editquestions', 'view.php?id=' . $this->contextinstanceid,
+            $this->other['adaquizid'], $this->contextinstanceid);
     }
 
     /**
@@ -97,8 +93,8 @@ class edit_page_viewed extends \core\event\base {
     protected function validate_data() {
         parent::validate_data();
 
-        if (!isset($this->other['quizid'])) {
-            throw new \coding_exception('The \'quizid\' value must be set in other.');
+        if (!isset($this->other['adaquizid'])) {
+            throw new \coding_exception('The \'adaquizid\' value must be set in other.');
         }
     }
 }

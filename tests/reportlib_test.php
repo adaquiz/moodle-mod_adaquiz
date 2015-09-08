@@ -15,19 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Unit tests for (some of) mod/quiz/report/reportlib.php
+ * Unit tests for (some of) mod/adaquiz/report/reportlib.php
  *
- * @package   mod_quiz
- * @category  phpunit
- * @copyright 2008 Jamie Pratt me@jamiep.org
- * @license   http://www.gnu.org/copyleft/gpl.html GNU Public License
+ * @package   mod_adaquiz
+ * @category  test
+ * @copyright 2015 Maths for More S.L.
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot . '/mod/quiz/report/reportlib.php');
+
+require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/reportlib.php');
 
 
 /**
@@ -36,8 +38,8 @@ require_once($CFG->dirroot . '/mod/quiz/report/reportlib.php');
  * @copyright 2008 Jamie Pratt me@jamiep.org
  * @license   http://www.gnu.org/copyleft/gpl.html GNU Public License
  */
-class mod_quiz_reportlib_testcase extends advanced_testcase {
-    public function test_quiz_report_index_by_keys() {
+class mod_adaquiz_reportlib_testcase extends advanced_testcase {
+    public function test_adaquiz_report_index_by_keys() {
         $datum = array();
         $object = new stdClass();
         $object->qid = 3;
@@ -46,14 +48,14 @@ class mod_quiz_reportlib_testcase extends advanced_testcase {
         $object->grade = 3;
         $datum[] = $object;
 
-        $indexed = quiz_report_index_by_keys($datum, array('aid', 'qid'));
+        $indexed = adaquiz_report_index_by_keys($datum, array('aid', 'qid'));
 
         $this->assertEquals($indexed[101][3]->qid, 3);
         $this->assertEquals($indexed[101][3]->aid, 101);
         $this->assertEquals($indexed[101][3]->response, '');
         $this->assertEquals($indexed[101][3]->grade, 3);
 
-        $indexed = quiz_report_index_by_keys($datum, array('aid', 'qid'), false);
+        $indexed = adaquiz_report_index_by_keys($datum, array('aid', 'qid'), false);
 
         $this->assertEquals($indexed[101][3][0]->qid, 3);
         $this->assertEquals($indexed[101][3][0]->aid, 101);
@@ -61,33 +63,33 @@ class mod_quiz_reportlib_testcase extends advanced_testcase {
         $this->assertEquals($indexed[101][3][0]->grade, 3);
     }
 
-    public function test_quiz_report_scale_summarks_as_percentage() {
-        $quiz = new stdClass();
-        $quiz->sumgrades = 10;
-        $quiz->decimalpoints = 2;
+    public function test_adaquiz_report_scale_summarks_as_percentage() {
+        $adaquiz = new stdClass();
+        $adaquiz->sumgrades = 10;
+        $adaquiz->decimalpoints = 2;
 
         $this->assertEquals('12.34567%',
-            quiz_report_scale_summarks_as_percentage(1.234567, $quiz, false));
+            adaquiz_report_scale_summarks_as_percentage(1.234567, $adaquiz, false));
         $this->assertEquals('12.35%',
-            quiz_report_scale_summarks_as_percentage(1.234567, $quiz, true));
+            adaquiz_report_scale_summarks_as_percentage(1.234567, $adaquiz, true));
         $this->assertEquals('-',
-            quiz_report_scale_summarks_as_percentage('-', $quiz, true));
+            adaquiz_report_scale_summarks_as_percentage('-', $adaquiz, true));
     }
 
-    public function test_quiz_report_qm_filter_select_only_one_attempt_allowed() {
-        $quiz = new stdClass();
-        $quiz->attempts = 1;
-        $this->assertSame('', quiz_report_qm_filter_select($quiz));
+    public function test_adaquiz_report_qm_filter_select_only_one_attempt_allowed() {
+        $adaquiz = new stdClass();
+        $adaquiz->attempts = 1;
+        $this->assertSame('', adaquiz_report_qm_filter_select($adaquiz));
     }
 
-    public function test_quiz_report_qm_filter_select_average() {
-        $quiz = new stdClass();
-        $quiz->attempts = 10;
-        $quiz->grademethod = QUIZ_GRADEAVERAGE;
-        $this->assertSame('', quiz_report_qm_filter_select($quiz));
+    public function test_adaquiz_report_qm_filter_select_average() {
+        $adaquiz = new stdClass();
+        $adaquiz->attempts = 10;
+        $adaquiz->grademethod = ADAQUIZ_GRADEAVERAGE;
+        $this->assertSame('', adaquiz_report_qm_filter_select($adaquiz));
     }
 
-    public function test_quiz_report_qm_filter_select_first_last_best() {
+    public function test_adaquiz_report_qm_filter_select_first_last_best() {
         global $DB;
         $this->resetAfterTest();
 
@@ -95,7 +97,7 @@ class mod_quiz_reportlib_testcase extends advanced_testcase {
         $fakeattempt->userid = 123;
         $fakeattempt->quiz = 456;
         $fakeattempt->layout = '1,2,0,3,4,0,5';
-        $fakeattempt->state = quiz_attempt::FINISHED;
+        $fakeattempt->state = adaquiz_attempt::FINISHED;
 
         // We intentionally insert these in a funny order, to test the SQL better.
         // The test data is:
@@ -112,55 +114,55 @@ class mod_quiz_reportlib_testcase extends advanced_testcase {
         $fakeattempt->attempt = 3;
         $fakeattempt->sumgrades = 50;
         $fakeattempt->uniqueid = 13;
-        $DB->insert_record('quiz_attempts', $fakeattempt);
+        $DB->insert_record('adaquiz_attempts', $fakeattempt);
 
         $fakeattempt->attempt = 2;
         $fakeattempt->sumgrades = 50;
         $fakeattempt->uniqueid = 26;
-        $DB->insert_record('quiz_attempts', $fakeattempt);
+        $DB->insert_record('adaquiz_attempts', $fakeattempt);
 
         $fakeattempt->attempt = 4;
         $fakeattempt->sumgrades = null;
         $fakeattempt->uniqueid = 39;
-        $fakeattempt->state = quiz_attempt::IN_PROGRESS;
-        $DB->insert_record('quiz_attempts', $fakeattempt);
+        $fakeattempt->state = adaquiz_attempt::IN_PROGRESS;
+        $DB->insert_record('adaquiz_attempts', $fakeattempt);
 
         $fakeattempt->attempt = 1;
         $fakeattempt->sumgrades = 30;
         $fakeattempt->uniqueid = 52;
-        $fakeattempt->state = quiz_attempt::FINISHED;
-        $DB->insert_record('quiz_attempts', $fakeattempt);
+        $fakeattempt->state = adaquiz_attempt::FINISHED;
+        $DB->insert_record('adaquiz_attempts', $fakeattempt);
 
         $fakeattempt->attempt = 1;
         $fakeattempt->userid = 1;
         $fakeattempt->sumgrades = 100;
         $fakeattempt->uniqueid = 65;
-        $DB->insert_record('quiz_attempts', $fakeattempt);
+        $DB->insert_record('adaquiz_attempts', $fakeattempt);
 
-        $quiz = new stdClass();
-        $quiz->attempts = 10;
+        $adaquiz = new stdClass();
+        $adaquiz->attempts = 10;
 
-        $quiz->grademethod = QUIZ_ATTEMPTFIRST;
+        $adaquiz->grademethod = ADAQUIZ_ATTEMPTFIRST;
         $firstattempt = $DB->get_records_sql("
-                SELECT * FROM {quiz_attempts} quiza WHERE userid = ? AND quiz = ? AND "
-                        . quiz_report_qm_filter_select($quiz), array(123, 456));
+                SELECT * FROM {adaquiz_attempts} quiza WHERE userid = ? AND quiz = ? AND "
+                        . adaquiz_report_qm_filter_select($adaquiz), array(123, 456));
         $this->assertEquals(1, count($firstattempt));
         $firstattempt = reset($firstattempt);
         $this->assertEquals(1, $firstattempt->attempt);
 
-        $quiz->grademethod = QUIZ_ATTEMPTLAST;
+        $adaquiz->grademethod = ADAQUIZ_ATTEMPTLAST;
         $lastattempt = $DB->get_records_sql("
-                SELECT * FROM {quiz_attempts} quiza WHERE userid = ? AND quiz = ? AND "
-                . quiz_report_qm_filter_select($quiz), array(123, 456));
+                SELECT * FROM {adaquiz_attempts} quiza WHERE userid = ? AND quiz = ? AND "
+                . adaquiz_report_qm_filter_select($adaquiz), array(123, 456));
         $this->assertEquals(1, count($lastattempt));
         $lastattempt = reset($lastattempt);
         $this->assertEquals(3, $lastattempt->attempt);
 
-        $quiz->attempts = 0;
-        $quiz->grademethod = QUIZ_GRADEHIGHEST;
+        $adaquiz->attempts = 0;
+        $adaquiz->grademethod = ADAQUIZ_GRADEHIGHEST;
         $bestattempt = $DB->get_records_sql("
-                SELECT * FROM {quiz_attempts} qa_alias WHERE userid = ? AND quiz = ? AND "
-                . quiz_report_qm_filter_select($quiz, 'qa_alias'), array(123, 456));
+                SELECT * FROM {adaquiz_attempts} qa_alias WHERE userid = ? AND quiz = ? AND "
+                . adaquiz_report_qm_filter_select($adaquiz, 'qa_alias'), array(123, 456));
         $this->assertEquals(1, count($bestattempt));
         $bestattempt = reset($bestattempt);
         $this->assertEquals(2, $bestattempt->attempt);

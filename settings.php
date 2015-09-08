@@ -15,240 +15,240 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Administration settings definitions for the quiz module.
+ * Administration settings definitions for the adaptive quiz module.
  *
- * @package   mod_quiz
- * @copyright 2010 Petr Skoda
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/quiz/lib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/lib.php');
 
-// First get a list of quiz reports with there own settings pages. If there none,
+// First get a list of adaptive quiz reports with there own settings pages. If there none,
 // we use a simpler overall menu structure.
-$reports = core_component::get_plugin_list_with_file('quiz', 'settings.php', false);
+$reports = core_component::get_plugin_list_with_file('adaquiz', 'settings.php', false);
 $reportsbyname = array();
 foreach ($reports as $report => $reportdir) {
-    $strreportname = get_string($report . 'report', 'quiz_'.$report);
+    $strreportname = get_string($report . 'report', 'adaquiz_'.$report);
     $reportsbyname[$strreportname] = $report;
 }
 core_collator::ksort($reportsbyname);
 
-// First get a list of quiz reports with there own settings pages. If there none,
+// First get a list of adaptive quiz reports with there own settings pages. If there none,
 // we use a simpler overall menu structure.
-$rules = core_component::get_plugin_list_with_file('quizaccess', 'settings.php', false);
+$rules = core_component::get_plugin_list_with_file('adaquizaccess', 'settings.php', false);
 $rulesbyname = array();
 foreach ($rules as $rule => $ruledir) {
-    $strrulename = get_string('pluginname', 'quizaccess_' . $rule);
+    $strrulename = get_string('pluginname', 'adaquizaccess_' . $rule);
     $rulesbyname[$strrulename] = $rule;
 }
 core_collator::ksort($rulesbyname);
 
-// Create the quiz settings page.
+// Create the adaptive quiz settings page.
 if (empty($reportsbyname) && empty($rulesbyname)) {
-    $pagetitle = get_string('modulename', 'quiz');
+    $pagetitle = get_string('modulename', 'adaquiz');
 } else {
     $pagetitle = get_string('generalsettings', 'admin');
 }
-$quizsettings = new admin_settingpage('modsettingquiz', $pagetitle, 'moodle/site:config');
+$adaquizsettings = new admin_settingpage('modsettingadaquiz', $pagetitle, 'moodle/site:config');
 
 if ($ADMIN->fulltree) {
-    // Introductory explanation that all the settings are defaults for the add quiz form.
-    $quizsettings->add(new admin_setting_heading('quizintro', '', get_string('configintro', 'quiz')));
+    // Introductory explanation that all the settings are defaults for the add adaptive quiz form.
+    $adaquizsettings->add(new admin_setting_heading('adaquizintro', '', get_string('configintro', 'adaquiz')));
 
     // Time limit.
-    $quizsettings->add(new admin_setting_configtext_with_advanced('quiz/timelimit',
-            get_string('timelimitsec', 'quiz'), get_string('configtimelimitsec', 'quiz'),
+    $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/timelimit',
+            get_string('timelimitsec', 'adaquiz'), get_string('configtimelimitsec', 'adaquiz'),
             array('value' => '0', 'adv' => false), PARAM_INT));
 
     // What to do with overdue attempts.
-    $quizsettings->add(new mod_quiz_admin_setting_overduehandling('quiz/overduehandling',
-            get_string('overduehandling', 'quiz'), get_string('overduehandling_desc', 'quiz'),
+    $adaquizsettings->add(new mod_adaquiz_admin_setting_overduehandling('adaquiz/overduehandling',
+            get_string('overduehandling', 'adaquiz'), get_string('overduehandling_desc', 'adaquiz'),
             array('value' => 'autosubmit', 'adv' => false), null));
 
     // Grace period time.
-    $quizsettings->add(new admin_setting_configtext_with_advanced('quiz/graceperiod',
-            get_string('graceperiod', 'quiz'), get_string('graceperiod_desc', 'quiz'),
+    $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/graceperiod',
+            get_string('graceperiod', 'adaquiz'), get_string('graceperiod_desc', 'adaquiz'),
             array('value' => '86400', 'adv' => false), PARAM_INT));
 
     // Minimum grace period used behind the scenes.
-    $quizsettings->add(new admin_setting_configtext('quiz/graceperiodmin',
-            get_string('graceperiodmin', 'quiz'), get_string('graceperiodmin_desc', 'quiz'),
+    $adaquizsettings->add(new admin_setting_configtext('adaquiz/graceperiodmin',
+            get_string('graceperiodmin', 'adaquiz'), get_string('graceperiodmin_desc', 'adaquiz'),
             60, PARAM_INT));
 
     // Number of attempts.
     $options = array(get_string('unlimited'));
-    for ($i = 1; $i <= QUIZ_MAX_ATTEMPT_OPTION; $i++) {
+    for ($i = 1; $i <= ADAQUIZ_MAX_ATTEMPT_OPTION; $i++) {
         $options[$i] = $i;
     }
-    $quizsettings->add(new admin_setting_configselect_with_advanced('quiz/attempts',
-            get_string('attemptsallowed', 'quiz'), get_string('configattemptsallowed', 'quiz'),
+    $adaquizsettings->add(new admin_setting_configselect_with_advanced('adaquiz/attempts',
+            get_string('attemptsallowed', 'adaquiz'), get_string('configattemptsallowed', 'adaquiz'),
             array('value' => 0, 'adv' => false), $options));
 
     // Grading method.
-    $quizsettings->add(new mod_quiz_admin_setting_grademethod('quiz/grademethod',
-            get_string('grademethod', 'quiz'), get_string('configgrademethod', 'quiz'),
-            array('value' => QUIZ_GRADEHIGHEST, 'adv' => false), null));
+    $adaquizsettings->add(new mod_adaquiz_admin_setting_grademethod('adaquiz/grademethod',
+            get_string('grademethod', 'adaquiz'), get_string('configgrademethod', 'adaquiz'),
+            array('value' => ADAQUIZ_GRADEHIGHEST, 'adv' => false), null));
 
     // Maximum grade.
-    $quizsettings->add(new admin_setting_configtext('quiz/maximumgrade',
-            get_string('maximumgrade'), get_string('configmaximumgrade', 'quiz'), 10, PARAM_INT));
+    $adaquizsettings->add(new admin_setting_configtext('adaquiz/maximumgrade',
+            get_string('maximumgrade'), get_string('configmaximumgrade', 'adaquiz'), 10, PARAM_INT));
 
     // Shuffle questions.
-    $quizsettings->add(new admin_setting_configcheckbox_with_advanced('quiz/shufflequestions',
-            get_string('shufflequestions', 'quiz'), get_string('configshufflequestions', 'quiz'),
+    $adaquizsettings->add(new admin_setting_configcheckbox_with_advanced('adaquiz/shufflequestions',
+            get_string('shufflequestions', 'adaquiz'), get_string('configshufflequestions', 'adaquiz'),
             array('value' => 0, 'adv' => false)));
 
     // Questions per page.
     $perpage = array();
     $perpage[0] = get_string('never');
-    $perpage[1] = get_string('aftereachquestion', 'quiz');
-    for ($i = 2; $i <= QUIZ_MAX_QPP_OPTION; ++$i) {
-        $perpage[$i] = get_string('afternquestions', 'quiz', $i);
+    $perpage[1] = get_string('aftereachquestion', 'adaquiz');
+    for ($i = 2; $i <= ADAQUIZ_MAX_QPP_OPTION; ++$i) {
+        $perpage[$i] = get_string('afternquestions', 'adaquiz', $i);
     }
-    $quizsettings->add(new admin_setting_configselect_with_advanced('quiz/questionsperpage',
-            get_string('newpageevery', 'quiz'), get_string('confignewpageevery', 'quiz'),
+    $adaquizsettings->add(new admin_setting_configselect_with_advanced('adaquiz/questionsperpage',
+            get_string('newpageevery', 'adaquiz'), get_string('confignewpageevery', 'adaquiz'),
             array('value' => 1, 'adv' => false), $perpage));
 
     // Navigation method.
-    $quizsettings->add(new admin_setting_configselect_with_advanced('quiz/navmethod',
-            get_string('navmethod', 'quiz'), get_string('confignavmethod', 'quiz'),
-            array('value' => QUIZ_NAVMETHOD_FREE, 'adv' => true), quiz_get_navigation_options()));
+    $adaquizsettings->add(new admin_setting_configselect_with_advanced('adaquiz/navmethod',
+            get_string('navmethod', 'adaquiz'), get_string('confignavmethod', 'adaquiz'),
+            array('value' => ADAQUIZ_NAVMETHOD_FREE, 'adv' => true), adaquiz_get_navigation_options()));
 
     // Shuffle within questions.
-    $quizsettings->add(new admin_setting_configcheckbox_with_advanced('quiz/shuffleanswers',
-            get_string('shufflewithin', 'quiz'), get_string('configshufflewithin', 'quiz'),
+    $adaquizsettings->add(new admin_setting_configcheckbox_with_advanced('adaquiz/shuffleanswers',
+            get_string('shufflewithin', 'adaquiz'), get_string('configshufflewithin', 'adaquiz'),
             array('value' => 1, 'adv' => false)));
 
     // Preferred behaviour.
-    $quizsettings->add(new admin_setting_question_behaviour('quiz/preferredbehaviour',
-            get_string('howquestionsbehave', 'question'), get_string('howquestionsbehave_desc', 'quiz'),
+    $adaquizsettings->add(new admin_setting_question_behaviour('adaquiz/preferredbehaviour',
+            get_string('howquestionsbehave', 'question'), get_string('howquestionsbehave_desc', 'adaquiz'),
             'deferredfeedback'));
 
     // Each attempt builds on last.
-    $quizsettings->add(new admin_setting_configcheckbox_with_advanced('quiz/attemptonlast',
-            get_string('eachattemptbuildsonthelast', 'quiz'),
-            get_string('configeachattemptbuildsonthelast', 'quiz'),
+    $adaquizsettings->add(new admin_setting_configcheckbox_with_advanced('adaquiz/attemptonlast',
+            get_string('eachattemptbuildsonthelast', 'adaquiz'),
+            get_string('configeachattemptbuildsonthelast', 'adaquiz'),
             array('value' => 0, 'adv' => true)));
 
     // Review options.
-    $quizsettings->add(new admin_setting_heading('reviewheading',
-            get_string('reviewoptionsheading', 'quiz'), ''));
-    foreach (mod_quiz_admin_review_setting::fields() as $field => $name) {
-        $default = mod_quiz_admin_review_setting::all_on();
+    $adaquizsettings->add(new admin_setting_heading('reviewheading',
+            get_string('reviewoptionsheading', 'adaquiz'), ''));
+    foreach (mod_adaquiz_admin_review_setting::fields() as $field => $name) {
+        $default = mod_adaquiz_admin_review_setting::all_on();
         $forceduring = null;
         if ($field == 'attempt') {
             $forceduring = true;
         } else if ($field == 'overallfeedback') {
-            $default = $default ^ mod_quiz_admin_review_setting::DURING;
+            $default = $default ^ mod_adaquiz_admin_review_setting::DURING;
             $forceduring = false;
         }
-        $quizsettings->add(new mod_quiz_admin_review_setting('quiz/review' . $field,
+        $adaquizsettings->add(new mod_adaquiz_admin_review_setting('adaquiz/review' . $field,
                 $name, '', $default, $forceduring));
     }
 
     // Show the user's picture.
-    $quizsettings->add(new mod_quiz_admin_setting_user_image('quiz/showuserpicture',
-            get_string('showuserpicture', 'quiz'), get_string('configshowuserpicture', 'quiz'),
+    $adaquizsettings->add(new mod_adaquiz_admin_setting_user_image('adaquiz/showuserpicture',
+            get_string('showuserpicture', 'adaquiz'), get_string('configshowuserpicture', 'adaquiz'),
             array('value' => 0, 'adv' => false), null));
 
     // Decimal places for overall grades.
     $options = array();
-    for ($i = 0; $i <= QUIZ_MAX_DECIMAL_OPTION; $i++) {
+    for ($i = 0; $i <= ADAQUIZ_MAX_DECIMAL_OPTION; $i++) {
         $options[$i] = $i;
     }
-    $quizsettings->add(new admin_setting_configselect_with_advanced('quiz/decimalpoints',
-            get_string('decimalplaces', 'quiz'), get_string('configdecimalplaces', 'quiz'),
+    $adaquizsettings->add(new admin_setting_configselect_with_advanced('adaquiz/decimalpoints',
+            get_string('decimalplaces', 'adaquiz'), get_string('configdecimalplaces', 'adaquiz'),
             array('value' => 2, 'adv' => false), $options));
 
     // Decimal places for question grades.
-    $options = array(-1 => get_string('sameasoverall', 'quiz'));
-    for ($i = 0; $i <= QUIZ_MAX_Q_DECIMAL_OPTION; $i++) {
+    $options = array(-1 => get_string('sameasoverall', 'adaquiz'));
+    for ($i = 0; $i <= ADAQUIZ_MAX_Q_DECIMAL_OPTION; $i++) {
         $options[$i] = $i;
     }
-    $quizsettings->add(new admin_setting_configselect_with_advanced('quiz/questiondecimalpoints',
-            get_string('decimalplacesquestion', 'quiz'),
-            get_string('configdecimalplacesquestion', 'quiz'),
+    $adaquizsettings->add(new admin_setting_configselect_with_advanced('adaquiz/questiondecimalpoints',
+            get_string('decimalplacesquestion', 'adaquiz'),
+            get_string('configdecimalplacesquestion', 'adaquiz'),
             array('value' => -1, 'adv' => true), $options));
 
-    // Show blocks during quiz attempts.
-    $quizsettings->add(new admin_setting_configcheckbox_with_advanced('quiz/showblocks',
-            get_string('showblocks', 'quiz'), get_string('configshowblocks', 'quiz'),
+    // Show blocks during adaptive quiz attempts.
+    $adaquizsettings->add(new admin_setting_configcheckbox_with_advanced('adaquiz/showblocks',
+            get_string('showblocks', 'adaquiz'), get_string('configshowblocks', 'adaquiz'),
             array('value' => 0, 'adv' => true)));
 
     // Password.
-    $quizsettings->add(new admin_setting_configtext_with_advanced('quiz/password',
-            get_string('requirepassword', 'quiz'), get_string('configrequirepassword', 'quiz'),
+    $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/password',
+            get_string('requirepassword', 'adaquiz'), get_string('configrequirepassword', 'adaquiz'),
             array('value' => '', 'adv' => true), PARAM_TEXT));
 
     // IP restrictions.
-    $quizsettings->add(new admin_setting_configtext_with_advanced('quiz/subnet',
-            get_string('requiresubnet', 'quiz'), get_string('configrequiresubnet', 'quiz'),
+    $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/subnet',
+            get_string('requiresubnet', 'adaquiz'), get_string('configrequiresubnet', 'adaquiz'),
             array('value' => '', 'adv' => true), PARAM_TEXT));
 
     // Enforced delay between attempts.
-    $quizsettings->add(new admin_setting_configtext_with_advanced('quiz/delay1',
-            get_string('delay1st2nd', 'quiz'), get_string('configdelay1st2nd', 'quiz'),
+    $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/delay1',
+            get_string('delay1st2nd', 'adaquiz'), get_string('configdelay1st2nd', 'adaquiz'),
             array('value' => 0, 'adv' => true), PARAM_INT));
-    $quizsettings->add(new admin_setting_configtext_with_advanced('quiz/delay2',
-            get_string('delaylater', 'quiz'), get_string('configdelaylater', 'quiz'),
+    $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/delay2',
+            get_string('delaylater', 'adaquiz'), get_string('configdelaylater', 'adaquiz'),
             array('value' => 0, 'adv' => true), PARAM_INT));
 
     // Browser security.
-    $quizsettings->add(new mod_quiz_admin_setting_browsersecurity('quiz/browsersecurity',
-            get_string('showinsecurepopup', 'quiz'), get_string('configpopup', 'quiz'),
+    $adaquizsettings->add(new mod_adaquiz_admin_setting_browsersecurity('adaquiz/browsersecurity',
+            get_string('showinsecurepopup', 'adaquiz'), get_string('configpopup', 'adaquiz'),
             array('value' => '-', 'adv' => true), null));
 
     // Allow user to specify if setting outcomes is an advanced setting.
     if (!empty($CFG->enableoutcomes)) {
-        $quizsettings->add(new admin_setting_configcheckbox('quiz/outcomes_adv',
-            get_string('outcomesadvanced', 'quiz'), get_string('configoutcomesadvanced', 'quiz'),
+        $adaquizsettings->add(new admin_setting_configcheckbox('adaquiz/outcomes_adv',
+            get_string('outcomesadvanced', 'adaquiz'), get_string('configoutcomesadvanced', 'adaquiz'),
             '0'));
     }
 
     // Autosave frequency.
     $options = array(
-          0 => get_string('donotuseautosave', 'quiz'),
-         60 => get_string('oneminute', 'quiz'),
+          0 => get_string('donotuseautosave', 'adaquiz'),
+         60 => get_string('oneminute', 'adaquiz'),
         120 => get_string('numminutes', 'moodle', 2),
         300 => get_string('numminutes', 'moodle', 5),
     );
-    $quizsettings->add(new admin_setting_configselect('quiz/autosaveperiod',
-            get_string('autosaveperiod', 'quiz'), get_string('autosaveperiod_desc', 'quiz'), 120, $options));
+    $adaquizsettings->add(new admin_setting_configselect('adaquiz/autosaveperiod',
+            get_string('autosaveperiod', 'adaquiz'), get_string('autosaveperiod_desc', 'adaquiz'), 120, $options));
 }
 
 // Now, depending on whether any reports have their own settings page, add
-// the quiz setting page to the appropriate place in the tree.
+// the adaptive quiz setting page to the appropriate place in the tree.
 if (empty($reportsbyname) && empty($rulesbyname)) {
-    $ADMIN->add('modsettings', $quizsettings);
+    $ADMIN->add('modsettings', $adaquizsettings);
 } else {
-    $ADMIN->add('modsettings', new admin_category('modsettingsquizcat',
-            get_string('modulename', 'quiz'), $module->is_enabled() === false));
-    $ADMIN->add('modsettingsquizcat', $quizsettings);
+    $ADMIN->add('modsettings', new admin_category('modsettingsadaquizcat',
+            get_string('modulename', 'adaquiz'), $module->is_enabled() === false));
+    $ADMIN->add('modsettingsadaquizcat', $adaquizsettings);
 
-    // Add settings pages for the quiz report subplugins.
+    // Add settings pages for the adaptive quiz report subplugins.
     foreach ($reportsbyname as $strreportname => $report) {
         $reportname = $report;
 
-        $settings = new admin_settingpage('modsettingsquizcat'.$reportname,
+        $settings = new admin_settingpage('modsettingsadaquizcat'.$reportname,
                 $strreportname, 'moodle/site:config', $module->is_enabled() === false);
         if ($ADMIN->fulltree) {
-            include($CFG->dirroot . "/mod/quiz/report/$reportname/settings.php");
+            include($CFG->dirroot . "/mod/adaquiz/report/$reportname/settings.php");
         }
         if (!empty($settings)) {
-            $ADMIN->add('modsettingsquizcat', $settings);
+            $ADMIN->add('modsettingsadaquizcat', $settings);
         }
     }
 
-    // Add settings pages for the quiz access rule subplugins.
+    // Add settings adaptive pages for the adaptive quiz access rule subplugins.
     foreach ($rulesbyname as $strrulename => $rule) {
-        $settings = new admin_settingpage('modsettingsquizcat' . $rule,
+        $settings = new admin_settingpage('modsettingsadaquizcat' . $rule,
                 $strrulename, 'moodle/site:config', $module->is_enabled() === false);
         if ($ADMIN->fulltree) {
-            include($CFG->dirroot . "/mod/quiz/accessrule/$rule/settings.php");
+            include($CFG->dirroot . "/mod/adaquiz/accessrule/$rule/settings.php");
         }
         if (!empty($settings)) {
             $ADMIN->add('modsettingsquizcat', $settings);

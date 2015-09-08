@@ -15,16 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Sub-plugin definitions for the quiz module.
- *
- * @package   mod_quiz
- * @copyright 2010 Petr Skoda
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Sub-plugin definition for adaptive quiz.
+ * @package    mod
+ * @subpackage adaquiz
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 $subplugins = array(
-    'quiz' => 'mod/quiz/report',
-    'quizaccess' => 'mod/quiz/accessrule',
+    'adaquiz' => 'mod/adaquiz/report',
+    // 'quizaccess' => 'mod/adaquiz/accessrule',
 );

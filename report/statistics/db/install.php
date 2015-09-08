@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Post-install script for the quiz statistics report.
- * @package   quiz_statistics
- * @copyright 2010 Petr Skoda (http://skodak.org)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Post-install script for the adaptive quiz statistics report.
+ * @package    adaquiz_statistics
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Post-install script
  */
-function xmldb_quiz_statistics_install() {
+function xmldb_adaquiz_statistics_install() {
     global $DB;
 
     $dbman = $DB->get_manager();
@@ -34,11 +34,11 @@ function xmldb_quiz_statistics_install() {
     $record = new stdClass();
     $record->name         = 'statistics';
     $record->displayorder = 8000;
-    $record->capability   = 'quiz/statistics:view';
+    $record->capability   = 'adaquiz/statistics:view';
 
-    if ($dbman->table_exists('quiz_reports')) {
-        $DB->insert_record('quiz_reports', $record);
+    if ($dbman->table_exists('adaquiz_reports')) {
+        $DB->insert_record('adaquiz_reports', $record);
     } else {
-        $DB->insert_record('quiz_report', $record);
+        $DB->insert_record('adaquiz_report', $record);
     }
 }

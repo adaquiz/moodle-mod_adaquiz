@@ -15,22 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Defines the \mod_quiz\structure class.
+ * Defines the \mod_adaquiz\structure class.
  *
- * @package   mod_quiz
+ * @package   mod_adaquiz
  * @copyright 2013 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_quiz;
+namespace mod_adaquiz;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Quiz structure class.
+ * Adaptive quiz structure class.
  *
- * The structure of the quiz. That is, which questions it is built up
- * from. This is used on the Edit quiz page (edit.php) and also when
- * starting an attempt at the quiz (startattempt.php). Once an attempt
+ * The structure of the adaptive quiz. That is, which questions it is built up
+ * from. This is used on the Edit adaptive quiz page (edit.php) and also when
+ * starting an attempt at the adaptive quiz (startattempt.php). Once an attempt
  * has been started, then the attempt holds the specific set of questions
  * that that student should answer, and we no longer use this class.
  *
@@ -38,24 +38,24 @@ defined('MOODLE_INTERNAL') || die();
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class structure {
-    /** @var \quiz the quiz this is the structure of. */
-    protected $quizobj = null;
+    /** @var \quiz the adaptive quiz this is the structure of. */
+    protected $adaquizobj = null;
 
     /**
-     * @var \stdClass[] the questions in this quiz. Contains the row from the questions
-     * table, with the data from the quiz_slots table added, and also question_categories.contextid.
+     * @var \stdClass[] the questions in this adaptive quiz. Contains the row from the questions
+     * table, with the data from the adaquiz_slots table added, and also question_categories.contextid.
      */
     protected $questions = array();
 
-    /** @var \stdClass[] quiz_slots.id => the quiz_slots rows for this quiz, agumented by sectionid. */
+    /** @var \stdClass[] adaquiz_slots.id => the adaquiz_slots rows for this adaptive quiz, agumented by sectionid. */
     protected $slots = array();
 
-    /** @var \stdClass[] quiz_slots.slot => the quiz_slots rows for this quiz, agumented by sectionid. */
+    /** @var \stdClass[] adaquiz_slots.slot => the adaquiz_slots rows for this adaptive quiz, agumented by sectionid. */
     protected $slotsinorder = array();
 
     /**
      * @var \stdClass[] currently a dummy. Holds data that will match the
-     * quiz_sections, once it exists.
+     * adaquiz_sections, once it exists.
      */
     protected $sections = array();
 
@@ -63,7 +63,7 @@ class structure {
     protected $canbeedited = null;
 
     /**
-     * Create an instance of this class representing an empty quiz.
+     * Create an instance of this class representing an empty adaptive quiz.
      * @return structure
      */
     public static function create() {
@@ -71,28 +71,28 @@ class structure {
     }
 
     /**
-     * Create an instance of this class representing the structure of a given quiz.
-     * @param \quiz $quizobj the quiz.
+     * Create an instance of this class representing the structure of a given adaptive quiz.
+     * @param \adaquiz $adaquizobj the adaptive quiz.
      * @return structure
      */
-    public static function create_for_quiz($quizobj) {
+    public static function create_for_adaquiz($adaquizobj) {
         $structure = self::create();
-        $structure->quizobj = $quizobj;
-        $structure->populate_structure($quizobj->get_quiz());
+        $structure->adaquizobj = $adaquizobj;
+        $structure->populate_structure($adaquizobj->get_adaquiz());
         return $structure;
     }
 
     /**
-     * Whether there are any questions in the quiz.
-     * @return bool true if there is at least one question in the quiz.
+     * Whether there are any questions in the adaptive quiz.
+     * @return bool true if there is at least one question in the adaptive quiz.
      */
     public function has_questions() {
         return !empty($this->questions);
     }
 
     /**
-     * Get the number of questions in the quiz.
-     * @return int the number of questions in the quiz.
+     * Get the number of questions in the adaptive quiz.
+     * @return int the number of questions in the adaptive quiz.
      */
     public function get_question_count() {
         return count($this->questions);
@@ -102,7 +102,7 @@ class structure {
      * Get the information about the question with this id.
      * @param int $questionid The question id.
      * @return \stdClass the data from the questions table, augmented with
-     * question_category.contextid, and the quiz_slots data for the question in this quiz.
+     * question_category.contextid, and the adaquiz_slots data for the question in this adaptive quiz.
      */
     public function get_question_by_id($questionid) {
         return $this->questions[$questionid];
@@ -112,48 +112,48 @@ class structure {
      * Get the information about the question in a given slot.
      * @param int $slotnumber the index of the slot in question.
      * @return \stdClass the data from the questions table, augmented with
-     * question_category.contextid, and the quiz_slots data for the question in this quiz.
+     * question_category.contextid, and the adaquiz_slots data for the question in this adaptive quiz.
      */
     public function get_question_in_slot($slotnumber) {
         return $this->questions[$this->slotsinorder[$slotnumber]->questionid];
     }
 
     /**
-     * Get the course module id of the quiz.
-     * @return int the course_modules.id for the quiz.
+     * Get the course module id of the adaptive quiz.
+     * @return int the course_modules.id for the adaptive quiz.
      */
     public function get_cmid() {
-        return $this->quizobj->get_cmid();
+        return $this->adaquizobj->get_cmid();
     }
 
     /**
-     * Get id of the quiz.
-     * @return int the quiz.id for the quiz.
+     * Get id of the adaptive quiz.
+     * @return int the adaquiz.id for the adaptive quiz.
      */
-    public function get_quizid() {
-        return $this->quizobj->get_quizid();
+    public function get_adaquizid() {
+        return $this->adaquizobj->get_adaquizid();
     }
 
     /**
-     * Get the quiz object.
-     * @return \stdClass the quiz settings row from the database.
+     * Get the adaquiz object.
+     * @return \stdClass the adaptive quiz settings row from the database.
      */
-    public function get_quiz() {
-        return $this->quizobj->get_quiz();
+    public function get_adaquiz() {
+        return $this->adaquizobj->get_adaquiz();
     }
 
     /**
-     * Whether the question in the quiz are shuffled for each attempt.
+     * Whether the question in the adaptive quiz are shuffled for each attempt.
      * @return bool true if the questions are shuffled.
      */
     public function is_shuffled() {
-        return $this->quizobj->get_quiz()->shufflequestions;
+        return $this->adaquizobj->get_adaquiz()->shufflequestions;
     }
 
     /**
-     * Quizzes can only be repaginated if they have not been attempted, the
+     * Adaptive quizzes can only be repaginated if they have not been attempted, the
      * questions are not shuffled, and there are two or more questions.
-     * @return bool whether this quiz can be repaginated.
+     * @return bool whether this adaptive quiz can be repaginated.
      */
     public function can_be_repaginated() {
         return !$this->is_shuffled() && $this->can_be_edited()
@@ -161,43 +161,43 @@ class structure {
     }
 
     /**
-     * Quizzes can only be edited if they have not been attempted.
-     * @return bool whether the quiz can be edited.
+     * Adaptive quizzes can only be edited if they have not been attempted.
+     * @return bool whether the adaptive quiz can be edited.
      */
     public function can_be_edited() {
         if ($this->canbeedited === null) {
-            $this->canbeedited = !quiz_has_attempts($this->quizobj->get_quizid());
+            $this->canbeedited = !adaquiz_has_attempts($this->adaquizobj->get_adaquizid());
         }
         return $this->canbeedited;
     }
 
     /**
-     * This quiz can only be edited if they have not been attempted.
+     * This adaptive quiz can only be edited if they have not been attempted.
      * Throw an exception if this is not the case.
      */
     public function check_can_be_edited() {
         if (!$this->can_be_edited()) {
-            $reportlink = quiz_attempt_summary_link_to_reports($this->get_quiz(),
-                    $this->quizobj->get_cm(), $this->quizobj->get_context());
-            throw new \moodle_exception('cannoteditafterattempts', 'quiz',
-                    new \moodle_url('/mod/quiz/edit.php', array('cmid' => $this->get_cmid())), $reportlink);
+            $reportlink = adaquiz_attempt_summary_link_to_reports($this->get_adaquiz(),
+                    $this->adaquizobj->get_cm(), $this->adaquizobj->get_context());
+            throw new \moodle_exception('cannoteditafterattempts', 'adaquiz',
+                    new \moodle_url('/mod/adaquiz/edit.php', array('cmid' => $this->get_cmid())), $reportlink);
         }
     }
 
     /**
-     * How many questions are allowed per page in the quiz.
+     * How many questions are allowed per page in the adaptive quiz.
      * This setting controls how frequently extra page-breaks should be inserted
-     * automatically when questions are added to the quiz.
+     * automatically when questions are added to the adaptive quiz.
      * @return int the number of questions that should be on each page of the
-     * quiz by default.
+     * adaptive quiz by default.
      */
     public function get_questions_per_page() {
-        return $this->quizobj->get_quiz()->questionsperpage;
+        return $this->adaquizobj->get_adaquiz()->questionsperpage;
     }
 
     /**
-     * Get quiz slots.
-     * @return \stdClass[] the slots in this quiz.
+     * Get adaptive quiz slots.
+     * @return \stdClass[] the slots in this adaptive quiz.
      */
     public function get_slots() {
         return $this->slots;
@@ -228,18 +228,18 @@ class structure {
     }
 
     /**
-     * Is this slot the last one in the quiz?
+     * Is this slot the last one in the adaptive quiz?
      * @param int $slotnumber the index of the slot in question.
-     * @return bool whether this slot the last one in the quiz.
+     * @return bool whether this slot the last one in the adaptive quiz.
      */
-    public function is_last_slot_in_quiz($slotnumber) {
+    public function is_last_slot_in_adaquiz($slotnumber) {
         end($this->slotsinorder);
         return $slotnumber == key($this->slotsinorder);
     }
 
     /**
-     * Get the final slot in the quiz.
-     * @return \stdClass the quiz_slots for for the final slot in the quiz.
+     * Get the final slot in the adaptive quiz.
+     * @return \stdClass the adaquiz_slots for for the final slot in the adaptive quiz.
      */
     public function get_last_slot() {
         return end($this->slotsinorder);
@@ -248,7 +248,7 @@ class structure {
     /**
      * Get a slot by it's id. Throws an exception if it is missing.
      * @param int $slotid the slot id.
-     * @return \stdClass the requested quiz_slots row.
+     * @return \stdClass the requested adaquiz_slots row.
      */
     public function get_slot_by_id($slotid) {
         if (!array_key_exists($slotid, $this->slots)) {
@@ -258,7 +258,7 @@ class structure {
     }
 
     /**
-     * Get all the questions in a section of the quiz.
+     * Get all the questions in a section of the adaptive quiz.
      * @param int $sectionid the section id.
      * @return \stdClass[] of question/slot objects.
      */
@@ -273,10 +273,10 @@ class structure {
     }
 
     /**
-     * Get all the sections of the quiz.
-     * @return \stdClass[] the sections in this quiz.
+     * Get all the sections of the adaptive quiz.
+     * @return \stdClass[] the sections in this adaptive quiz.
      */
-    public function get_quiz_sections() {
+    public function get_adaquiz_sections() {
         return $this->sections;
     }
 
@@ -287,84 +287,84 @@ class structure {
     public function get_edit_page_warnings() {
         $warnings = array();
 
-        if (quiz_has_attempts($this->quizobj->get_quizid())) {
-            $reviewlink = quiz_attempt_summary_link_to_reports($this->quizobj->get_quiz(),
-                    $this->quizobj->get_cm(), $this->quizobj->get_context());
-            $warnings[] = get_string('cannoteditafterattempts', 'quiz', $reviewlink);
+        if (adaquiz_has_attempts($this->adaquizobj->get_adaquizid())) {
+            $reviewlink = adaquiz_attempt_summary_link_to_reports($this->adaquizobj->get_adaquiz(),
+                    $this->adaquizobj->get_cm(), $this->adaquizobj->get_context());
+            $warnings[] = get_string('cannoteditafterattempts', 'adaquiz', $reviewlink);
         }
 
         if ($this->is_shuffled()) {
             $updateurl = new \moodle_url('/course/mod.php',
-                    array('return' => 'true', 'update' => $this->quizobj->get_cmid(), 'sesskey' => sesskey()));
+                    array('return' => 'true', 'update' => $this->adaquizobj->get_cmid(), 'sesskey' => sesskey()));
             $updatelink = '<a href="'.$updateurl->out().'">' . get_string('updatethis', '',
-                    get_string('modulename', 'quiz')) . '</a>';
-            $warnings[] = get_string('shufflequestionsselected', 'quiz', $updatelink);
+                    get_string('modulename', 'adaquiz')) . '</a>';
+            $warnings[] = get_string('shufflequestionsselected', 'adaquiz', $updatelink);
         }
 
         return $warnings;
     }
 
     /**
-     * Get the date information about the current state of the quiz.
+     * Get the date information about the current state of the adaptive quiz.
      * @return string[] array of two strings. First a short summary, then a longer
      * explanation of the current state, e.g. for a tool-tip.
      */
     public function get_dates_summary() {
         $timenow = time();
-        $quiz = $this->quizobj->get_quiz();
+        $adaquiz = $this->adaquizobj->get_adaquiz();
 
         // Exact open and close dates for the tool-tip.
         $dates = array();
-        if ($quiz->timeopen > 0) {
-            if ($timenow > $quiz->timeopen) {
-                $dates[] = get_string('quizopenedon', 'quiz', userdate($quiz->timeopen));
+        if ($adaquiz->timeopen > 0) {
+            if ($timenow > $adaquiz->timeopen) {
+                $dates[] = get_string('quizopenedon', 'adaquiz', userdate($adaquiz->timeopen));
             } else {
-                $dates[] = get_string('quizwillopen', 'quiz', userdate($quiz->timeopen));
+                $dates[] = get_string('quizwillopen', 'adaquiz', userdate($adaquiz->timeopen));
             }
         }
-        if ($quiz->timeclose > 0) {
-            if ($timenow > $quiz->timeclose) {
-                $dates[] = get_string('quizclosed', 'quiz', userdate($quiz->timeclose));
+        if ($adaquiz->timeclose > 0) {
+            if ($timenow > $adaquiz->timeclose) {
+                $dates[] = get_string('quizclosed', 'adaquiz', userdate($adaquiz->timeclose));
             } else {
-                $dates[] = get_string('quizcloseson', 'quiz', userdate($quiz->timeclose));
+                $dates[] = get_string('quizcloseson', 'adaquiz', userdate($adaquiz->timeclose));
             }
         }
         if (empty($dates)) {
-            $dates[] = get_string('alwaysavailable', 'quiz');
+            $dates[] = get_string('alwaysavailable', 'adaquiz');
         }
         $explanation = implode(', ', $dates);
 
         // Brief summary on the page.
-        if ($timenow < $quiz->timeopen) {
-            $currentstatus = get_string('quizisclosedwillopen', 'quiz',
-                    userdate($quiz->timeopen, get_string('strftimedatetimeshort', 'langconfig')));
-        } else if ($quiz->timeclose && $timenow <= $quiz->timeclose) {
-            $currentstatus = get_string('quizisopenwillclose', 'quiz',
-                    userdate($quiz->timeclose, get_string('strftimedatetimeshort', 'langconfig')));
-        } else if ($quiz->timeclose && $timenow > $quiz->timeclose) {
-            $currentstatus = get_string('quizisclosed', 'quiz');
+        if ($timenow < $adaquiz->timeopen) {
+            $currentstatus = get_string('quizisclosedwillopen', 'adaquiz',
+                    userdate($adaquiz->timeopen, get_string('strftimedatetimeshort', 'langconfig')));
+        } else if ($adaquiz->timeclose && $timenow <= $adaquiz->timeclose) {
+            $currentstatus = get_string('quizisopenwillclose', 'adaquiz',
+                    userdate($adaquiz->timeclose, get_string('strftimedatetimeshort', 'langconfig')));
+        } else if ($adaquiz->timeclose && $timenow > $adaquiz->timeclose) {
+            $currentstatus = get_string('quizisclosed', 'adaquiz');
         } else {
-            $currentstatus = get_string('quizisopen', 'quiz');
+            $currentstatus = get_string('quizisopen', 'adaquiz');
         }
 
         return array($currentstatus, $explanation);
     }
 
     /**
-     * Set up this class with the structure for a given quiz.
-     * @param \stdClass $quiz the quiz settings.
+     * Set up this class with the structure for a given adaptive quiz.
+     * @param \stdClass $adaquiz the adaptive quiz settings.
      */
-    public function populate_structure($quiz) {
+    public function populate_structure($adaquiz) {
         global $DB;
 
         $slots = $DB->get_records_sql("
                 SELECT slot.id AS slotid, slot.slot, slot.questionid, slot.page, slot.maxmark,
                        q.*, qc.contextid
-                  FROM {quiz_slots} slot
+                  FROM {adaquiz_slots} slot
                   LEFT JOIN {question} q ON q.id = slot.questionid
                   LEFT JOIN {question_categories} qc ON qc.id = q.category
-                 WHERE slot.quizid = ?
-              ORDER BY slot.slot", array($quiz->id));
+                 WHERE slot.adaquizid = ?
+              ORDER BY slot.slot", array($adaquiz->id));
 
         $slots = $this->populate_missing_questions($slots);
 
@@ -377,7 +377,7 @@ class structure {
             $slot = new \stdClass();
             $slot->id = $slotdata->slotid;
             $slot->slot = $slotdata->slot;
-            $slot->quizid = $quiz->id;
+            $slot->adaquizid = $adaquiz->id;
             $slot->page = $slotdata->page;
             $slot->questionid = $slotdata->questionid;
             $slot->maxmark = $slotdata->maxmark;
@@ -388,7 +388,7 @@ class structure {
 
         $section = new \stdClass();
         $section->id = 1;
-        $section->quizid = $quiz->id;
+        $section->adaquizid = $adaquiz->id;
         $section->heading = '';
         $section->firstslot = 1;
         $section->shuffle = false;
@@ -400,7 +400,7 @@ class structure {
 
     /**
      * Used by populate. Make up fake data for any missing questions.
-     * @param \stdClass[] $slots the data about the slots and questions in the quiz.
+     * @param \stdClass[] $slots the data about the slots and questions in the adaptive quiz.
      * @return \stdClass[] updated $slots array.
      */
     protected function populate_missing_questions($slots) {
@@ -411,7 +411,7 @@ class structure {
                 $slot->id = $slot->questionid;
                 $slot->category = 0;
                 $slot->qtype = 'missingtype';
-                $slot->name = get_string('missingquestion', 'quiz');
+                $slot->name = get_string('missingquestion', 'adaquiz');
                 $slot->slot = $slot->slot;
                 $slot->maxmark = 0;
                 $slot->questiontext = ' ';
@@ -453,7 +453,7 @@ class structure {
         foreach ($this->slots as $slot) {
             $question = $this->questions[$slot->questionid];
             if ($question->length == 0) {
-                $question->displayednumber = get_string('infoshort', 'quiz');
+                $question->displayednumber = get_string('infoshort', 'adaquiz');
             } else {
                 $question->displayednumber = $number;
                 $number += 1;
@@ -508,8 +508,8 @@ class structure {
 
         // Slot has moved record new order.
         if ($slotreorder) {
-            update_field_with_unique_index('quiz_slots', 'slot', $slotreorder,
-                    array('quizid' => $this->get_quizid()));
+            update_field_with_unique_index('adaquiz_slots', 'slot', $slotreorder,
+                    array('adaquizid' => $this->get_adaquizid()));
         }
 
         // Page has changed. Record it.
@@ -517,42 +517,42 @@ class structure {
             $page = 1;
         }
         if ($movingslot->page != $page) {
-            $DB->set_field('quiz_slots', 'page', $page,
+            $DB->set_field('adaquiz_slots', 'page', $page,
                     array('id' => $movingslot->id));
         }
 
         $emptypages = $DB->get_fieldset_sql("
                 SELECT DISTINCT page - 1
-                  FROM {quiz_slots} slot
-                 WHERE quizid = ?
+                  FROM {adaquiz_slots} slot
+                 WHERE adaquizid = ?
                    AND page > 1
-                   AND NOT EXISTS (SELECT 1 FROM {quiz_slots} WHERE quizid = ? AND page = slot.page - 1)
+                   AND NOT EXISTS (SELECT 1 FROM {adaquiz_slots} WHERE adaquizid = ? AND page = slot.page - 1)
               ORDER BY page - 1 DESC
-                ", array($this->get_quizid(), $this->get_quizid()));
+                ", array($this->get_adaquizid(), $this->get_adaquizid()));
 
         foreach ($emptypages as $page) {
             $DB->execute("
-                    UPDATE {quiz_slots}
+                    UPDATE {adaquiz_slots}
                        SET page = page - 1
-                     WHERE quizid = ?
+                     WHERE adaquizid = ?
                        AND page > ?
-                    ", array($this->get_quizid(), $page));
+                    ", array($this->get_adaquizid(), $page));
         }
 
         $trans->allow_commit();
     }
 
     /**
-     * Refresh page numbering of quiz slots.
-     * @param \stdClass $quiz the quiz object.
+     * Refresh page numbering of adaptive quiz slots.
+     * @param \stdClass $adaquiz the adaptive quiz object.
      * @param \stdClass[] $slots (optional) array of slot objects.
      * @return \stdClass[] array of slot objects.
      */
-    public function refresh_page_numbers($quiz, $slots=array()) {
+    public function refresh_page_numbers($adaquiz, $slots=array()) {
         global $DB;
         // Get slots ordered by page then slot.
         if (!count($slots)) {
-            $slots = $DB->get_records('quiz_slots', array('quizid' => $quiz->id), 'slot, page');
+            $slots = $DB->get_records('adaquiz_slots', array('adaquizid' => $adaquiz->id), 'slot, page');
         }
 
         // Loop slots. Start Page number at 1 and increment as required.
@@ -574,19 +574,19 @@ class structure {
     }
 
     /**
-     * Refresh page numbering of quiz slots and save to the database.
-     * @param \stdClass $quiz the quiz object.
+     * Refresh page numbering of adaptive quiz slots and save to the database.
+     * @param \stdClass $adaquiz the adaptive quiz object.
      * @return \stdClass[] array of slot objects.
      */
-    public function refresh_page_numbers_and_update_db($quiz) {
+    public function refresh_page_numbers_and_update_db($adaquiz) {
         global $DB;
         $this->check_can_be_edited();
 
-        $slots = $this->refresh_page_numbers($quiz);
+        $slots = $this->refresh_page_numbers($adaquiz);
 
         // Record new page order.
         foreach ($slots as $slot) {
-            $DB->set_field('quiz_slots', 'page', $slot->page,
+            $DB->set_field('adaquiz_slots', 'page', $slot->page,
                     array('id' => $slot->id));
         }
 
@@ -594,26 +594,26 @@ class structure {
     }
 
     /**
-     * Remove a slot from a quiz
-     * @param \stdClass $quiz the quiz object.
+     * Remove a slot from an adaptive quiz
+     * @param \stdClass $adaquiz the adaptive quiz object.
      * @param int $slotnumber The number of the slot to be deleted.
      */
-    public function remove_slot($quiz, $slotnumber) {
+    public function remove_slot($adaquiz, $slotnumber) {
         global $DB;
 
         $this->check_can_be_edited();
 
-        $slot = $DB->get_record('quiz_slots', array('quizid' => $quiz->id, 'slot' => $slotnumber));
-        $maxslot = $DB->get_field_sql('SELECT MAX(slot) FROM {quiz_slots} WHERE quizid = ?', array($quiz->id));
+        $slot = $DB->get_record('adaquiz_slots', array('adaquizid' => $adaquiz->id, 'slot' => $slotnumber));
+        $maxslot = $DB->get_field_sql('SELECT MAX(slot) FROM {adaquiz_slots} WHERE adaquizid = ?', array($adaquiz->id));
         if (!$slot) {
             return;
         }
 
         $trans = $DB->start_delegated_transaction();
-        $DB->delete_records('quiz_slots', array('id' => $slot->id));
+        $DB->delete_records('adaquiz_slots', array('id' => $slot->id));
         for ($i = $slot->slot + 1; $i <= $maxslot; $i++) {
-            $DB->set_field('quiz_slots', 'slot', $i - 1,
-                    array('quizid' => $quiz->id, 'slot' => $i));
+            $DB->set_field('adaquiz_slots', 'slot', $i - 1,
+                    array('adaquizid' => $adaquiz->id, 'slot' => $i));
         }
 
         $qtype = $DB->get_field('question', 'qtype', array('id' => $slot->questionid));
@@ -624,7 +624,7 @@ class structure {
 
         unset($this->questions[$slot->questionid]);
 
-        $this->refresh_page_numbers_and_update_db($quiz);
+        $this->refresh_page_numbers_and_update_db($adaquiz);
 
         $trans->allow_commit();
     }
@@ -632,11 +632,11 @@ class structure {
     /**
      * Change the max mark for a slot.
      *
-     * Saves changes to the question grades in the quiz_slots table and any
+     * Saves changes to the question grades in the adaquiz_slots table and any
      * corresponding question_attempts.
-     * It does not update 'sumgrades' in the quiz table.
+     * It does not update 'sumgrades' in the adaptive quiz table.
      *
-     * @param \stdClass $slot row from the quiz_slots table.
+     * @param \stdClass $slot row from the adaquiz_slots table.
      * @param float $maxmark the new maxmark.
      * @return bool true if the new grade is different from the old one.
      */
@@ -650,8 +650,8 @@ class structure {
 
         $trans = $DB->start_delegated_transaction();
         $slot->maxmark = $maxmark;
-        $DB->update_record('quiz_slots', $slot);
-        \question_engine::set_max_mark_in_attempts(new \qubaids_for_quiz($slot->quizid),
+        $DB->update_record('adaquiz_slots', $slot);
+        \question_engine::set_max_mark_in_attempts(new \qubaids_for_adaquiz($slot->adaquizid),
                 $slot->slot, $maxmark);
         $trans->allow_commit();
 
@@ -661,23 +661,23 @@ class structure {
     /**
      * Add/Remove a pagebreak.
      *
-     * Saves changes to the slot page relationship in the quiz_slots table and reorders the paging
+     * Saves changes to the slot page relationship in the adaquiz_slots table and reorders the paging
      * for subsequent slots.
      *
-     * @param \stdClass $quiz the quiz object.
+     * @param \stdClass $adaquiz the adaptive quiz object.
      * @param int $slotid id of slot.
      * @param int $type repaginate::LINK or repaginate::UNLINK.
      * @return \stdClass[] array of slot objects.
      */
-    public function update_page_break($quiz, $slotid, $type) {
+    public function update_page_break($adaquiz, $slotid, $type) {
         global $DB;
 
         $this->check_can_be_edited();
 
-        $quizslots = $DB->get_records('quiz_slots', array('quizid' => $quiz->id), 'slot');
-        $repaginate = new \mod_quiz\repaginate($quiz->id, $quizslots);
-        $repaginate->repaginate_slots($quizslots[$slotid]->slot, $type);
-        $slots = $this->refresh_page_numbers_and_update_db($quiz);
+        $adaquizslots = $DB->get_records('adaquiz_slots', array('adaquizid' => $adaquiz->id), 'slot');
+        $repaginate = new \mod_adaquiz\repaginate($adaquiz->id, $adaquizslots);
+        $repaginate->repaginate_slots($adaquizslots[$slotid]->slot, $type);
+        $slots = $this->refresh_page_numbers_and_update_db($adaquiz);
 
         return $slots;
     }

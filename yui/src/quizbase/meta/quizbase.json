@@ -1,5 +1,5 @@
 {
-    "moodle-mod_quiz-quizbase": {
+    "moodle-mod_adaquiz-adaquizbase": {
         "requires": [
             "base",
             "node"

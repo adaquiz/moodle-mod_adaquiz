@@ -1,18 +1,18 @@
 {
-  "name": "moodle-mod_quiz-util",
+  "name": "moodle-mod_adaquiz-util",
   "builds": {
-    "moodle-mod_quiz-util-base": {
+    "moodle-mod_adaquiz-util-base": {
       "jsfiles": [
         "base.js"
       ]
     },
-    "moodle-mod_quiz-util-slot": {
+    "moodle-mod_adaquiz-util-slot": {
       "jsfiles": [
         "slot.js"
       ]
     }
     ,
-    "moodle-mod_quiz-util-page": {
+    "moodle-mod_adaquiz-util-page": {
       "jsfiles": [
         "page.js"
       ]

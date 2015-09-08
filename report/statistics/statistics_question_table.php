@@ -17,10 +17,9 @@
 /**
  * Quiz statistics report, table for showing response analysis for a particular question (or sub question).
  *
- * @package   quiz_statistics
- * @copyright 2014 Open University
- * @author    James Pratt <me@jamiep.org>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    adaquiz_statistics
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -39,7 +38,7 @@ require_once($CFG->libdir . '/tablelib.php');
  * @author    James Pratt <me@jamiep.org>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class quiz_statistics_question_table extends flexible_table {
+class adaquiz_statistics_question_table extends flexible_table {
     /** @var object full question object for this question. */
     protected $questiondata;
 
@@ -53,7 +52,7 @@ class quiz_statistics_question_table extends flexible_table {
      * displayed.
      */
     public function __construct($qid) {
-        parent::__construct('mod-quiz-report-statistics-question-table' . $qid);
+        parent::__construct('mod-adaquiz-report-statistics-question-table' . $qid);
     }
 
     /**
@@ -70,7 +69,7 @@ class quiz_statistics_question_table extends flexible_table {
 
         $this->define_baseurl($reporturl->out());
         $this->collapsible(false);
-        $this->set_attribute('class', 'generaltable generalbox boxaligncenter quizresponseanalysis');
+        $this->set_attribute('class', 'generaltable generalbox boxaligncenter adaquizresponseanalysis');
 
         // Define the table columns.
         $columns = array();
@@ -78,39 +77,39 @@ class quiz_statistics_question_table extends flexible_table {
 
         if ($responseanalysis->has_subparts()) {
             $columns[] = 'part';
-            $headers[] = get_string('partofquestion', 'quiz_statistics');
+            $headers[] = get_string('partofquestion', 'adaquiz_statistics');
         }
 
         if ($responseanalysis->has_multiple_response_classes()) {
             $columns[] = 'responseclass';
-            $headers[] = get_string('modelresponse', 'quiz_statistics');
+            $headers[] = get_string('modelresponse', 'adaquiz_statistics');
 
             if ($responseanalysis->has_actual_responses()) {
                 $columns[] = 'response';
-                $headers[] = get_string('actualresponse', 'quiz_statistics');
+                $headers[] = get_string('actualresponse', 'adaquiz_statistics');
             }
 
         } else {
             $columns[] = 'response';
-            $headers[] = get_string('response', 'quiz_statistics');
+            $headers[] = get_string('response', 'adaquiz_statistics');
         }
 
         $columns[] = 'fraction';
-        $headers[] = get_string('optiongrade', 'quiz_statistics');
+        $headers[] = get_string('optiongrade', 'adaquiz_statistics');
 
         if (!$responseanalysis->has_multiple_tries_data()) {
             $columns[] = 'totalcount';
-            $headers[] = get_string('count', 'quiz_statistics');
+            $headers[] = get_string('count', 'adaquiz_statistics');
         } else {
             $countcolumns = range(1, $responseanalysis->get_maximum_tries());
             foreach ($countcolumns as $countcolumn) {
                 $columns[] = 'trycount'.$countcolumn;
-                $headers[] = get_string('counttryno', 'quiz_statistics', $countcolumn);
+                $headers[] = get_string('counttryno', 'adaquiz_statistics', $countcolumn);
             }
         }
 
         $columns[] = 'frequency';
-        $headers[] = get_string('frequency', 'quiz_statistics');
+        $headers[] = get_string('frequency', 'adaquiz_statistics');
 
         $this->define_columns($columns);
         $this->define_headers($headers);

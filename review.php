@@ -15,26 +15,26 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This page prints a review of a particular quiz attempt
+ * This page prints a review of a particular adaptive quiz attempt
  *
  * It is used either by the student whose attempts this is, after the attempt,
  * or by a teacher reviewing another's attempt during or afterwards.
  *
- * @package   mod_quiz
- * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 require_once(dirname(__FILE__) . '/../../config.php');
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-require_once($CFG->dirroot . '/mod/quiz/report/reportlib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/reportlib.php');
 
 $attemptid = required_param('attempt', PARAM_INT);
 $page      = optional_param('page', 0, PARAM_INT);
 $showall   = optional_param('showall', null, PARAM_BOOL);
 
-$url = new moodle_url('/mod/quiz/review.php', array('attempt'=>$attemptid));
+$url = new moodle_url('/mod/adaquiz/review.php', array('attempt'=>$attemptid));
 if ($page !== 0) {
     $url->param('page', $page);
 } else if ($showall) {
@@ -42,7 +42,7 @@ if ($page !== 0) {
 }
 $PAGE->set_url($url);
 
-$attemptobj = quiz_attempt::create($attemptid);
+$attemptobj = adaquiz_attempt::create($attemptid);
 $page = $attemptobj->force_page_number_into_range($page);
 
 // Now we can validate the params better, re-genrate the page URL.
@@ -67,12 +67,12 @@ if ($attemptobj->is_own_attempt()) {
         redirect($attemptobj->attempt_url(null, $page));
 
     } else if (!$options->attempt) {
-        $accessmanager->back_to_view_page($PAGE->get_renderer('mod_quiz'),
+        $accessmanager->back_to_view_page($PAGE->get_renderer('mod_adaquiz'),
                 $attemptobj->cannot_review_message());
     }
 
 } else if (!$attemptobj->is_review_allowed()) {
-    throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'noreviewattempt');
+    throw new moodle_adaquiz_exception($attemptobj->get_adaquizobj(), 'noreviewattempt');
 }
 
 // Load the questions and states needed by this page.
@@ -92,32 +92,32 @@ if ($options->flags == question_display_options::EDITABLE && optional_param('sav
 
 // Work out appropriate title and whether blocks should be shown.
 if ($attemptobj->is_preview_user() && $attemptobj->is_own_attempt()) {
-    $strreviewtitle = get_string('reviewofpreview', 'quiz');
+    $strreviewtitle = get_string('reviewofpreview', 'adaquiz');
     navigation_node::override_active_url($attemptobj->start_attempt_url());
 
 } else {
-    $strreviewtitle = get_string('reviewofattempt', 'quiz', $attemptobj->get_attempt_number());
-    if (empty($attemptobj->get_quiz()->showblocks) && !$attemptobj->is_preview_user()) {
+    $strreviewtitle = get_string('reviewofattempt', 'adaquiz', $attemptobj->get_attempt_number());
+    if (empty($attemptobj->get_adaquiz()->showblocks) && !$attemptobj->is_preview_user()) {
         $PAGE->blocks->show_only_fake_blocks();
     }
 }
 
 // Set up the page header.
 $headtags = $attemptobj->get_html_head_contributions($page, $showall);
-$PAGE->set_title($attemptobj->get_quiz_name());
+$PAGE->set_title($attemptobj->get_adaquiz_name());
 $PAGE->set_heading($attemptobj->get_course()->fullname);
 
 // Summary table start. ============================================================================
 
 // Work out some time-related things.
 $attempt = $attemptobj->get_attempt();
-$quiz = $attemptobj->get_quiz();
+$adaquiz = $attemptobj->get_adaquiz();
 $overtime = 0;
 
-if ($attempt->state == quiz_attempt::FINISHED) {
+if ($attempt->state == adaquiz_attempt::FINISHED) {
     if ($timetaken = ($attempt->timefinish - $attempt->timestart)) {
-        if ($quiz->timelimit && $timetaken > ($quiz->timelimit + 60)) {
-            $overtime = $timetaken - $quiz->timelimit;
+        if ($adaquiz->timelimit && $timetaken > ($adaquiz->timelimit + 60)) {
+            $overtime = $timetaken - $adaquiz->timelimit;
             $overtime = format_time($overtime);
         }
         $timetaken = format_time($timetaken);
@@ -125,12 +125,12 @@ if ($attempt->state == quiz_attempt::FINISHED) {
         $timetaken = "-";
     }
 } else {
-    $timetaken = get_string('unfinished', 'quiz');
+    $timetaken = get_string('unfinished', 'adaquiz');
 }
 
 // Prepare summary informat about the whole attempt.
 $summarydata = array();
-if (!$attemptobj->get_quiz()->showuserpicture && $attemptobj->get_userid() != $USER->id) {
+if (!$attemptobj->get_adaquiz()->showuserpicture && $attemptobj->get_userid() != $USER->id) {
     // If showuserpicture is true, the picture is shown elsewhere, so don't repeat it.
     $student = $DB->get_record('user', array('id' => $attemptobj->get_userid()));
     $usrepicture = new user_picture($student);
@@ -143,12 +143,12 @@ if (!$attemptobj->get_quiz()->showuserpicture && $attemptobj->get_userid() != $U
     );
 }
 
-if ($attemptobj->has_capability('mod/quiz:viewreports')) {
+if ($attemptobj->has_capability('mod/adaquiz:viewreports')) {
     $attemptlist = $attemptobj->links_to_other_attempts($attemptobj->review_url(null, $page,
             $showall));
     if ($attemptlist) {
         $summarydata['attemptlist'] = array(
-            'title'   => get_string('attempts', 'quiz'),
+            'title'   => get_string('attempts', 'adaquiz'),
             'content' => $attemptlist,
         );
     }
@@ -156,71 +156,71 @@ if ($attemptobj->has_capability('mod/quiz:viewreports')) {
 
 // Timing information.
 $summarydata['startedon'] = array(
-    'title'   => get_string('startedon', 'quiz'),
+    'title'   => get_string('startedon', 'adaquiz'),
     'content' => userdate($attempt->timestart),
 );
 
 $summarydata['state'] = array(
-    'title'   => get_string('attemptstate', 'quiz'),
-    'content' => quiz_attempt::state_name($attempt->state),
+    'title'   => get_string('attemptstate', 'adaquiz'),
+    'content' => adaquiz_attempt::state_name($attempt->state),
 );
 
-if ($attempt->state == quiz_attempt::FINISHED) {
+if ($attempt->state == adaquiz_attempt::FINISHED) {
     $summarydata['completedon'] = array(
-        'title'   => get_string('completedon', 'quiz'),
+        'title'   => get_string('completedon', 'adaquiz'),
         'content' => userdate($attempt->timefinish),
     );
     $summarydata['timetaken'] = array(
-        'title'   => get_string('timetaken', 'quiz'),
+        'title'   => get_string('timetaken', 'adaquiz'),
         'content' => $timetaken,
     );
 }
 
 if (!empty($overtime)) {
     $summarydata['overdue'] = array(
-        'title'   => get_string('overdue', 'quiz'),
+        'title'   => get_string('overdue', 'adaquiz'),
         'content' => $overtime,
     );
 }
 
 // Show marks (if the user is allowed to see marks at the moment).
-$grade = quiz_rescale_grade($attempt->sumgrades, $quiz, false);
-if ($options->marks >= question_display_options::MARK_AND_MAX && quiz_has_grades($quiz)) {
+$grade = adaquiz_rescale_grade($attempt->sumgrades, $adaquiz, false);
+if ($options->marks >= question_display_options::MARK_AND_MAX && adaquiz_has_grades($adaquiz)) {
 
-    if ($attempt->state != quiz_attempt::FINISHED) {
+    if ($attempt->state != adaquiz_attempt::FINISHED) {
         // Cannot display grade.
 
     } else if (is_null($grade)) {
         $summarydata['grade'] = array(
-            'title'   => get_string('grade', 'quiz'),
-            'content' => quiz_format_grade($quiz, $grade),
+            'title'   => get_string('grade', 'adaquiz'),
+            'content' => adaquiz_format_grade($adaquiz, $grade),
         );
 
     } else {
         // Show raw marks only if they are different from the grade (like on the view page).
-        if ($quiz->grade != $quiz->sumgrades) {
+        if ($adaquiz->grade != $adaquiz->sumgrades) {
             $a = new stdClass();
-            $a->grade = quiz_format_grade($quiz, $attempt->sumgrades);
-            $a->maxgrade = quiz_format_grade($quiz, $quiz->sumgrades);
+            $a->grade = adaquiz_format_grade($adaquiz, $attempt->sumgrades);
+            $a->maxgrade = adaquiz_format_grade($adaquiz, $adaquiz->sumgrades);
             $summarydata['marks'] = array(
-                'title'   => get_string('marks', 'quiz'),
-                'content' => get_string('outofshort', 'quiz', $a),
+                'title'   => get_string('marks', 'adaquiz'),
+                'content' => get_string('outofshort', 'adaquiz', $a),
             );
         }
 
         // Now the scaled grade.
         $a = new stdClass();
-        $a->grade = html_writer::tag('b', quiz_format_grade($quiz, $grade));
-        $a->maxgrade = quiz_format_grade($quiz, $quiz->grade);
-        if ($quiz->grade != 100) {
+        $a->grade = html_writer::tag('b', adaquiz_format_grade($adaquiz, $grade));
+        $a->maxgrade = adaquiz_format_grade($adaquiz, $adaquiz->grade);
+        if ($adaquiz->grade != 100) {
             $a->percent = html_writer::tag('b', format_float(
-                    $attempt->sumgrades * 100 / $quiz->sumgrades, 0));
-            $formattedgrade = get_string('outofpercent', 'quiz', $a);
+                    $attempt->sumgrades * 100 / $adaquiz->sumgrades, 0));
+            $formattedgrade = get_string('outofpercent', 'adaquiz', $a);
         } else {
-            $formattedgrade = get_string('outof', 'quiz', $a);
+            $formattedgrade = get_string('outof', 'adaquiz', $a);
         }
         $summarydata['grade'] = array(
-            'title'   => get_string('grade', 'quiz'),
+            'title'   => get_string('grade', 'adaquiz'),
             'content' => $formattedgrade,
         );
     }
@@ -233,7 +233,7 @@ $summarydata = array_merge($summarydata, $attemptobj->get_additional_summary_dat
 $feedback = $attemptobj->get_overall_feedback($grade);
 if ($options->overallfeedback && $feedback) {
     $summarydata['feedback'] = array(
-        'title'   => get_string('feedback', 'quiz'),
+        'title'   => get_string('feedback', 'adaquiz'),
         'content' => $feedback,
     );
 }
@@ -248,10 +248,10 @@ if ($showall) {
     $lastpage = $attemptobj->is_last_page($page);
 }
 
-$output = $PAGE->get_renderer('mod_quiz');
+$output = $PAGE->get_renderer('mod_adaquiz');
 
 // Arrange for the navigation to be displayed.
-$navbc = $attemptobj->get_navigation_panel($output, 'quiz_review_nav_panel', $page, $showall);
+$navbc = $attemptobj->get_navigation_panel($output, 'adaquiz_review_nav_panel', $page, $showall);
 $regions = $PAGE->blocks->get_regions();
 $PAGE->blocks->add_fake_block($navbc, reset($regions));
 
@@ -264,9 +264,9 @@ $params = array(
     'courseid' => $attemptobj->get_courseid(),
     'context' => context_module::instance($attemptobj->get_cmid()),
     'other' => array(
-        'quizid' => $attemptobj->get_quizid()
+        'adaquizid' => $attemptobj->get_adaquizid()
     )
 );
-$event = \mod_quiz\event\attempt_reviewed::create($params);
-$event->add_record_snapshot('quiz_attempts', $attemptobj->get_attempt());
+$event = \mod_adaquiz\event\attempt_reviewed::create($params);
+$event->add_record_snapshot('adaquiz_attempts', $attemptobj->get_attempt());
 $event->trigger();

@@ -1,7 +1,7 @@
 /**
- * Drag and Drop for Quiz sections and slots.
+ * Drag and Drop for Adaptive quiz sections and slots.
  *
- * @module moodle-mod-quiz-dragdrop
+ * @module moodle-mod-adaquiz-dragdrop
  */
 
 var CSS = {
@@ -9,7 +9,7 @@ var CSS = {
     ACTIVITY: 'activity',
     ACTIVITYINSTANCE: 'activityinstance',
     CONTENT: 'content',
-    COURSECONTENT: 'mod-quiz-edit-content',
+    COURSECONTENT: 'mod-adaquiz-edit-content',
     EDITINGMOVE: 'editing_move',
     ICONCLASS: 'iconsmall',
     JUMPMENU: 'jumpmenu',

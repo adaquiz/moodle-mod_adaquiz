@@ -16,26 +16,25 @@
 /**
  * JavaScript library for the quiz module.
  *
- * @package    mod
- * @subpackage quiz
- * @copyright  1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-M.mod_quiz = M.mod_quiz || {};
+M.mod_adaquiz = M.mod_adaquiz || {};
 
-M.mod_quiz.init_attempt_form = function(Y) {
+M.mod_adaquiz.init_attempt_form = function(Y) {
     M.core_question_engine.init_form(Y, '#responseform');
-    Y.on('submit', M.mod_quiz.timer.stop, '#responseform');
+    Y.on('submit', M.mod_adaquiz.timer.stop, '#responseform');
     M.core_formchangechecker.init({formid: 'responseform'});
 };
 
-M.mod_quiz.init_review_form = function(Y) {
+M.mod_adaquiz.init_review_form = function(Y) {
     M.core_question_engine.init_form(Y, '.questionflagsaveform');
     Y.on('submit', function(e) { e.halt(); }, '.questionflagsaveform');
 };
 
-M.mod_quiz.init_comment_popup = function(Y) {
+M.mod_adaquiz.init_comment_popup = function(Y) {
     // Add a close button to the window.
     var closebutton = Y.Node.create('<input type="button" />');
     closebutton.set('value', M.util.get_string('cancel', 'moodle'));
@@ -44,7 +43,7 @@ M.mod_quiz.init_comment_popup = function(Y) {
 }
 
 // Code for updating the countdown timer that is used on timed quizzes.
-M.mod_quiz.timer = {
+M.mod_adaquiz.timer = {
     // YUI object.
     Y: null,
 
@@ -64,10 +63,10 @@ M.mod_quiz.timer = {
      * @param preview, is this a quiz preview?
      */
     init: function(Y, start, preview) {
-        M.mod_quiz.timer.Y = Y;
-        M.mod_quiz.timer.endtime = M.pageloadstarttime.getTime() + start*1000;
-        M.mod_quiz.timer.preview = preview;
-        M.mod_quiz.timer.update();
+        M.mod_adaquiz.timer.Y = Y;
+        M.mod_adaquiz.timer.endtime = M.pageloadstarttime.getTime() + start*1000;
+        M.mod_adaquiz.timer.preview = preview;
+        M.mod_adaquiz.timer.update();
         Y.one('#quiz-timer').setStyle('display', 'block');
     },
 
@@ -75,8 +74,8 @@ M.mod_quiz.timer = {
      * Stop the timer, if it is running.
      */
     stop: function(e) {
-        if (M.mod_quiz.timer.timeoutid) {
-            clearTimeout(M.mod_quiz.timer.timeoutid);
+        if (M.mod_adaquiz.timer.timeoutid) {
+            clearTimeout(M.mod_adaquiz.timer.timeoutid);
         }
     },
 
@@ -93,12 +92,12 @@ M.mod_quiz.timer = {
 
     // Function to update the clock with the current time left, and submit the quiz if necessary.
     update: function() {
-        var Y = M.mod_quiz.timer.Y;
-        var secondsleft = Math.floor((M.mod_quiz.timer.endtime - new Date().getTime())/1000);
+        var Y = M.mod_adaquiz.timer.Y;
+        var secondsleft = Math.floor((M.mod_adaquiz.timer.endtime - new Date().getTime())/1000);
 
         // If time has expired, set the hidden form field that says time has expired and submit
         if (secondsleft < 0) {
-            M.mod_quiz.timer.stop(null);
+            M.mod_adaquiz.timer.stop(null);
             Y.one('#quiz-time-left').setContent(M.str.quiz.timesup);
             var input = Y.one('input[name=timeup]');
             input.set('value', 1);
@@ -125,19 +124,19 @@ M.mod_quiz.timer = {
         secondsleft -= minutes*60;
         var seconds = secondsleft;
         Y.one('#quiz-time-left').setContent(hours + ':' +
-                M.mod_quiz.timer.two_digit(minutes) + ':' +
-                M.mod_quiz.timer.two_digit(seconds));
+                M.mod_adaquiz.timer.two_digit(minutes) + ':' +
+                M.mod_adaquiz.timer.two_digit(seconds));
 
         // Arrange for this method to be called again soon.
-        M.mod_quiz.timer.timeoutid = setTimeout(M.mod_quiz.timer.update, 100);
+        M.mod_adaquiz.timer.timeoutid = setTimeout(M.mod_adaquiz.timer.update, 100);
     }
 };
 
-M.mod_quiz.nav = M.mod_quiz.nav || {};
+M.mod_adaquiz.nav = M.mod_adaquiz.nav || {};
 
-M.mod_quiz.nav.update_flag_state = function(attemptid, questionid, newstate) {
-    var Y = M.mod_quiz.nav.Y;
-    var navlink = Y.one('#quiznavbutton' + questionid);
+M.mod_adaquiz.nav.update_flag_state = function(attemptid, questionid, newstate) {
+    var Y = M.mod_adaquiz.nav.Y;
+    var navlink = Y.one('#adaquiznavbutton' + questionid);
     navlink.removeClass('flagged');
     if (newstate == 1) {
         navlink.addClass('flagged');
@@ -147,10 +146,10 @@ M.mod_quiz.nav.update_flag_state = function(attemptid, questionid, newstate) {
     }
 };
 
-M.mod_quiz.nav.init = function(Y) {
-    M.mod_quiz.nav.Y = Y;
+M.mod_adaquiz.nav.init = function(Y) {
+    M.mod_adaquiz.nav.Y = Y;
 
-    Y.all('#quiznojswarning').remove();
+    Y.all('#adaquiznojswarning').remove();
 
     var form = Y.one('#responseform');
     if (form) {
@@ -209,35 +208,35 @@ M.mod_quiz.nav.init = function(Y) {
     }
 
     if (M.core_question_flags) {
-        M.core_question_flags.add_listener(M.mod_quiz.nav.update_flag_state);
+        M.core_question_flags.add_listener(M.mod_adaquiz.nav.update_flag_state);
     }
 };
 
-M.mod_quiz.secure_window = {
+M.mod_adaquiz.secure_window = {
     init: function(Y) {
         if (window.location.href.substring(0, 4) == 'file') {
             window.location = 'about:blank';
         }
-        Y.delegate('contextmenu', M.mod_quiz.secure_window.prevent, document, '*');
-        Y.delegate('mousedown',   M.mod_quiz.secure_window.prevent_mouse, 'body', '*');
-        Y.delegate('mouseup',     M.mod_quiz.secure_window.prevent_mouse, 'body', '*');
-        Y.delegate('dragstart',   M.mod_quiz.secure_window.prevent, document, '*');
-        Y.delegate('selectstart', M.mod_quiz.secure_window.prevent_selection, document, '*');
-        Y.delegate('cut',         M.mod_quiz.secure_window.prevent, document, '*');
-        Y.delegate('copy',        M.mod_quiz.secure_window.prevent, document, '*');
-        Y.delegate('paste',       M.mod_quiz.secure_window.prevent, document, '*');
+        Y.delegate('contextmenu', M.mod_adaquiz.secure_window.prevent, document, '*');
+        Y.delegate('mousedown',   M.mod_adaquiz.secure_window.prevent_mouse, 'body', '*');
+        Y.delegate('mouseup',     M.mod_adaquiz.secure_window.prevent_mouse, 'body', '*');
+        Y.delegate('dragstart',   M.mod_adaquiz.secure_window.prevent, document, '*');
+        Y.delegate('selectstart', M.mod_adaquiz.secure_window.prevent_selection, document, '*');
+        Y.delegate('cut',         M.mod_adaquiz.secure_window.prevent, document, '*');
+        Y.delegate('copy',        M.mod_adaquiz.secure_window.prevent, document, '*');
+        Y.delegate('paste',       M.mod_adaquiz.secure_window.prevent, document, '*');
         Y.on('beforeprint', function() {
             Y.one(document.body).setStyle('display', 'none');
         }, window);
         Y.on('afterprint', function() {
             Y.one(document.body).setStyle('display', 'block');
         }, window);
-        Y.on('key', M.mod_quiz.secure_window.prevent, '*', 'press:67,86,88+ctrl');
-        Y.on('key', M.mod_quiz.secure_window.prevent, '*', 'up:67,86,88+ctrl');
-        Y.on('key', M.mod_quiz.secure_window.prevent, '*', 'down:67,86,88+ctrl');
-        Y.on('key', M.mod_quiz.secure_window.prevent, '*', 'press:67,86,88+meta');
-        Y.on('key', M.mod_quiz.secure_window.prevent, '*', 'up:67,86,88+meta');
-        Y.on('key', M.mod_quiz.secure_window.prevent, '*', 'down:67,86,88+meta');
+        Y.on('key', M.mod_adaquiz.secure_window.prevent, '*', 'press:67,86,88+ctrl');
+        Y.on('key', M.mod_adaquiz.secure_window.prevent, '*', 'up:67,86,88+ctrl');
+        Y.on('key', M.mod_adaquiz.secure_window.prevent, '*', 'down:67,86,88+ctrl');
+        Y.on('key', M.mod_adaquiz.secure_window.prevent, '*', 'press:67,86,88+meta');
+        Y.on('key', M.mod_adaquiz.secure_window.prevent, '*', 'up:67,86,88+meta');
+        Y.on('key', M.mod_adaquiz.secure_window.prevent, '*', 'down:67,86,88+meta');
     },
 
     is_content_editable: function(n) {
@@ -248,7 +247,7 @@ M.mod_quiz.secure_window = {
         if (n === null) {
             return false;
         }
-        return M.mod_quiz.secure_window.is_content_editable(n);
+        return M.mod_adaquiz.secure_window.is_content_editable(n);
     },
 
     prevent_selection: function(e) {
@@ -265,7 +264,7 @@ M.mod_quiz.secure_window = {
             // Left click on a button or similar. No worries.
             return;
         }
-        if (e.button == 1 && M.mod_quiz.secure_window.is_content_editable(e.target)) {
+        if (e.button == 1 && M.mod_adaquiz.secure_window.is_content_editable(e.target)) {
             // Left click in Atto or similar.
             return;
         }
@@ -291,7 +290,7 @@ M.mod_quiz.secure_window = {
 
     init_close_button: function(Y, url) {
         Y.on('click', function(e) {
-            M.mod_quiz.secure_window.close(url, 0)
+            M.mod_adaquiz.secure_window.close(url, 0)
         }, '#secureclosebutton');
     },
 

@@ -15,65 +15,65 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Quiz events tests.
+ * Adaptive quiz events tests.
  *
- * @package   mod_quiz
+ * @package   mod_adaquiz
  * @category  test
- * @copyright 2013 Adrian Greeve
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot . '/mod/quiz/attemptlib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/attemptlib.php');
 
 /**
- * Unit tests for quiz events.
+ * Unit tests for adaptive quiz events.
  *
  * @copyright  2013 Adrian Greeve
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_quiz_structure_testcase extends advanced_testcase {
+class mod_adaquiz_structure_testcase extends advanced_testcase {
 
     /**
-     * Prepare the quiz object with standard data. Ready for testing.
+     * Prepare the adaptive quiz object with standard data. Ready for testing.
      */
-    protected function prepare_quiz_data() {
+    protected function prepare_adaquiz_data() {
 
         $this->resetAfterTest(true);
 
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
 
-        // Make a quiz.
-        $quizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_quiz');
+        // Make an adaptive quiz.
+        $adaquizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_adaquiz');
 
-        $quiz = $quizgenerator->create_instance(array('course' => $course->id, 'questionsperpage' => 0,
+        $adaquiz = $adaquizgenerator->create_instance(array('course' => $course->id, 'questionsperpage' => 0,
             'grade' => 100.0, 'sumgrades' => 2));
 
-        $cm = get_coursemodule_from_instance('quiz', $quiz->id, $course->id);
+        $cm = get_coursemodule_from_instance('adaquiz', $adaquiz->id, $course->id);
 
-        return array($quiz, $cm, $course);
+        return array($adaquiz, $cm, $course);
     }
 
     /**
-     * Test getting the quiz slots.
+     * Test getting the adaptive quiz slots.
      */
-    public function test_get_quiz_slots() {
-        // Get basic quiz.
-        list($quiz, $cm, $course) = $this->prepare_quiz_data();
-        $quizobj = new quiz($quiz, $cm, $course);
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
+    public function test_get_adaquiz_slots() {
+        // Get basic adaptive quiz.
+        list($adaquiz, $cm, $course) = $this->prepare_adaquiz_data();
+        $adaquizobj = new adaquiz($adaquiz, $cm, $course);
+        $structure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
 
         // When no slots exist or slots propery is not set.
         $slots = $structure->get_slots();
         $this->assertInternalType('array', $slots);
         $this->assertCount(0, $slots);
 
-        // Append slots to the quiz.
-        $this->add_eight_questions_to_the_quiz($quiz);
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
+        // Append slots to the adaptive quiz.
+        $this->add_eight_questions_to_the_adaquiz($adaquiz);
+        $structure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
 
         // Are the correct slots returned?
         $slots = $structure->get_slots();
@@ -81,25 +81,25 @@ class mod_quiz_structure_testcase extends advanced_testcase {
     }
 
     /**
-     * Test getting the quiz sections.
+     * Test getting the adaptive quiz sections.
      */
-    public function test_get_quiz_sections() {
-        // Get basic quiz.
-        list($quiz, $cm, $course) = $this->prepare_quiz_data();
-        $quizobj = new quiz($quiz, $cm, $course);
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
+    public function test_get_adaquiz_sections() {
+        // Get basic adaptive quiz.
+        list($adaquiz, $cm, $course) = $this->prepare_adaquiz_data();
+        $adaquizobj = new adaquiz($adaquiz, $cm, $course);
+        $structure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
 
         // Are the correct sections returned?
-        $sections = $structure->get_quiz_sections();
+        $sections = $structure->get_adaquiz_sections();
         $this->assertCount(1, $sections);
     }
 
     /**
      * Verify that the given layout matches that expected.
      * @param array $expectedlayout
-     * @param \mod_quiz\structure $structure
+     * @param \mod_adaquiz\structure $structure
      */
-    protected function assert_quiz_layout($expectedlayout, \mod_quiz\structure $structure) {
+    protected function assert_adaquiz_layout($expectedlayout, \mod_adaquiz\structure $structure) {
         $slotnumber = 0;
         foreach ($expectedlayout as $slotid => $page) {
             $slotnumber += 1;
@@ -111,14 +111,14 @@ class mod_quiz_structure_testcase extends advanced_testcase {
     }
 
     /**
-     * Test moving slots in the quiz.
+     * Test moving slots in the adaptive quiz.
      */
     public function test_move_slot() {
-        // Create a test quiz with 8 questions.
-        list($quiz, $cm, $course) = $this->prepare_quiz_data();
-        $this->add_eight_questions_to_the_quiz($quiz);
-        $quizobj = new quiz($quiz, $cm, $course);
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
+        // Create a test, adaptive quiz with 8 questions.
+        list($adaquiz, $cm, $course) = $this->prepare_adaquiz_data();
+        $this->add_eight_questions_to_the_adaquiz($adaquiz);
+        $adaquizobj = new adaquiz($adaquiz, $cm, $course);
+        $structure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
 
         // Store the original order of slots, so we can assert what has changed.
         $originalslotids = array();
@@ -132,8 +132,8 @@ class mod_quiz_structure_testcase extends advanced_testcase {
         $structure->move_slot($idmove, $idbefore, 2);
 
         // Having called move, we need to reload $structure.
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
-        $this->assert_quiz_layout(array(
+        $structure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
+        $this->assert_adaquiz_layout(array(
                     $originalslotids[1] => 1,
                     $originalslotids[2] => 2,
                     $originalslotids[3] => 2,
@@ -150,8 +150,8 @@ class mod_quiz_structure_testcase extends advanced_testcase {
         $structure->move_slot($idmove, $idbefore, 1);
 
         // Having called move, we need to reload $structure.
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
-        $this->assert_quiz_layout(array(
+        $structure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
+        $this->assert_adaquiz_layout(array(
                     $originalslotids[1] => 1,
                     $originalslotids[2] => 1,
                     $originalslotids[3] => 2,
@@ -168,8 +168,8 @@ class mod_quiz_structure_testcase extends advanced_testcase {
         $structure->move_slot($idmove, $idbefore, '2');
 
         // Having called move, we need to reload $structure.
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
-        $this->assert_quiz_layout(array(
+        $structure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
+        $this->assert_adaquiz_layout(array(
                 $originalslotids[1] => 1,
                 $originalslotids[3] => 2,
                 $originalslotids[2] => 2,
@@ -186,8 +186,8 @@ class mod_quiz_structure_testcase extends advanced_testcase {
         $structure->move_slot($idmove, $idbefore, '3');
 
         // Having called move, we need to reload $structure.
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
-        $this->assert_quiz_layout(array(
+        $structure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
+        $this->assert_adaquiz_layout(array(
                 $originalslotids[1] => 1,
                 $originalslotids[3] => 2,
                 $originalslotids[2] => 2,
@@ -204,8 +204,8 @@ class mod_quiz_structure_testcase extends advanced_testcase {
         $structure->move_slot($idmove, $idbefore, 2);
 
         // Having called move, we need to reload $structure.
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
-        $this->assert_quiz_layout(array(
+        $structure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
+        $this->assert_adaquiz_layout(array(
                 $originalslotids[1] => 1,
                 $originalslotids[3] => 2,
                 $originalslotids[2] => 2,
@@ -222,8 +222,8 @@ class mod_quiz_structure_testcase extends advanced_testcase {
         $structure->move_slot($idmove, $idbefore, 2);
 
         // Having called move, we need to reload $structure.
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
-        $this->assert_quiz_layout(array(
+        $structure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
+        $this->assert_adaquiz_layout(array(
                 $originalslotids[3] => 1,
                 $originalslotids[1] => 1,
                 $originalslotids[2] => 1,
@@ -240,8 +240,8 @@ class mod_quiz_structure_testcase extends advanced_testcase {
         $structure->move_slot($idmove, $idbefore, 1);
 
         // Having called move, we need to reload $structure.
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
-        $this->assert_quiz_layout(array(
+        $structure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
+        $this->assert_adaquiz_layout(array(
                 $originalslotids[3] => 1,
                 $originalslotids[1] => 1,
                 $originalslotids[6] => 1,
@@ -257,8 +257,8 @@ class mod_quiz_structure_testcase extends advanced_testcase {
         $structure->move_slot($idmove, 0, 1);
 
         // Having called move, we need to reload $structure.
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
-        $this->assert_quiz_layout(array(
+        $structure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
+        $this->assert_adaquiz_layout(array(
                 $originalslotids[1] => 1,
                 $originalslotids[3] => 1,
                 $originalslotids[6] => 1,
@@ -271,31 +271,31 @@ class mod_quiz_structure_testcase extends advanced_testcase {
     }
 
     /**
-     * Test removing slots from a quiz.
+     * Test removing slots from an adaptive quiz.
      */
-    public function test_quiz_remove_slot() {
+    public function test_adaquiz_remove_slot() {
         global $SITE, $DB;
 
         $this->resetAfterTest(true);
         $this->setAdminUser();
 
-        // Setup a quiz with 1 standard and 1 random question.
-        $quizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_quiz');
-        $quiz = $quizgenerator->create_instance(array('course' => $SITE->id, 'questionsperpage' => 3, 'grade' => 100.0));
-        $cm = get_coursemodule_from_instance('quiz', $quiz->id, $SITE->id);
+        // Setup an adaptive quiz with 1 standard and 1 random question.
+        $adaquizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_adaquiz');
+        $adaquiz = $adaquizgenerator->create_instance(array('course' => $SITE->id, 'questionsperpage' => 3, 'grade' => 100.0));
+        $cm = get_coursemodule_from_instance('adaquiz', $adaquiz->id, $SITE->id);
 
         $questiongenerator = $this->getDataGenerator()->get_plugin_generator('core_question');
         $cat = $questiongenerator->create_question_category();
         $standardq = $questiongenerator->create_question('shortanswer', null, array('category' => $cat->id));
 
-        quiz_add_quiz_question($standardq->id, $quiz);
-        quiz_add_random_questions($quiz, 0, $cat->id, 1, false);
+        adaquiz_add_adaquiz_question($standardq->id, $adaquiz);
+        adaquiz_add_random_questions($adaquiz, 0, $cat->id, 1, false);
 
         // Get the random question.
         $randomq = $DB->get_record('question', array('qtype' => 'random'));
 
-        $quizobj = new quiz($quiz, $cm, $SITE);
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
+        $adaquizobj = new adaquiz($adaquiz, $cm, $SITE);
+        $structure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
 
         // Check that the setup looks right.
         $this->assertEquals(2, $structure->get_question_count());
@@ -303,9 +303,9 @@ class mod_quiz_structure_testcase extends advanced_testcase {
         $this->assertEquals($randomq->id, $structure->get_question_in_slot(2)->questionid);
 
         // Remove the standard question.
-        $structure->remove_slot($quiz, 1);
+        $structure->remove_slot($adaquiz, 1);
 
-        $alteredstructure = \mod_quiz\structure::create_for_quiz($quizobj);
+        $alteredstructure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
 
         // Check the new ordering, and that the slot number was updated.
         $this->assertEquals(1, $alteredstructure->get_question_count());
@@ -315,8 +315,8 @@ class mod_quiz_structure_testcase extends advanced_testcase {
         $this->assertTrue($DB->record_exists('question', array('id' => $standardq->id)));
 
         // Remove the random question.
-        $structure->remove_slot($quiz, 1);
-        $alteredstructure = \mod_quiz\structure::create_for_quiz($quizobj);
+        $structure->remove_slot($adaquiz, 1);
+        $alteredstructure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
 
         // Check that new ordering.
         $this->assertEquals(0, $alteredstructure->get_question_count());
@@ -326,14 +326,14 @@ class mod_quiz_structure_testcase extends advanced_testcase {
     }
 
     /**
-     * Test updating pagebreaks in the quiz.
+     * Test updating pagebreaks in the adaquiz.
      */
     public function test_update_page_break() {
         // Create a test quiz with 8 questions.
-        list($quiz, $cm, $course) = $this->prepare_quiz_data();
-        $this->add_eight_questions_to_the_quiz($quiz);
-        $quizobj = new quiz($quiz, $cm, $course);
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
+        list($adaquiz, $cm, $course) = $this->prepare_adaquiz_data();
+        $this->add_eight_questions_to_the_adaquiz($adaquiz);
+        $adaquizobj = new adaquiz($adaquiz, $cm, $course);
+        $structure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
 
         // Store the original order of slots, so we can assert what has changed.
         $originalslotids = array();
@@ -343,12 +343,12 @@ class mod_quiz_structure_testcase extends advanced_testcase {
 
         // Test removing a page break.
         $slotid = $structure->get_question_in_slot(2)->slotid;
-        $type = \mod_quiz\repaginate::LINK;
-        $slots = $structure->update_page_break($quiz, $slotid, $type);
+        $type = \mod_adaquiz\repaginate::LINK;
+        $slots = $structure->update_page_break($adaquiz, $slotid, $type);
 
         // Having called update page break, we need to reload $structure.
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
-        $this->assert_quiz_layout(array(
+        $structure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
+        $this->assert_adaquiz_layout(array(
                     $originalslotids[1] => 1,
                     $originalslotids[2] => 1,
                     $originalslotids[3] => 1,
@@ -361,12 +361,12 @@ class mod_quiz_structure_testcase extends advanced_testcase {
 
         // Test adding a page break.
         $slotid = $structure->get_question_in_slot(2)->slotid;
-        $type = \mod_quiz\repaginate::UNLINK;
-        $slots = $structure->update_page_break($quiz, $slotid, $type);
+        $type = \mod_adaquiz\repaginate::UNLINK;
+        $slots = $structure->update_page_break($adaquiz, $slotid, $type);
 
         // Having called update page break, we need to reload $structure.
-        $structure = \mod_quiz\structure::create_for_quiz($quizobj);
-        $this->assert_quiz_layout(array(
+        $structure = \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
+        $this->assert_adaquiz_layout(array(
                     $originalslotids[1] => 1,
                     $originalslotids[2] => 2,
                     $originalslotids[3] => 2,
@@ -379,10 +379,10 @@ class mod_quiz_structure_testcase extends advanced_testcase {
     }
 
     /**
-     * Populate quiz with eight questions.
-     * @param stdClass $quiz the quiz to add to.
+     * Populate adaptive quiz with eight questions.
+     * @param stdClass $adaquiz the adaptive quiz to add to.
      */
-    public function add_eight_questions_to_the_quiz($quiz) {
+    public function add_eight_questions_to_the_adaquiz($adaquiz) {
         // We add 8 numerical questions with this layout:
         // Slot 1 2 3 4 5 6 7 8
         // Page 1 2 2 2 2 2 3 4.
@@ -401,8 +401,8 @@ class mod_quiz_structure_testcase extends advanced_testcase {
             if (in_array($i + 1, $pagenumberdefaults)) {
                 $pagenumber++;
             }
-            // Add them to the quiz.
-            quiz_add_quiz_question($numq->id, $quiz, $pagenumber);
+            // Add them to the adaptive quiz.
+            adaquiz_add_adaquiz_question($numq->id, $adaquiz, $pagenumber);
         }
     }
 }

@@ -1,7 +1,7 @@
 {
-    "name": "moodle-mod_quiz-dragdrop",
+    "name": "moodle-mod_adaquiz-dragdrop",
     "builds": {
-        "moodle-mod_quiz-dragdrop": {
+        "moodle-mod_adaquiz-dragdrop": {
             "jsfiles": [
                 "dragdrop.js",
                 "section.js",

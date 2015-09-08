@@ -15,9 +15,9 @@
 
 
 /**
- * Add a random question functionality for a popup in quiz editing page.
+ * Add a random question functionality for a popup in adaptive quiz editing page.
  *
- * @package   mod_quiz
+ * @package   mod_adaquiz
  * @copyright 2014 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -73,8 +73,8 @@ Y.extend(POPUP, Y.Base, {
     }
 });
 
-M.mod_quiz = M.mod_quiz || {};
-M.mod_quiz.randomquestion = M.mod_quiz.randomquestion || {};
-M.mod_quiz.randomquestion.init = function() {
+M.mod_adaquiz = M.mod_adaquiz || {};
+M.mod_adaquiz.randomquestion = M.mod_adaquiz.randomquestion || {};
+M.mod_adaquiz.randomquestion.init = function() {
     return new POPUP();
 };

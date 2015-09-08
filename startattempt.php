@@ -15,86 +15,86 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script deals with starting a new attempt at a quiz.
+ * This script deals with starting a new attempt at an adaptive quiz.
  *
  * Normally, it will end up redirecting to attempt.php - unless a password form is displayed.
  *
  * This code used to be at the top of attempt.php, if you are looking for CVS history.
  *
- * @package   mod_quiz
- * @copyright 2009 The Open University
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(dirname(__FILE__) . '/../../config.php');
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
 
 // Get submitted parameters.
 $id = required_param('cmid', PARAM_INT); // Course module id
 $forcenew = optional_param('forcenew', false, PARAM_BOOL); // Used to force a new preview
 $page = optional_param('page', -1, PARAM_INT); // Page to jump to in the attempt.
 
-if (!$cm = get_coursemodule_from_id('quiz', $id)) {
+if (!$cm = get_coursemodule_from_id('adaquiz', $id)) {
     print_error('invalidcoursemodule');
 }
 if (!$course = $DB->get_record('course', array('id' => $cm->course))) {
     print_error("coursemisconf");
 }
 
-$quizobj = quiz::create($cm->instance, $USER->id);
+$adaquizobj = adaquiz::create($cm->instance, $USER->id);
 // This script should only ever be posted to, so set page URL to the view page.
-$PAGE->set_url($quizobj->view_url());
+$PAGE->set_url($adaquizobj->view_url());
 
 // Check login and sesskey.
-require_login($quizobj->get_course(), false, $quizobj->get_cm());
+require_login($adaquizobj->get_course(), false, $adaquizobj->get_cm());
 require_sesskey();
-$PAGE->set_heading($quizobj->get_course()->fullname);
+$PAGE->set_heading($adaquizobj->get_course()->fullname);
 
 // If no questions have been set up yet redirect to edit.php or display an error.
-if (!$quizobj->has_questions()) {
-    if ($quizobj->has_capability('mod/quiz:manage')) {
-        redirect($quizobj->edit_url());
+if (!$adaquizobj->has_questions()) {
+    if ($adaquizobj->has_capability('mod/adaquiz:manage')) {
+        redirect($adaquizobj->edit_url());
     } else {
-        print_error('cannotstartnoquestions', 'quiz', $quizobj->view_url());
+        print_error('cannotstartnoquestions', 'adaquiz', $adaquizobj->view_url());
     }
 }
 
 // Create an object to manage all the other (non-roles) access rules.
 $timenow = time();
-$accessmanager = $quizobj->get_access_manager($timenow);
-if ($quizobj->is_preview_user() && $forcenew) {
+$accessmanager = $adaquizobj->get_access_manager($timenow);
+if ($adaquizobj->is_preview_user() && $forcenew) {
     $accessmanager->current_attempt_finished();
 }
 
 // Check capabilities.
-if (!$quizobj->is_preview_user()) {
-    $quizobj->require_capability('mod/quiz:attempt');
+if (!$adaquizobj->is_preview_user()) {
+    $adaquizobj->require_capability('mod/adaquiz:attempt');
 }
 
 // Check to see if a new preview was requested.
-if ($quizobj->is_preview_user() && $forcenew) {
+if ($adaquizobj->is_preview_user() && $forcenew) {
     // To force the creation of a new preview, we mark the current attempt (if any)
     // as finished. It will then automatically be deleted below.
-    $DB->set_field('quiz_attempts', 'state', quiz_attempt::FINISHED,
-            array('quiz' => $quizobj->get_quizid(), 'userid' => $USER->id));
+    $DB->set_field('adaquiz_attempts', 'state', adaquiz_attempt::FINISHED,
+            array('adaquiz' => $adaquizobj->get_adaquizid(), 'userid' => $USER->id));
 }
 
 // Look for an existing attempt.
-$attempts = quiz_get_user_attempts($quizobj->get_quizid(), $USER->id, 'all', true);
+$attempts = adaquiz_get_user_attempts($adaquizobj->get_adaquizid(), $USER->id, 'all', true);
 $lastattempt = end($attempts);
 
 // If an in-progress attempt exists, check password then redirect to it.
-if ($lastattempt && ($lastattempt->state == quiz_attempt::IN_PROGRESS ||
-        $lastattempt->state == quiz_attempt::OVERDUE)) {
+if ($lastattempt && ($lastattempt->state == adaquiz_attempt::IN_PROGRESS ||
+        $lastattempt->state == adaquiz_attempt::OVERDUE)) {
     $currentattemptid = $lastattempt->id;
     $messages = $accessmanager->prevent_access();
 
     // If the attempt is now overdue, deal with that.
-    $quizobj->create_attempt_object($lastattempt)->handle_if_time_expired($timenow, true);
+    $adaquizobj->create_attempt_object($lastattempt)->handle_if_time_expired($timenow, true);
 
     // And, if the attempt is now no longer in progress, redirect to the appropriate place.
-    if ($lastattempt->state == quiz_attempt::ABANDONED || $lastattempt->state == quiz_attempt::FINISHED) {
-        redirect($quizobj->review_url($lastattempt->id));
+    if ($lastattempt->state == adaquiz_attempt::ABANDONED || $lastattempt->state == adaquiz_attempt::FINISHED) {
+        redirect($adaquizobj->review_url($lastattempt->id));
     }
 
     // If the page number was not explicitly in the URL, go to the current page.
@@ -125,16 +125,16 @@ if ($lastattempt && ($lastattempt->state == quiz_attempt::IN_PROGRESS ||
 }
 
 // Check access.
-$output = $PAGE->get_renderer('mod_quiz');
-if (!$quizobj->is_preview_user() && $messages) {
-    print_error('attempterror', 'quiz', $quizobj->view_url(),
+$output = $PAGE->get_renderer('mod_adaquiz');
+if (!$adaquizobj->is_preview_user() && $messages) {
+    print_error('attempterror', 'adaquiz', $adaquizobj->view_url(),
             $output->access_messages($messages));
 }
 
 if ($accessmanager->is_preflight_check_required($currentattemptid)) {
     // Need to do some checks before allowing the user to continue.
     $mform = $accessmanager->get_preflight_check_form(
-            $quizobj->start_attempt_url($page), $currentattemptid);
+            $adaquizobj->start_attempt_url($page), $currentattemptid);
 
     if ($mform->is_cancelled()) {
         $accessmanager->back_to_view_page($output);
@@ -142,14 +142,14 @@ if ($accessmanager->is_preflight_check_required($currentattemptid)) {
     } else if (!$mform->get_data()) {
 
         // Form not submitted successfully, re-display it and stop.
-        $PAGE->set_url($quizobj->start_attempt_url($page));
-        $PAGE->set_title($quizobj->get_quiz_name());
+        $PAGE->set_url($adaquizobj->start_attempt_url($page));
+        $PAGE->set_title($adaquizobj->get_adaquiz_name());
         $accessmanager->setup_attempt_page($PAGE);
-        if (empty($quizobj->get_quiz()->showblocks)) {
+        if (empty($adaquizobj->get_adaquiz()->showblocks)) {
             $PAGE->blocks->show_only_fake_blocks();
         }
 
-        echo $output->start_attempt_page($quizobj, $mform);
+        echo $output->start_attempt_page($adaquizobj, $mform);
         die();
     }
 
@@ -157,34 +157,34 @@ if ($accessmanager->is_preflight_check_required($currentattemptid)) {
     $accessmanager->notify_preflight_check_passed($currentattemptid);
 }
 if ($currentattemptid) {
-    if ($lastattempt->state == quiz_attempt::OVERDUE) {
-        redirect($quizobj->summary_url($lastattempt->id));
+    if ($lastattempt->state == adaquiz_attempt::OVERDUE) {
+        redirect($adaquizobj->summary_url($lastattempt->id));
     } else {
-        redirect($quizobj->attempt_url($currentattemptid, $page));
+        redirect($adaquizobj->attempt_url($currentattemptid, $page));
     }
 }
 
 // Delete any previous preview attempts belonging to this user.
-quiz_delete_previews($quizobj->get_quiz(), $USER->id);
+adaquiz_delete_previews($adaquizobj->get_adaquiz(), $USER->id);
 
-$quba = question_engine::make_questions_usage_by_activity('mod_quiz', $quizobj->get_context());
-$quba->set_preferred_behaviour($quizobj->get_quiz()->preferredbehaviour);
+$quba = question_engine::make_questions_usage_by_activity('mod_adaquiz', $adaquizobj->get_context());
+$quba->set_preferred_behaviour($adaquizobj->get_adaquiz()->preferredbehaviour);
 
 // Create the new attempt and initialize the question sessions
 $timenow = time(); // Update time now, in case the server is running really slowly.
-$attempt = quiz_create_attempt($quizobj, $attemptnumber, $lastattempt, $timenow, $quizobj->is_preview_user());
+$attempt = adaquiz_create_attempt($adaquizobj, $attemptnumber, $lastattempt, $timenow, $adaquizobj->is_preview_user());
 
-if (!($quizobj->get_quiz()->attemptonlast && $lastattempt)) {
-    $attempt = quiz_start_new_attempt($quizobj, $quba, $attempt, $attemptnumber, $timenow);
+if (!($adaquizobj->get_adaquiz()->attemptonlast && $lastattempt)) {
+    $attempt = adaquiz_start_new_attempt($adaquizobj, $quba, $attempt, $attemptnumber, $timenow);
 } else {
-    $attempt = quiz_start_attempt_built_on_last($quba, $attempt, $lastattempt);
+    $attempt = adaquiz_start_attempt_built_on_last($quba, $attempt, $lastattempt);
 }
 
 $transaction = $DB->start_delegated_transaction();
 
-$attempt = quiz_attempt_save_started($quizobj, $quba, $attempt);
+$attempt = adaquiz_attempt_save_started($adaquizobj, $quba, $attempt);
 
 $transaction->allow_commit();
 
 // Redirect to the attempt page.
-redirect($quizobj->attempt_url($attempt->id, $page));
+redirect($adaquizobj->attempt_url($attempt->id, $page));

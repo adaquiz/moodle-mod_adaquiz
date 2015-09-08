@@ -15,37 +15,27 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Quiz attempt walk through using data from csv file.
+ * Adaptive quiz attempt walk through using data from csv file.
  *
- * @package    mod_quiz
- * @category   phpunit
- * @copyright  2013 The Open University
- * @author     Jamie Pratt <me@jamiep.org>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_adaquiz
+ * @category  test
+ * @copyright 2015 Maths for More S.L.
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
 
-/**
- * Quiz attempt walk through using data from csv file.
- *
- * @package    mod_quiz
- * @category   phpunit
- * @copyright  2013 The Open University
- * @author     Jamie Pratt <me@jamiep.org>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class mod_quiz_attempt_walkthrough_from_csv_testcase extends advanced_testcase {
+class mod_adaquiz_attempt_walkthrough_from_csv_testcase extends advanced_testcase {
 
     protected $files = array('questions', 'steps', 'results');
 
     /**
-     * @var stdClass the quiz record we create.
+     * @var stdClass the adaptive quiz record we create.
      */
-    protected $quiz;
+    protected $adaquiz;
 
     /**
      * @var array with slot no => question name => questionid. Question ids of questions created in the same category as random q.
@@ -56,20 +46,20 @@ class mod_quiz_attempt_walkthrough_from_csv_testcase extends advanced_testcase {
      * The only test in this class. This is run multiple times depending on how many sets of files there are in fixtures/
      * directory.
      *
-     * @param array $quizsettings of settings read from csv file quizzes.csv
+     * @param array $adaquizsettings of settings read from csv file adaquizzes.csv
      * @param PHPUnit_Extensions_Database_DataSet_ITable[] $csvdata of data read from csv file "questionsXX.csv",
      *                                                                                  "stepsXX.csv" and "resultsXX.csv".
      * @dataProvider get_data_for_walkthrough
      */
-    public function test_walkthrough_from_csv($quizsettings, $csvdata) {
+    public function test_walkthrough_from_csv($adaquizsettings, $csvdata) {
 
         // CSV data files for these tests were generated using :
         // https://github.com/jamiepratt/moodle-quiz-tools/tree/master/responsegenerator
 
-        $this->create_quiz_simulate_attempts_and_check_results($quizsettings, $csvdata);
+        $this->create_adaquiz_simulate_attempts_and_check_results($adaquizsettings, $csvdata);
     }
 
-    public function create_quiz($quizsettings, $qs) {
+    public function create_adaquiz($adaquizsettings, $qs) {
         global $SITE, $DB;
         $this->setAdminUser();
 
@@ -115,39 +105,39 @@ class mod_quiz_attempt_walkthrough_from_csv_testcase extends advanced_testcase {
 
         ksort($slots);
 
-        // Make a quiz.
-        $quizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_quiz');
+        // Make an adaptive quiz.
+        $adaquizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_adaquiz');
 
         // Settings from param override defaults.
-        $aggregratedsettings = $quizsettings + array('course' => $SITE->id,
+        $aggregratedsettings = $adaquizsettings + array('course' => $SITE->id,
                                                      'questionsperpage' => 0,
                                                      'grade' => 100.0,
                                                      'sumgrades' => $sumofgrades);
 
-        $this->quiz = $quizgenerator->create_instance($aggregratedsettings);
+        $this->adaquiz = $adaquizgenerator->create_instance($aggregratedsettings);
 
         $this->randqids = array();
         foreach ($slots as $slotno => $slotquestion) {
             if ($slotquestion['type'] !== 'random') {
-                quiz_add_quiz_question($slotquestion['id'], $this->quiz, 0, $slotquestion['mark']);
+                adaquiz_add_adaquiz_question($slotquestion['id'], $this->adaquiz, 0, $slotquestion['mark']);
             } else {
-                quiz_add_random_questions($this->quiz, 0, $slotquestion['catid'], 1, 0);
+                adaquiz_add_random_questions($this->adaquiz, 0, $slotquestion['catid'], 1, 0);
                 $this->randqids[$slotno] = $qidsbycat[$slotquestion['catid']];
             }
         }
     }
 
     /**
-     * Create quiz, simulate attempts and check results (if resultsXX.csv exists).
+     * Create adaptive quiz, simulate attempts and check results (if resultsXX.csv exists).
      *
-     * @param array $quizsettings Quiz overrides for this quiz.
+     * @param array $adaquizsettings Quiz overrides for this adaptive quiz.
      * @param PHPUnit_Extensions_Database_DataSet_ITable[] $csvdata Data loaded from csv files for this test.
      */
-    protected function create_quiz_simulate_attempts_and_check_results($quizsettings, $csvdata) {
+    protected function create_adaquiz_simulate_attempts_and_check_results($adaquizsettings, $csvdata) {
         $this->resetAfterTest(true);
         question_bank::get_qtype('random')->clear_caches_before_testing();
 
-        $this->create_quiz($quizsettings, $csvdata['questions']);
+        $this->create_adaquiz($adaquizsettings, $csvdata['questions']);
 
         $attemptids = $this->walkthrough_attempts($csvdata['steps']);
 
@@ -212,24 +202,24 @@ class mod_quiz_attempt_walkthrough_from_csv_testcase extends advanced_testcase {
      *                  test_walkthrough_from_csv.
      */
     public function get_data_for_walkthrough() {
-        $quizzes = $this->load_csv_data_file('quizzes');
+        $adaquizzes = $this->load_csv_data_file('adaquizzes');
         $datasets = array();
-        for ($rowno = 0; $rowno < $quizzes->getRowCount(); $rowno++) {
-            $quizsettings = $quizzes->getRow($rowno);
+        for ($rowno = 0; $rowno < $adaquizzes->getRowCount(); $rowno++) {
+            $adaquizsettings = $adaquizzes->getRow($rowno);
             $dataset = array();
             foreach ($this->files as $file) {
-                if (file_exists($this->get_full_path_of_csv_file($file, $quizsettings['testnumber']))) {
-                    $dataset[$file] = $this->load_csv_data_file($file, $quizsettings['testnumber']);
+                if (file_exists($this->get_full_path_of_csv_file($file, $adaquizsettings['testnumber']))) {
+                    $dataset[$file] = $this->load_csv_data_file($file, $adaquizsettings['testnumber']);
                 }
             }
-            $datasets[] = array($quizsettings, $dataset);
+            $datasets[] = array($adaquizsettings, $dataset);
         }
         return $datasets;
     }
 
     /**
      * @param $steps PHPUnit_Extensions_Database_DataSet_ITable the step data from the csv file.
-     * @return array attempt no as in csv file => the id of the quiz_attempt as stored in the db.
+     * @return array attempt no as in csv file => the id of the adaptive quiz_attempt as stored in the db.
      */
     protected function walkthrough_attempts($steps) {
         global $DB;
@@ -237,7 +227,7 @@ class mod_quiz_attempt_walkthrough_from_csv_testcase extends advanced_testcase {
         for ($rowno = 0; $rowno < $steps->getRowCount(); $rowno++) {
 
             $step = $this->explode_dot_separated_keys_to_make_subindexs($steps->getRow($rowno));
-            // Find existing user or make a new user to do the quiz.
+            // Find existing user or make a new user to do the adaptive quiz.
             $username = array('firstname' => $step['firstname'],
                               'lastname'  => $step['lastname']);
 
@@ -247,14 +237,14 @@ class mod_quiz_attempt_walkthrough_from_csv_testcase extends advanced_testcase {
 
             if (!isset($attemptids[$step['quizattempt']])) {
                 // Start the attempt.
-                $quizobj = quiz::create($this->quiz->id, $user->id);
-                $quba = question_engine::make_questions_usage_by_activity('mod_quiz', $quizobj->get_context());
-                $quba->set_preferred_behaviour($quizobj->get_quiz()->preferredbehaviour);
+                $adaquizobj = adaquiz::create($this->adaquiz->id, $user->id);
+                $quba = question_engine::make_questions_usage_by_activity('mod_adaquiz', $adaquizobj->get_context());
+                $quba->set_preferred_behaviour($adaquizobj->get_adaquiz()->preferredbehaviour);
 
-                $prevattempts = quiz_get_user_attempts($this->quiz->id, $user->id, 'all', true);
+                $prevattempts = adaquiz_get_user_attempts($this->adaquiz->id, $user->id, 'all', true);
                 $attemptnumber = count($prevattempts) + 1;
                 $timenow = time();
-                $attempt = quiz_create_attempt($quizobj, $attemptnumber, false, $timenow, false, $user->id);
+                $attempt = adaquiz_create_attempt($adaquizobj, $attemptnumber, false, $timenow, false, $user->id);
                 // Select variant and / or random sub question.
                 if (!isset($step['variants'])) {
                     $step['variants'] = array();
@@ -268,20 +258,20 @@ class mod_quiz_attempt_walkthrough_from_csv_testcase extends advanced_testcase {
                     $step['randqs'] = array();
                 }
 
-                quiz_start_new_attempt($quizobj, $quba, $attempt, $attemptnumber, $timenow, $step['randqs'], $step['variants']);
-                quiz_attempt_save_started($quizobj, $quba, $attempt);
+                adaquiz_start_new_attempt($adaquizobj, $quba, $attempt, $attemptnumber, $timenow, $step['randqs'], $step['variants']);
+                adaquiz_attempt_save_started($adaquizobj, $quba, $attempt);
                 $attemptid = $attemptids[$step['quizattempt']] = $attempt->id;
             } else {
                 $attemptid = $attemptids[$step['quizattempt']];
             }
 
             // Process some responses from the student.
-            $attemptobj = quiz_attempt::create($attemptid);
+            $attemptobj = adaquiz_attempt::create($attemptid);
             $attemptobj->process_submitted_actions($timenow, false, $step['responses']);
 
             // Finish the attempt.
             if (!isset($step['finished']) || ($step['finished'] == 1)) {
-                $attemptobj = quiz_attempt::create($attemptid);
+                $attemptobj = adaquiz_attempt::create($attemptid);
                 $attemptobj->process_finish($timenow, false);
             }
         }
@@ -290,13 +280,13 @@ class mod_quiz_attempt_walkthrough_from_csv_testcase extends advanced_testcase {
 
     /**
      * @param $results PHPUnit_Extensions_Database_DataSet_ITable the results data from the csv file.
-     * @param $attemptids array attempt no as in csv file => the id of the quiz_attempt as stored in the db.
+     * @param $attemptids array attempt no as in csv file => the id of the adaquiz_attempt as stored in the db.
      */
     protected function check_attempts_results($results, $attemptids) {
         for ($rowno = 0; $rowno < $results->getRowCount(); $rowno++) {
             $result = $this->explode_dot_separated_keys_to_make_subindexs($results->getRow($rowno));
-            // Re-load quiz attempt data.
-            $attemptobj = quiz_attempt::create($attemptids[$result['quizattempt']]);
+            // Re-load adaquiz attempt data.
+            $attemptobj = adaquiz_attempt::create($attemptids[$result['quizattempt']]);
             $this->check_attempt_results($result, $attemptobj);
         }
     }
@@ -305,7 +295,7 @@ class mod_quiz_attempt_walkthrough_from_csv_testcase extends advanced_testcase {
      * Check that attempt results are as specified in $result.
      *
      * @param array        $result             row of data read from csv file.
-     * @param quiz_attempt $attemptobj         the attempt object loaded from db.
+     * @param adaquiz_attempt $attemptobj         the attempt object loaded from db.
      * @throws coding_exception
      */
     protected function check_attempt_results($result, $attemptobj) {
@@ -341,16 +331,16 @@ class mod_quiz_attempt_walkthrough_from_csv_testcase extends advanced_testcase {
                     $this->assertEquals($value, $attemptobj->get_sum_marks(), "Sum of marks of attempt {$result['quizattempt']}.");
                     break;
                 case 'quizgrade' :
-                    // Check quiz grades.
-                    $grades = quiz_get_user_grades($attemptobj->get_quiz(), $attemptobj->get_userid());
+                    // Check adaptive quiz grades.
+                    $grades = adaquiz_get_user_grades($attemptobj->get_adaquiz(), $attemptobj->get_userid());
                     $grade = array_shift($grades);
-                    $this->assertEquals($value, $grade->rawgrade, "Quiz grade for attempt {$result['quizattempt']}.");
+                    $this->assertEquals($value, $grade->rawgrade, "Adaptive quiz grade for attempt {$result['quizattempt']}.");
                     break;
                 case 'gradebookgrade' :
                     // Check grade book.
                     $gradebookgrades = grade_get_grades($attemptobj->get_courseid(),
-                                                        'mod', 'quiz',
-                                                        $attemptobj->get_quizid(),
+                                                        'mod', 'adaquiz',
+                                                        $attemptobj->get_adaquizid(),
                                                         $attemptobj->get_userid());
                     $gradebookitem = array_shift($gradebookgrades->items);
                     $gradebookgrade = array_shift($gradebookitem->grades);

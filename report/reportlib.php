@@ -15,17 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Helper functions for the quiz reports.
+ * Helper functions for the adaptive quiz reports.
  *
- * @package   mod_quiz
- * @copyright 2008 Jamie Pratt
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/quiz/lib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/lib.php');
 require_once($CFG->libdir . '/filelib.php');
 
 /**
@@ -41,7 +40,7 @@ require_once($CFG->libdir . '/filelib.php');
  * returned will have count($keys) + 1 indexs.
  * @return array multidimensional array properly indexed.
  */
-function quiz_report_index_by_keys($datum, $keys, $keysunique = true) {
+function adaquiz_report_index_by_keys($datum, $keys, $keysunique = true) {
     if (!$datum) {
         return array();
     }
@@ -56,20 +55,20 @@ function quiz_report_index_by_keys($datum, $keys, $keysunique = true) {
     }
     if ($keys) {
         foreach ($datumkeyed as $datakey => $datakeyed) {
-            $datumkeyed[$datakey] = quiz_report_index_by_keys($datakeyed, $keys, $keysunique);
+            $datumkeyed[$datakey] = adaquiz_report_index_by_keys($datakeyed, $keys, $keysunique);
         }
     }
     return $datumkeyed;
 }
 
-function quiz_report_unindex($datum) {
+function adaquiz_report_unindex($datum) {
     if (!$datum) {
         return $datum;
     }
     $datumunkeyed = array();
     foreach ($datum as $value) {
         if (is_array($value)) {
-            $datumunkeyed = array_merge($datumunkeyed, quiz_report_unindex($value));
+            $datumunkeyed = array_merge($datumunkeyed, adaquiz_report_unindex($value));
         } else {
             $datumunkeyed[] = $value;
         }
@@ -78,21 +77,21 @@ function quiz_report_unindex($datum) {
 }
 
 /**
- * Are there any questions in this quiz?
- * @param int $quizid the quiz id.
+ * Are there any questions in this adaquiz?
+ * @param int $adaquizid the adaptive quiz id.
  */
-function quiz_has_questions($quizid) {
+function adaquiz_has_questions($adaquizid) {
     global $DB;
-    return $DB->record_exists('quiz_slots', array('quizid' => $quizid));
+    return $DB->record_exists('adaquiz_slots', array('adaquizid' => $adaquizid));
 }
 
 /**
- * Get the slots of real questions (not descriptions) in this quiz, in order.
- * @param object $quiz the quiz.
+ * Get the slots of real questions (not descriptions) in this adaptive quiz, in order.
+ * @param object $adaquiz the adaptive quiz.
  * @return array of slot => $question object with fields
  *      ->slot, ->id, ->maxmark, ->number, ->length.
  */
-function quiz_report_get_significant_questions($quiz) {
+function adaquiz_report_get_significant_questions($adaquiz) {
     global $DB;
 
     $qsbyslot = $DB->get_records_sql("
@@ -102,12 +101,12 @@ function quiz_report_get_significant_questions($quiz) {
                    slot.maxmark
 
               FROM {question} q
-              JOIN {quiz_slots} slot ON slot.questionid = q.id
+              JOIN {adaquiz_slots} slot ON slot.questionid = q.id
 
-             WHERE slot.quizid = ?
+             WHERE slot.adaquizid = ?
                AND q.length > 0
 
-          ORDER BY slot.slot", array($quiz->id));
+          ORDER BY slot.slot", array($adaquiz->id));
 
     $number = 1;
     foreach ($qsbyslot as $question) {
@@ -119,85 +118,85 @@ function quiz_report_get_significant_questions($quiz) {
 }
 
 /**
- * @param object $quiz the quiz settings.
- * @return bool whether, for this quiz, it is possible to filter attempts to show
+ * @param object $adaquiz the adaptive quiz settings.
+ * @return bool whether, for this adaptive quiz, it is possible to filter attempts to show
  *      only those that gave the final grade.
  */
-function quiz_report_can_filter_only_graded($quiz) {
-    return $quiz->attempts != 1 && $quiz->grademethod != QUIZ_GRADEAVERAGE;
+function adaquiz_report_can_filter_only_graded($adaquiz) {
+    return $adaquiz->attempts != 1 && $adaquiz->grademethod != ADAQUIZ_GRADEAVERAGE;
 }
 
 /**
- * This is a wrapper for {@link quiz_report_grade_method_sql} that takes the whole quiz object instead of just the grading method
- * as a param. See definition for {@link quiz_report_grade_method_sql} below.
+ * This is a wrapper for {@link adaquiz_report_grade_method_sql} that takes the whole adaptive quiz object instead of just the grading method
+ * as a param. See definition for {@link adaquiz_report_grade_method_sql} below.
  *
- * @param object $quiz
- * @param string $quizattemptsalias sql alias for 'quiz_attempts' table
+ * @param object $adaquiz
+ * @param string $adaquizattemptsalias sql alias for 'adaquiz_attempts' table
  * @return string sql to test if this is an attempt that will contribute towards the grade of the user
  */
-function quiz_report_qm_filter_select($quiz, $quizattemptsalias = 'quiza') {
-    if ($quiz->attempts == 1) {
-        // This quiz only allows one attempt.
+function adaquiz_report_qm_filter_select($adaquiz, $adaquizattemptsalias = 'quiza') {
+    if ($adaquiz->attempts == 1) {
+        // This adaptive quiz only allows one attempt.
         return '';
     }
-    return quiz_report_grade_method_sql($quiz->grademethod, $quizattemptsalias);
+    return adaquiz_report_grade_method_sql($adaquiz->grademethod, $adaquizattemptsalias);
 }
 
 /**
- * Given a quiz grading method return sql to test if this is an
+ * Given an adaptive quiz grading method return sql to test if this is an
  * attempt that will be contribute towards the grade of the user. Or return an
- * empty string if the grading method is QUIZ_GRADEAVERAGE and thus all attempts
+ * empty string if the grading method is ADAQUIZ_GRADEAVERAGE and thus all attempts
  * contribute to final grade.
  *
- * @param string $grademethod quiz grading method.
- * @param string $quizattemptsalias sql alias for 'quiz_attempts' table
+ * @param string $grademethod adaptive quiz grading method.
+ * @param string $adaquizattemptsalias sql alias for 'adaquiz_attempts' table
  * @return string sql to test if this is an attempt that will contribute towards the graded of the user
  */
-function quiz_report_grade_method_sql($grademethod, $quizattemptsalias = 'quiza') {
+function adaquiz_report_grade_method_sql($grademethod, $adaquizattemptsalias = 'quiza') {
     switch ($grademethod) {
-        case QUIZ_GRADEHIGHEST :
-            return "($quizattemptsalias.state = 'finished' AND NOT EXISTS (
-                           SELECT 1 FROM {quiz_attempts} qa2
-                            WHERE qa2.quiz = $quizattemptsalias.quiz AND
-                                qa2.userid = $quizattemptsalias.userid AND
+        case ADAQUIZ_GRADEHIGHEST :
+            return "($adaquizattemptsalias.state = 'finished' AND NOT EXISTS (
+                           SELECT 1 FROM {adaquiz_attempts} qa2
+                            WHERE qa2.quiz = $adaquizattemptsalias.quiz AND
+                                qa2.userid = $adaquizattemptsalias.userid AND
                                  qa2.state = 'finished' AND (
-                COALESCE(qa2.sumgrades, 0) > COALESCE($quizattemptsalias.sumgrades, 0) OR
-               (COALESCE(qa2.sumgrades, 0) = COALESCE($quizattemptsalias.sumgrades, 0) AND qa2.attempt < $quizattemptsalias.attempt)
+                COALESCE(qa2.sumgrades, 0) > COALESCE($adaquizattemptsalias.sumgrades, 0) OR
+               (COALESCE(qa2.sumgrades, 0) = COALESCE($adaquizattemptsalias.sumgrades, 0) AND qa2.attempt < $adaquizattemptsalias.attempt)
                                 )))";
 
-        case QUIZ_GRADEAVERAGE :
+        case ADAQUIZ_GRADEAVERAGE :
             return '';
 
-        case QUIZ_ATTEMPTFIRST :
-            return "($quizattemptsalias.state = 'finished' AND NOT EXISTS (
-                           SELECT 1 FROM {quiz_attempts} qa2
-                            WHERE qa2.quiz = $quizattemptsalias.quiz AND
-                                qa2.userid = $quizattemptsalias.userid AND
+        case ADAQUIZ_ATTEMPTFIRST :
+            return "($adaquizattemptsalias.state = 'finished' AND NOT EXISTS (
+                           SELECT 1 FROM {adaquiz_attempts} qa2
+                            WHERE qa2.quiz = $adaquizattemptsalias.quiz AND
+                                qa2.userid = $adaquizattemptsalias.userid AND
                                  qa2.state = 'finished' AND
-                               qa2.attempt < $quizattemptsalias.attempt))";
+                               qa2.attempt < $adaquizattemptsalias.attempt))";
 
-        case QUIZ_ATTEMPTLAST :
-            return "($quizattemptsalias.state = 'finished' AND NOT EXISTS (
-                           SELECT 1 FROM {quiz_attempts} qa2
-                            WHERE qa2.quiz = $quizattemptsalias.quiz AND
-                                qa2.userid = $quizattemptsalias.userid AND
+        case ADAQUIZ_ATTEMPTLAST :
+            return "($adaquizattemptsalias.state = 'finished' AND NOT EXISTS (
+                           SELECT 1 FROM {adaquiz_attempts} qa2
+                            WHERE qa2.quiz = $adaquizattemptsalias.quiz AND
+                                qa2.userid = $adaquizattemptsalias.userid AND
                                  qa2.state = 'finished' AND
-                               qa2.attempt > $quizattemptsalias.attempt))";
+                               qa2.attempt > $adaquizattemptsalias.attempt))";
     }
 }
 
 /**
- * Get the number of students whose score was in a particular band for this quiz.
+ * Get the number of students whose score was in a particular band for this adaptive quiz.
  * @param number $bandwidth the width of each band.
  * @param int $bands the number of bands
- * @param int $quizid the quiz id.
+ * @param int $adaquizid the adaptive quiz id.
  * @param array $userids list of user ids.
  * @return array band number => number of users with scores in that band.
  */
-function quiz_report_grade_bands($bandwidth, $bands, $quizid, $userids = array()) {
+function adaquiz_report_grade_bands($bandwidth, $bands, $adaquizid, $userids = array()) {
     global $DB;
     if (!is_int($bands)) {
-        debugging('$bands passed to quiz_report_grade_bands must be an integer. (' .
+        debugging('$bands passed to adaquiz_report_grade_bands must be an integer. (' .
                 gettype($bands) . ' passed.)', DEBUG_DEVELOPER);
         $bands = (int) $bands;
     }
@@ -214,8 +213,8 @@ SELECT band, COUNT(1)
 
 FROM (
     SELECT FLOOR(qg.grade / :bandwidth) AS band
-      FROM {quiz_grades} qg
-     WHERE $usql qg.quiz = :quizid
+      FROM {adaquiz_grades} qg
+     WHERE $usql qg.quiz = :adaquizid
 ) subquery
 
 GROUP BY
@@ -224,7 +223,7 @@ GROUP BY
 ORDER BY
     band";
 
-    $params['quizid'] = $quizid;
+    $params['adaquizid'] = $adaquizid;
     $params['bandwidth'] = $bandwidth;
 
     $data = $DB->get_records_sql_menu($sql, $params);
@@ -242,45 +241,45 @@ ORDER BY
     return $data;
 }
 
-function quiz_report_highlighting_grading_method($quiz, $qmsubselect, $qmfilter) {
-    if ($quiz->attempts == 1) {
-        return '<p>' . get_string('onlyoneattemptallowed', 'quiz_overview') . '</p>';
+function adaquiz_report_highlighting_grading_method($adaquiz, $qmsubselect, $qmfilter) {
+    if ($adaquiz->attempts == 1) {
+        return '<p>' . get_string('onlyoneattemptallowed', 'adaquiz_overview') . '</p>';
 
     } else if (!$qmsubselect) {
-        return '<p>' . get_string('allattemptscontributetograde', 'quiz_overview') . '</p>';
+        return '<p>' . get_string('allattemptscontributetograde', 'adaquiz_overview') . '</p>';
 
     } else if ($qmfilter) {
-        return '<p>' . get_string('showinggraded', 'quiz_overview') . '</p>';
+        return '<p>' . get_string('showinggraded', 'adaquiz_overview') . '</p>';
 
     } else {
-        return '<p>' . get_string('showinggradedandungraded', 'quiz_overview',
-                '<span class="gradedattempt">' . quiz_get_grading_option_name($quiz->grademethod) .
+        return '<p>' . get_string('showinggradedandungraded', 'adaquiz_overview',
+                '<span class="gradedattempt">' . adaquiz_get_grading_option_name($adaquiz->grademethod) .
                 '</span>') . '</p>';
     }
 }
 
 /**
- * Get the feedback text for a grade on this quiz. The feedback is
+ * Get the feedback text for a grade on this adaptive quiz. The feedback is
  * processed ready for display.
  *
- * @param float $grade a grade on this quiz.
- * @param int $quizid the id of the quiz object.
+ * @param float $grade a grade on this adaptive quiz.
+ * @param int $adaquizid the id of the adaptive quiz object.
  * @return string the comment that corresponds to this grade (empty string if there is not one.
  */
-function quiz_report_feedback_for_grade($grade, $quizid, $context) {
+function adaquiz_report_feedback_for_grade($grade, $adaquizid, $context) {
     global $DB;
 
     static $feedbackcache = array();
 
-    if (!isset($feedbackcache[$quizid])) {
-        $feedbackcache[$quizid] = $DB->get_records('quiz_feedback', array('quizid' => $quizid));
+    if (!isset($feedbackcache[$adaquizid])) {
+        $feedbackcache[$adaquizid] = $DB->get_records('adaquiz_feedback', array('adaquizid' => $adaquizid));
     }
 
     // With CBM etc, it is possible to get -ve grades, which would then not match
     // any feedback. Therefore, we replace -ve grades with 0.
     $grade = max($grade, 0);
 
-    $feedbacks = $feedbackcache[$quizid];
+    $feedbacks = $feedbackcache[$adaquizid];
     $feedbackid = 0;
     $feedbacktext = '';
     $feedbacktextformat = FORMAT_MOODLE;
@@ -297,29 +296,29 @@ function quiz_report_feedback_for_grade($grade, $quizid, $context) {
     $formatoptions = new stdClass();
     $formatoptions->noclean = true;
     $feedbacktext = file_rewrite_pluginfile_urls($feedbacktext, 'pluginfile.php',
-            $context->id, 'mod_quiz', 'feedback', $feedbackid);
+            $context->id, 'mod_adaquiz', 'feedback', $feedbackid);
     $feedbacktext = format_text($feedbacktext, $feedbacktextformat, $formatoptions);
 
     return $feedbacktext;
 }
 
 /**
- * Format a number as a percentage out of $quiz->sumgrades
+ * Format a number as a percentage out of $adaquiz->sumgrades
  * @param number $rawgrade the mark to format.
- * @param object $quiz the quiz settings
- * @param bool $round whether to round the results ot $quiz->decimalpoints.
+ * @param object $adaquiz the adaptive quiz settings
+ * @param bool $round whether to round the results ot $adaquiz->decimalpoints.
  */
-function quiz_report_scale_summarks_as_percentage($rawmark, $quiz, $round = true) {
-    if ($quiz->sumgrades == 0) {
+function adaquiz_report_scale_summarks_as_percentage($rawmark, $adaquiz, $round = true) {
+    if ($adaquiz->sumgrades == 0) {
         return '';
     }
     if (!is_numeric($rawmark)) {
         return $rawmark;
     }
 
-    $mark = $rawmark * 100 / $quiz->sumgrades;
+    $mark = $rawmark * 100 / $adaquiz->sumgrades;
     if ($round) {
-        $mark = quiz_format_grade($quiz, $mark);
+        $mark = adaquiz_format_grade($adaquiz, $mark);
     }
     return $mark . '%';
 }
@@ -328,15 +327,15 @@ function quiz_report_scale_summarks_as_percentage($rawmark, $quiz, $round = true
  * Returns an array of reports to which the current user has access to.
  * @return array reports are ordered as they should be for display in tabs.
  */
-function quiz_report_list($context) {
+function adaquiz_report_list($context) {
     global $DB;
     static $reportlist = null;
     if (!is_null($reportlist)) {
         return $reportlist;
     }
 
-    $reports = $DB->get_records('quiz_reports', null, 'displayorder DESC', 'name, capability');
-    $reportdirs = core_component::get_plugin_list('quiz');
+    $reports = $DB->get_records('adaquiz_reports', null, 'displayorder DESC', 'name, capability');
+    $reportdirs = core_component::get_plugin_list('adaquiz');
 
     // Order the reports tab in descending order of displayorder.
     $reportcaps = array();
@@ -355,7 +354,7 @@ function quiz_report_list($context) {
     $reportlist = array();
     foreach ($reportcaps as $name => $capability) {
         if (empty($capability)) {
-            $capability = 'mod/quiz:viewreports';
+            $capability = 'mod/adaquiz:viewreports';
         }
         if (has_capability($capability, $context)) {
             $reportlist[] = $name;
@@ -365,64 +364,64 @@ function quiz_report_list($context) {
 }
 
 /**
- * Create a filename for use when downloading data from a quiz report. It is
+ * Create a filename for use when downloading data from an adaptive quiz report. It is
  * expected that this will be passed to flexible_table::is_downloading, which
  * cleans the filename of bad characters and adds the file extension.
  * @param string $report the type of report.
  * @param string $courseshortname the course shortname.
- * @param string $quizname the quiz name.
+ * @param string $adaquizname the adaptive quiz name.
  * @return string the filename.
  */
-function quiz_report_download_filename($report, $courseshortname, $quizname) {
-    return $courseshortname . '-' . format_string($quizname, true) . '-' . $report;
+function adaquiz_report_download_filename($report, $courseshortname, $adaquizname) {
+    return $courseshortname . '-' . format_string($adaquizname, true) . '-' . $report;
 }
 
 /**
  * Get the default report for the current user.
- * @param object $context the quiz context.
+ * @param object $context the adaptive quiz context.
  */
-function quiz_report_default_report($context) {
-    $reports = quiz_report_list($context);
+function adaquiz_report_default_report($context) {
+    $reports = adaquiz_report_list($context);
     return reset($reports);
 }
 
 /**
- * Generate a message saying that this quiz has no questions, with a button to
+ * Generate a message saying that this adaptive quiz has no questions, with a button to
  * go to the edit page, if the user has the right capability.
- * @param object $quiz the quiz settings.
+ * @param object $adaquiz the adaptive quiz settings.
  * @param object $cm the course_module object.
- * @param object $context the quiz context.
+ * @param object $context the adaptive quiz context.
  * @return string HTML to output.
  */
-function quiz_no_questions_message($quiz, $cm, $context) {
+function adaquiz_no_questions_message($adaquiz, $cm, $context) {
     global $OUTPUT;
 
     $output = '';
-    $output .= $OUTPUT->notification(get_string('noquestions', 'quiz'));
-    if (has_capability('mod/quiz:manage', $context)) {
-        $output .= $OUTPUT->single_button(new moodle_url('/mod/quiz/edit.php',
-        array('cmid' => $cm->id)), get_string('editquiz', 'quiz'), 'get');
+    $output .= $OUTPUT->notification(get_string('noquestions', 'adaquiz'));
+    if (has_capability('mod/adaquiz:manage', $context)) {
+        $output .= $OUTPUT->single_button(new moodle_url('/mod/adaquiz/edit.php',
+        array('cmid' => $cm->id)), get_string('editquiz', 'adaquiz'), 'get');
     }
 
     return $output;
 }
 
 /**
- * Should the grades be displayed in this report. That depends on the quiz
- * display options, and whether the quiz is graded.
- * @param object $quiz the quiz settings.
- * @param context $context the quiz context.
+ * Should the grades be displayed in this report. That depends on the adaptive quiz
+ * display options, and whether the adaptive quiz is graded.
+ * @param object $adaquiz the adaptive quiz settings.
+ * @param context $context the adaptive quiz context.
  * @return bool
  */
-function quiz_report_should_show_grades($quiz, context $context) {
-    if ($quiz->timeclose && time() > $quiz->timeclose) {
-        $when = mod_quiz_display_options::AFTER_CLOSE;
+function adaquiz_report_should_show_grades($adaquiz, context $context) {
+    if ($adaquiz->timeclose && time() > $adaquiz->timeclose) {
+        $when = mod_adaquiz_display_options::AFTER_CLOSE;
     } else {
-        $when = mod_quiz_display_options::LATER_WHILE_OPEN;
+        $when = mod_adaquiz_display_options::LATER_WHILE_OPEN;
     }
-    $reviewoptions = mod_quiz_display_options::make_from_quiz($quiz, $when);
+    $reviewoptions = mod_adaquiz_display_options::make_from_adaquiz($adaquiz, $when);
 
-    return quiz_has_grades($quiz) &&
+    return adaquiz_has_grades($adaquiz) &&
             ($reviewoptions->marks >= question_display_options::MARK_AND_MAX ||
             has_capability('moodle/grade:viewhidden', $context));
 }

@@ -15,10 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Unit tests for the quiz class.
+ * Unit tests for the adaptive quiz class.
  *
- * @package   mod_quiz
- * @copyright 2008 The Open University
+ * @package   mod_adaquiz
+ * @category  test
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -26,41 +27,41 @@
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
 
 
 /**
- * Unit tests for the quiz class
+ * Unit tests for the adaptive quiz class
  *
  * @copyright  2008 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_quiz_class_testcase extends basic_testcase {
+class mod_adaquiz_class_testcase extends basic_testcase {
     public function test_cannot_review_message() {
-        $quiz = new stdClass();
-        $quiz->reviewattempt = 0x10010;
-        $quiz->timeclose = 0;
-        $quiz->attempts = 0;
+        $adaquiz = new stdClass();
+        $adaquiz->reviewattempt = 0x10010;
+        $adaquiz->timeclose = 0;
+        $adaquiz->attempts = 0;
 
         $cm = new stdClass();
         $cm->id = 123;
 
-        $quizobj = new quiz($quiz, $cm, new stdClass(), false);
+        $adaquizobj = new adaquiz($adaquiz, $cm, new stdClass(), false);
 
         $this->assertEquals('',
-            $quizobj->cannot_review_message(mod_quiz_display_options::DURING));
+            $adaquizobj->cannot_review_message(mod_adaquiz_display_options::DURING));
         $this->assertEquals('',
-            $quizobj->cannot_review_message(mod_quiz_display_options::IMMEDIATELY_AFTER));
-        $this->assertEquals(get_string('noreview', 'quiz'),
-            $quizobj->cannot_review_message(mod_quiz_display_options::LATER_WHILE_OPEN));
-        $this->assertEquals(get_string('noreview', 'quiz'),
-            $quizobj->cannot_review_message(mod_quiz_display_options::AFTER_CLOSE));
+            $adaquizobj->cannot_review_message(mod_adaquiz_display_options::IMMEDIATELY_AFTER));
+        $this->assertEquals(get_string('noreview', 'adaquiz'),
+            $adaquizobj->cannot_review_message(mod_adaquiz_display_options::LATER_WHILE_OPEN));
+        $this->assertEquals(get_string('noreview', 'adaquiz'),
+            $adaquizobj->cannot_review_message(mod_adaquiz_display_options::AFTER_CLOSE));
 
         $closetime = time() + 10000;
-        $quiz->timeclose = $closetime;
-        $quizobj = new quiz($quiz, $cm, new stdClass(), false);
+        $adaquiz->timeclose = $closetime;
+        $adaquizobj = new adaquiz($adaquiz, $cm, new stdClass(), false);
 
-        $this->assertEquals(get_string('noreviewuntil', 'quiz', userdate($closetime)),
-            $quizobj->cannot_review_message(mod_quiz_display_options::LATER_WHILE_OPEN));
+        $this->assertEquals(get_string('noreviewuntil', 'adaquiz', userdate($closetime)),
+            $adaquizobj->cannot_review_message(mod_adaquiz_display_options::LATER_WHILE_OPEN));
     }
 }

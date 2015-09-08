@@ -17,18 +17,18 @@
 /**
  * Unit tests for (some of) /question/engine/statistics.php
  *
- * @package   quiz_statistics
+ * @package   adaquiz_statistics
  * @category  phpunit
- * @copyright 2008 Jamie Pratt
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->libdir . '/questionlib.php');
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-require_once($CFG->dirroot . '/mod/quiz/report/reportlib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/reportlib.php');
 
 class testable_all_calculated_for_qubaid_condition extends \core_question\statistics\questions\all_calculated_for_qubaid_condition {
 
@@ -99,7 +99,7 @@ class testable_question_statistics extends \core_question\statistics\questions\c
  * @copyright 2008 Jamie Pratt
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class quiz_statistics_question_stats_testcase extends basic_testcase {
+class adaquiz_statistics_question_stats_testcase extends basic_testcase {
     /** @var testable_all_calculated_for_qubaid_condition object created to test class. */
     protected $qstats;
 

@@ -15,38 +15,34 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The mod_quiz attempt preview started event.
+ * The mod_adaquiz attempt preview started event.
  *
- * @package    mod_quiz
- * @copyright  2014 Mark Nelson <markn@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_quiz\event;
+namespace mod_adaquiz\event;
 
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * The mod_quiz attempt preview started event class.
+ * The mod_adaquiz attempt preview started event class.
  *
  * @property-read array $other {
  *      Extra information about event.
  *
- *      - int quizid: the id of the quiz.
+ *      - int adaquizid: the id of the adaptive quiz.
  * }
- *
- * @package    mod_quiz
- * @since      Moodle 2.7
- * @copyright  2014 Mark Nelson <markn@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 class attempt_preview_started extends \core\event\base {
 
     /**
      * Init method.
      */
     protected function init() {
-        $this->data['objecttable'] = 'quiz_attempts';
+        $this->data['objecttable'] = 'adaquiz_attempts';
         $this->data['crud'] = 'r';
         $this->data['edulevel'] = self::LEVEL_TEACHING;
     }
@@ -57,7 +53,7 @@ class attempt_preview_started extends \core\event\base {
      * @return string
      */
     public static function get_name() {
-        return get_string('eventattemptpreviewstarted', 'mod_quiz');
+        return get_string('eventattemptpreviewstarted', 'mod_adaquiz');
     }
 
     /**
@@ -67,7 +63,7 @@ class attempt_preview_started extends \core\event\base {
      */
     public function get_description() {
         return "The user with id '$this->relateduserid' has had their attempt with id '$this->objectid' previewed by " .
-            "the user with id '$this->userid' for the quiz with course module id '$this->contextinstanceid'.";
+            "the user with id '$this->userid' for the adaptive quiz with course module id '$this->contextinstanceid'.";
     }
 
     /**
@@ -76,7 +72,7 @@ class attempt_preview_started extends \core\event\base {
      * @return \moodle_url
      */
     public function get_url() {
-        return new \moodle_url('/mod/quiz/view.php', array('id' => $this->contextinstanceid));
+        return new \moodle_url('/mod/adaquiz/view.php', array('id' => $this->contextinstanceid));
     }
 
     /**
@@ -85,8 +81,8 @@ class attempt_preview_started extends \core\event\base {
      * @return array
      */
     protected function get_legacy_logdata() {
-        return array($this->courseid, 'quiz', 'preview', 'view.php?id=' . $this->contextinstanceid,
-            $this->other['quizid'],  $this->contextinstanceid);
+        return array($this->courseid, 'adaquiz', 'preview', 'view.php?id=' . $this->contextinstanceid,
+            $this->other['adaquizid'],  $this->contextinstanceid);
     }
 
     /**
@@ -102,8 +98,8 @@ class attempt_preview_started extends \core\event\base {
             throw new \coding_exception('The \'relateduserid\' must be set.');
         }
 
-        if (!isset($this->other['quizid'])) {
-            throw new \coding_exception('The \'quizid\' value must be set in other.');
+        if (!isset($this->other['adaquizid'])) {
+            throw new \coding_exception('The \'adaquizid\' value must be set in other.');
         }
     }
 }

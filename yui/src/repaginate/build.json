@@ -1,7 +1,7 @@
 {
-    "name": "moodle-mod_quiz-repaginate",
+    "name": "moodle-mod_adaquiz-repaginate",
     "builds": {
-        "moodle-mod_quiz-repaginate": {
+        "moodle-mod_adaquiz-repaginate": {
             "jsfiles": [
                 "repaginate.js"
             ]

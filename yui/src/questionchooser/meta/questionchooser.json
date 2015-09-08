@@ -1,8 +1,8 @@
 {
-    "moodle-mod_quiz-questionchooser": {
+    "moodle-mod_adaquiz-questionchooser": {
         "requires": [
             "moodle-core-chooserdialogue",
-            "moodle-mod_quiz-util",
+            "moodle-mod_adaquiz-util",
             "querystring-parse"
         ]
     }

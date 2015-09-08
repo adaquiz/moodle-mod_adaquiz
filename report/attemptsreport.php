@@ -18,9 +18,9 @@
  * The file defines a base class that can be used to build a report like the
  * overview or responses report, that has one row per attempt.
  *
- * @package   mod_quiz
- * @copyright 2010 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
@@ -32,10 +32,8 @@ require_once($CFG->libdir.'/tablelib.php');
 /**
  * Base class for quiz reports that are basically a table with one row for each attempt.
  *
- * @copyright 2010 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class quiz_attempts_report extends quiz_default_report {
+abstract class adaquiz_attempts_report extends adaquiz_default_report {
     /** @var int default page size for reports. */
     const DEFAULT_PAGE_SIZE = 30;
 
@@ -51,10 +49,10 @@ abstract class quiz_attempts_report extends quiz_default_report {
     /** @var string the mode this report is. */
     protected $mode;
 
-    /** @var object the quiz context. */
+    /** @var object the adaptive quiz context. */
     protected $context;
 
-    /** @var mod_quiz_attempts_report_form The settings form to use. */
+    /** @var mod_adaquiz_attempts_report_form The settings form to use. */
     protected $form;
 
     /** @var string SQL fragment for selecting the attempt that gave the final grade,
@@ -69,11 +67,11 @@ abstract class quiz_attempts_report extends quiz_default_report {
      *
      * @param string $mode
      * @param string $formclass
-     * @param object $quiz
+     * @param object $adaquiz
      * @param object $cm
      * @param object $course
      */
-    protected function init($mode, $formclass, $quiz, $cm, $course) {
+    protected function init($mode, $formclass, $adaquiz, $cm, $course) {
         $this->mode = $mode;
 
         $this->context = context_module::instance($cm->id);
@@ -81,10 +79,10 @@ abstract class quiz_attempts_report extends quiz_default_report {
         list($currentgroup, $students, $groupstudents, $allowed) =
                 $this->load_relevant_students($cm, $course);
 
-        $this->qmsubselect = quiz_report_qm_filter_select($quiz);
+        $this->qmsubselect = adaquiz_report_qm_filter_select($adaquiz);
 
         $this->form = new $formclass($this->get_base_url(),
-                array('quiz' => $quiz, 'currentgroup' => $currentgroup, 'context' => $this->context));
+                array('adaquiz' => $adaquiz, 'currentgroup' => $currentgroup, 'context' => $this->context));
 
         return array($currentgroup, $students, $groupstudents, $allowed);
     }
@@ -94,7 +92,7 @@ abstract class quiz_attempts_report extends quiz_default_report {
      * @return moodle_url the URL.
      */
     protected function get_base_url() {
-        return new moodle_url('/mod/quiz/report.php',
+        return new moodle_url('/mod/adaquiz/report.php',
                 array('id' => $this->context->instanceid, 'mode' => $this->mode));
     }
 
@@ -117,7 +115,7 @@ abstract class quiz_attempts_report extends quiz_default_report {
         }
 
         if (!$students = get_users_by_capability($this->context,
-                array('mod/quiz:reviewmyattempts', 'mod/quiz:attempt'),
+                array('mod/adaquiz:reviewmyattempts', 'mod/adaquiz:attempt'),
                 'u.id, 1', '', '', '', '', '', false)) {
             $students = array();
         } else {
@@ -130,7 +128,7 @@ abstract class quiz_attempts_report extends quiz_default_report {
 
         // We have a currently selected group.
         if (!$groupstudents = get_users_by_capability($this->context,
-                array('mod/quiz:reviewmyattempts', 'mod/quiz:attempt'),
+                array('mod/adaquiz:reviewmyattempts', 'mod/adaquiz:attempt'),
                 'u.id, 1', '', '', '', $currentgroup, '', false)) {
             $groupstudents = array();
         } else {
@@ -205,7 +203,7 @@ abstract class quiz_attempts_report extends quiz_default_report {
      */
     protected function add_state_column(&$columns, &$headers) {
         $columns[] = 'state';
-        $headers[] = get_string('attemptstate', 'quiz');
+        $headers[] = get_string('attemptstate', 'adaquiz');
     }
 
     /**
@@ -215,34 +213,34 @@ abstract class quiz_attempts_report extends quiz_default_report {
      */
     protected function add_time_columns(&$columns, &$headers) {
         $columns[] = 'timestart';
-        $headers[] = get_string('startedon', 'quiz');
+        $headers[] = get_string('startedon', 'adaquiz');
 
         $columns[] = 'timefinish';
-        $headers[] = get_string('timecompleted', 'quiz');
+        $headers[] = get_string('timecompleted', 'adaquiz');
 
         $columns[] = 'duration';
-        $headers[] = get_string('attemptduration', 'quiz');
+        $headers[] = get_string('attemptduration', 'adaquiz');
     }
 
     /**
      * Add all the grade and feedback columns, if applicable, to the $columns
      * and $headers arrays.
-     * @param object $quiz the quiz settings.
-     * @param bool $usercanseegrades whether the user is allowed to see grades for this quiz.
+     * @param object $adaquiz the adaptive quiz settings.
+     * @param bool $usercanseegrades whether the user is allowed to see grades for this adaptive quiz.
      * @param array $columns the list of columns. Added to.
      * @param array $headers the columns headings. Added to.
      * @param bool $includefeedback whether to include the feedbacktext columns
      */
-    protected function add_grade_columns($quiz, $usercanseegrades, &$columns, &$headers, $includefeedback = true) {
+    protected function add_grade_columns($adaquiz, $usercanseegrades, &$columns, &$headers, $includefeedback = true) {
         if ($usercanseegrades) {
             $columns[] = 'sumgrades';
-            $headers[] = get_string('grade', 'quiz') . '/' .
-                    quiz_format_grade($quiz, $quiz->grade);
+            $headers[] = get_string('grade', 'adaquiz') . '/' .
+                    adaquiz_format_grade($adaquiz, $adaquiz->grade);
         }
 
-        if ($includefeedback && quiz_has_feedback($quiz)) {
+        if ($includefeedback && adaquiz_has_feedback($adaquiz)) {
             $columns[] = 'feedbacktext';
-            $headers[] = get_string('feedback', 'quiz');
+            $headers[] = get_string('feedback', 'adaquiz');
         }
     }
 
@@ -252,11 +250,11 @@ abstract class quiz_attempts_report extends quiz_default_report {
      * @param array $columns the list of columns.
      * @param array $headers the columns headings.
      * @param moodle_url $reporturl the URL of this report.
-     * @param mod_quiz_attempts_report_options $options the display options.
+     * @param mod_adaquiz_attempts_report_options $options the display options.
      * @param bool $collapsible whether to allow columns in the report to be collapsed.
      */
     protected function set_up_table_columns($table, $columns, $headers, $reporturl,
-            mod_quiz_attempts_report_options $options, $collapsible) {
+            mod_adaquiz_attempts_report_options $options, $collapsible) {
         $table->define_columns($columns);
         $table->define_headers($headers);
         $table->sortable(true, 'uniqueid');
@@ -275,19 +273,19 @@ abstract class quiz_attempts_report extends quiz_default_report {
 
     /**
      * Process any submitted actions.
-     * @param object $quiz the quiz settings.
+     * @param object $adaquiz the adaptive quiz settings.
      * @param object $cm the cm object for the quiz.
      * @param int $currentgroup the currently selected group.
      * @param array $groupstudents the students in the current group.
      * @param array $allowed the users whose attempt this user is allowed to modify.
      * @param moodle_url $redirecturl where to redircet to after a successful action.
      */
-    protected function process_actions($quiz, $cm, $currentgroup, $groupstudents, $allowed, $redirecturl) {
+    protected function process_actions($adaquiz, $cm, $currentgroup, $groupstudents, $allowed, $redirecturl) {
         if (empty($currentgroup) || $groupstudents) {
             if (optional_param('delete', 0, PARAM_BOOL) && confirm_sesskey()) {
                 if ($attemptids = optional_param_array('attemptid', array(), PARAM_INT)) {
-                    require_capability('mod/quiz:deleteattempts', $this->context);
-                    $this->delete_selected_attempts($quiz, $cm, $attemptids, $allowed);
+                    require_capability('mod/adaquiz:deleteattempts', $this->context);
+                    $this->delete_selected_attempts($adaquiz, $cm, $attemptids, $allowed);
                     redirect($redirecturl);
                 }
             }
@@ -295,21 +293,21 @@ abstract class quiz_attempts_report extends quiz_default_report {
     }
 
     /**
-     * Delete the quiz attempts
-     * @param object $quiz the quiz settings. Attempts that don't belong to
-     * this quiz are not deleted.
+     * Delete the adaptive quiz attempts
+     * @param object $adaquiz the adaptive quiz settings. Attempts that don't belong to
+     * this adaptive quiz are not deleted.
      * @param object $cm the course_module object.
      * @param array $attemptids the list of attempt ids to delete.
      * @param array $allowed This list of userids that are visible in the report.
      *      Users can only delete attempts that they are allowed to see in the report.
      *      Empty means all users.
      */
-    protected function delete_selected_attempts($quiz, $cm, $attemptids, $allowed) {
+    protected function delete_selected_attempts($adaquiz, $cm, $attemptids, $allowed) {
         global $DB;
 
         foreach ($attemptids as $attemptid) {
-            $attempt = $DB->get_record('quiz_attempts', array('id' => $attemptid));
-            if (!$attempt || $attempt->quiz != $quiz->id || $attempt->preview != 0) {
+            $attempt = $DB->get_record('adaquiz_attempts', array('id' => $attemptid));
+            if (!$attempt || $attempt->quiz != $adaquiz->id || $attempt->preview != 0) {
                 // Ensure the attempt exists, and belongs to this quiz. If not skip.
                 continue;
             }
@@ -319,8 +317,8 @@ abstract class quiz_attempts_report extends quiz_default_report {
             }
 
             // Set the course module id before calling quiz_delete_attempt().
-            $quiz->cmid = $cm->id;
-            quiz_delete_attempt($attempt, $quiz);
+            $adaquiz->cmid = $cm->id;
+            adaquiz_delete_attempt($attempt, $adaquiz);
         }
     }
 }

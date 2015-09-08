@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tests for the quiz overview report.
+ * Tests for the adaptive quiz overview report.
  *
  * @package   quiz_overview
  * @copyright 2014 The Open University

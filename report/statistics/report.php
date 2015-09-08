@@ -15,34 +15,32 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Quiz statistics report class.
+ * Adaptive uiz statistics report class.
  *
- * @package   quiz_statistics
- * @copyright 2014 Open University
- * @author    James Pratt <me@jamiep.org>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   adaquiz_statistics
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/quiz/report/statistics/statistics_form.php');
-require_once($CFG->dirroot . '/mod/quiz/report/statistics/statistics_table.php');
-require_once($CFG->dirroot . '/mod/quiz/report/statistics/statistics_question_table.php');
-require_once($CFG->dirroot . '/mod/quiz/report/statistics/statisticslib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/statistics/statistics_form.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/statistics/statistics_table.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/statistics/statistics_question_table.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/statistics/statisticslib.php');
 /**
- * The quiz statistics report provides summary information about each question in
- * a quiz, compared to the whole quiz. It also provides a drill-down to more
+ * The adaptive quiz statistics report provides summary information about each question in
+ * an adaptive quiz, compared to the whole adaptive quiz. It also provides a drill-down to more
  * detailed information about each question.
  *
  * @copyright 2008 Jamie Pratt
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class quiz_statistics_report extends quiz_default_report {
+class adaquiz_statistics_report extends adaquiz_default_report {
 
-    /** @var context_module context of this quiz.*/
+    /** @var context_module context of this adaptive quiz.*/
     protected $context;
 
-    /** @var quiz_statistics_table instance of table class used for main questions stats table. */
+    /** @var adaptive quiz_statistics_table instance of table class used for main questions stats table. */
     protected $table;
 
     /** @var \core\progress\base|null $progress Handles progress reporting or not. */
@@ -51,16 +49,16 @@ class quiz_statistics_report extends quiz_default_report {
     /**
      * Display the report.
      */
-    public function display($quiz, $cm, $course) {
+    public function display($adaquiz, $cm, $course) {
         global $OUTPUT;
 
         raise_memory_limit(MEMORY_HUGE);
 
         $this->context = context_module::instance($cm->id);
 
-        if (!quiz_has_questions($quiz->id)) {
-            $this->print_header_and_tabs($cm, $course, $quiz, 'statistics');
-            echo quiz_no_questions_message($quiz, $cm, $this->context);
+        if (!adaquiz_has_questions($adaquiz->id)) {
+            $this->print_header_and_tabs($cm, $course, $adaquiz, 'statistics');
+            echo adaquiz_no_questions_message($adaquiz, $cm, $this->context);
             return true;
         }
 
@@ -72,20 +70,20 @@ class quiz_statistics_report extends quiz_default_report {
         $qid = optional_param('qid', 0, PARAM_INT);
         $slot = optional_param('slot', 0, PARAM_INT);
         $variantno = optional_param('variant', null, PARAM_INT);
-        $whichattempts = optional_param('whichattempts', $quiz->grademethod, PARAM_INT);
+        $whichattempts = optional_param('whichattempts', $adaquiz->grademethod, PARAM_INT);
         $whichtries = optional_param('whichtries', question_attempt::LAST_TRY, PARAM_ALPHA);
 
         $pageoptions = array();
         $pageoptions['id'] = $cm->id;
         $pageoptions['mode'] = 'statistics';
 
-        $reporturl = new moodle_url('/mod/quiz/report.php', $pageoptions);
+        $reporturl = new moodle_url('/mod/adaquiz/report.php', $pageoptions);
 
-        $mform = new quiz_statistics_settings_form($reporturl, compact('quiz'));
+        $mform = new adaquiz_statistics_settings_form($reporturl, compact('adaquiz'));
 
         $mform->set_data(array('whichattempts' => $whichattempts, 'whichtries' => $whichtries));
 
-        if ($whichattempts != $quiz->grademethod) {
+        if ($whichattempts != $adaquiz->grademethod) {
             $reporturl->param('whichattempts', $whichattempts);
         }
 
@@ -105,16 +103,16 @@ class quiz_statistics_report extends quiz_default_report {
             $nostudentsingroup = true;
 
         } else {
-            // All users who can attempt quizzes and who are in the currently selected group.
+            // All users who can attempt adaptive quizzes and who are in the currently selected group.
             $groupstudents = get_users_by_capability($this->context,
-                    array('mod/quiz:reviewmyattempts', 'mod/quiz:attempt'),
+                    array('mod/adaquiz:reviewmyattempts', 'mod/adaquiz:attempt'),
                     '', '', '', '', $currentgroup, '', false);
             if (!$groupstudents) {
                 $nostudentsingroup = true;
             }
         }
 
-        $qubaids = quiz_statistics_qubaids_condition($quiz->id, $groupstudents, $whichattempts);
+        $qubaids = adaquiz_statistics_qubaids_condition($adaquiz->id, $groupstudents, $whichattempts);
 
         // If recalculate was requested, handle that.
         if ($recalculate && confirm_sesskey()) {
@@ -123,38 +121,38 @@ class quiz_statistics_report extends quiz_default_report {
         }
 
         // Set up the main table.
-        $this->table = new quiz_statistics_table();
+        $this->table = new adaquiz_statistics_table();
         if ($everything) {
-            $report = get_string('completestatsfilename', 'quiz_statistics');
+            $report = get_string('completestatsfilename', 'adaquiz_statistics');
         } else {
-            $report = get_string('questionstatsfilename', 'quiz_statistics');
+            $report = get_string('questionstatsfilename', 'adaquiz_statistics');
         }
         $courseshortname = format_string($course->shortname, true,
                 array('context' => context_course::instance($course->id)));
-        $filename = quiz_report_download_filename($report, $courseshortname, $quiz->name);
+        $filename = adaquiz_report_download_filename($report, $courseshortname, $adaquiz->name);
         $this->table->is_downloading($download, $filename,
-                get_string('quizstructureanalysis', 'quiz_statistics'));
-        $questions = $this->load_and_initialise_questions_for_calculations($quiz);
+                get_string('quizstructureanalysis', 'adaquiz_statistics'));
+        $questions = $this->load_and_initialise_questions_for_calculations($adaquiz);
 
         // Print the page header stuff (if not downloading.
         if (!$this->table->is_downloading()) {
-            $this->print_header_and_tabs($cm, $course, $quiz, 'statistics');
+            $this->print_header_and_tabs($cm, $course, $adaquiz, 'statistics');
         }
 
         if (!$nostudentsingroup) {
             // Get the data to be displayed.
             $progress = $this->get_progress_trace_instance();
-            list($quizstats, $questionstats) =
-                $this->get_all_stats_and_analysis($quiz, $whichattempts, $whichtries, $groupstudents, $questions, $progress);
+            list($adaquizstats, $questionstats) =
+                $this->get_all_stats_and_analysis($adaquiz, $whichattempts, $whichtries, $groupstudents, $questions, $progress);
         } else {
             // Or create empty stats containers.
-            $quizstats = new \quiz_statistics\calculated($whichattempts);
+            $adaquizstats = new \adaquiz_statistics\calculated($whichattempts);
             $questionstats = new \core_question\statistics\questions\all_calculated_for_qubaid_condition();
         }
 
         // Set up the table, if there is data.
-        if ($quizstats->s()) {
-            $this->table->statistics_setup($quiz, $cm->id, $reporturl, $quizstats->s());
+        if ($adaquizstats->s()) {
+            $this->table->statistics_setup($adaquiz, $cm->id, $reporturl, $adaquizstats->s());
         }
 
         // Print the rest of the page header stuff (if not downloading.
@@ -163,12 +161,12 @@ class quiz_statistics_report extends quiz_default_report {
             if (groups_get_activity_groupmode($cm)) {
                 groups_print_activity_menu($cm, $reporturl->out());
                 if ($currentgroup && !$groupstudents) {
-                    $OUTPUT->notification(get_string('nostudentsingroup', 'quiz_statistics'));
+                    $OUTPUT->notification(get_string('nostudentsingroup', 'adaquiz_statistics'));
                 }
             }
 
-            if (!$this->table->is_downloading() && $quizstats->s() == 0) {
-                echo $OUTPUT->notification(get_string('noattempts', 'quiz'));
+            if (!$this->table->is_downloading() && $adaquizstats->s() == 0) {
+                echo $OUTPUT->notification(get_string('noattempts', 'adaquiz'));
             }
 
             foreach ($questionstats->any_error_messages() as $errormessage) {
@@ -181,14 +179,14 @@ class quiz_statistics_report extends quiz_default_report {
 
         if ($everything) { // Implies is downloading.
             // Overall report, then the analysis of each question.
-            $quizinfo = $quizstats->get_formatted_quiz_info_data($course, $cm, $quiz);
-            $this->download_quiz_info_table($quizinfo);
+            $adaquizinfo = $adaquizstats->get_formatted_adaquiz_info_data($course, $cm, $adaquiz);
+            $this->download_adaquiz_info_table($adaquizinfo);
 
-            if ($quizstats->s()) {
-                $this->output_quiz_structure_analysis_table($questionstats);
+            if ($adaquizstats->s()) {
+                $this->output_adaquiz_structure_analysis_table($questionstats);
 
-                if ($this->table->is_downloading() == 'xhtml' && $quizstats->s() != 0) {
-                    $this->output_statistics_graph($quiz->id, $currentgroup, $whichattempts);
+                if ($this->table->is_downloading() == 'xhtml' && $adaquizstats->s() != 0) {
+                    $this->output_statistics_graph($adaquiz->id, $currentgroup, $whichattempts);
                 }
 
                 $this->output_all_question_response_analysis($qubaids, $questions, $questionstats, $reporturl, $whichtries);
@@ -202,7 +200,7 @@ class quiz_statistics_report extends quiz_default_report {
                 print_error('questiondoesnotexist', 'question');
             }
 
-            $this->output_individual_question_data($quiz, $questionstats->for_subq($qid, $variantno));
+            $this->output_individual_question_data($adaquiz, $questionstats->for_subq($qid, $variantno));
             $this->output_individual_question_response_analysis($questionstats->for_subq($qid, $variantno)->question,
                                                                 $variantno,
                                                                 $questionstats->for_subq($qid, $variantno)->s,
@@ -211,7 +209,7 @@ class quiz_statistics_report extends quiz_default_report {
                                                                 $whichtries);
             // Back to overview link.
             echo $OUTPUT->box('<a href="' . $reporturl->out() . '">' .
-                              get_string('backtoquizreport', 'quiz_statistics') . '</a>',
+                              get_string('backtoquizreport', 'adaquiz_statistics') . '</a>',
                               'boxaligncenter generalbox boxwidthnormal mdl-align');
         } else if ($slot) {
             // Report on an individual question indexed by position.
@@ -224,12 +222,12 @@ class quiz_statistics_report extends quiz_default_report {
                                 || $questionstats->for_slot($slot)->get_variants())) {
                 if (!$this->table->is_downloading()) {
                     $number = $questionstats->for_slot($slot)->question->number;
-                    echo $OUTPUT->heading(get_string('slotstructureanalysis', 'quiz_statistics', $number), 3);
+                    echo $OUTPUT->heading(get_string('slotstructureanalysis', 'adaquiz_statistics', $number), 3);
                 }
                 $this->table->define_baseurl(new moodle_url($reporturl, array('slot' => $slot)));
                 $this->table->format_and_add_array_of_rows($questionstats->structure_analysis_for_one_slot($slot));
             } else {
-                $this->output_individual_question_data($quiz, $questionstats->for_slot($slot, $variantno));
+                $this->output_individual_question_data($adaquiz, $questionstats->for_slot($slot, $variantno));
                 $this->output_individual_question_response_analysis($questions[$slot],
                                                                     $variantno,
                                                                     $questionstats->for_slot($slot, $variantno)->s,
@@ -240,7 +238,7 @@ class quiz_statistics_report extends quiz_default_report {
             if (!$this->table->is_downloading()) {
                 // Back to overview link.
                 echo $OUTPUT->box('<a href="' . $reporturl->out() . '">' .
-                        get_string('backtoquizreport', 'quiz_statistics') . '</a>',
+                        get_string('backtoquizreport', 'adaquiz_statistics') . '</a>',
                         'backtomainstats boxaligncenter generalbox boxwidthnormal mdl-align');
             } else {
                 $this->table->finish_output();
@@ -248,24 +246,24 @@ class quiz_statistics_report extends quiz_default_report {
 
         } else if ($this->table->is_downloading()) {
             // Downloading overview report.
-            $quizinfo = $quizstats->get_formatted_quiz_info_data($course, $cm, $quiz);
-            $this->download_quiz_info_table($quizinfo);
-            if ($quizstats->s()) {
-                $this->output_quiz_structure_analysis_table($questionstats);
+            $adaquizinfo = $adaquizstats->get_formatted_adaquiz_info_data($course, $cm, $adaquiz);
+            $this->download_adaquiz_info_table($adaquizinfo);
+            if ($adaquizstats->s()) {
+                $this->output_adaquiz_structure_analysis_table($questionstats);
             }
             $this->table->finish_output();
 
         } else {
             // On-screen display of overview report.
-            echo $OUTPUT->heading(get_string('quizinformation', 'quiz_statistics'), 3);
-            echo $this->output_caching_info($quizstats->timemodified, $quiz->id, $groupstudents, $whichattempts, $reporturl);
+            echo $OUTPUT->heading(get_string('quizinformation', 'adaquiz_statistics'), 3);
+            echo $this->output_caching_info($adaquizstats->timemodified, $adaquiz->id, $groupstudents, $whichattempts, $reporturl);
             echo $this->everything_download_options();
-            $quizinfo = $quizstats->get_formatted_quiz_info_data($course, $cm, $quiz);
-            echo $this->output_quiz_info_table($quizinfo);
-            if ($quizstats->s()) {
-                echo $OUTPUT->heading(get_string('quizstructureanalysis', 'quiz_statistics'), 3);
-                $this->output_quiz_structure_analysis_table($questionstats);
-                $this->output_statistics_graph($quiz->id, $currentgroup, $whichattempts);
+            $adaquizinfo = $adaquizstats->get_formatted_adaquiz_info_data($course, $cm, $adaquiz);
+            echo $this->output_adaquiz_info_table($adaquizinfo);
+            if ($adaquizstats->s()) {
+                echo $OUTPUT->heading(get_string('quizstructureanalysis', 'adaquiz_statistics'), 3);
+                $this->output_adaquiz_structure_analysis_table($questionstats);
+                $this->output_statistics_graph($adaquiz->id, $currentgroup, $whichattempts);
             }
         }
 
@@ -276,13 +274,13 @@ class quiz_statistics_report extends quiz_default_report {
      * Display the statistical and introductory information about a question.
      * Only called when not downloading.
      *
-     * @param object                                         $quiz         the quiz settings.
+     * @param object $adaquiz the adaptive quiz settings.
      * @param \core_question\statistics\questions\calculated $questionstat the question to report on.
      */
-    protected function output_individual_question_data($quiz, $questionstat) {
+    protected function output_individual_question_data($adaquiz, $questionstat) {
         global $OUTPUT;
 
-        // On-screen display. Show a summary of the question's place in the quiz,
+        // On-screen display. Show a summary of the question's place in the adaptive quiz,
         // and the question statistics.
         $datumfromtable = $this->table->format_row($questionstat);
 
@@ -293,19 +291,19 @@ class quiz_statistics_report extends quiz_default_report {
         $questioninfotable->attributes['class'] = 'generaltable titlesleft';
 
         $questioninfotable->data = array();
-        $questioninfotable->data[] = array(get_string('modulename', 'quiz'), $quiz->name);
-        $questioninfotable->data[] = array(get_string('questionname', 'quiz_statistics'),
+        $questioninfotable->data[] = array(get_string('modulename', 'adaquiz'), $adaquiz->name);
+        $questioninfotable->data[] = array(get_string('questionname', 'adaquiz_statistics'),
                 $questionstat->question->name.'&nbsp;'.$datumfromtable['actions']);
 
         if ($questionstat->variant !== null) {
-            $questioninfotable->data[] = array(get_string('variant', 'quiz_statistics'), $questionstat->variant);
+            $questioninfotable->data[] = array(get_string('variant', 'adaquiz_statistics'), $questionstat->variant);
 
         }
-        $questioninfotable->data[] = array(get_string('questiontype', 'quiz_statistics'),
+        $questioninfotable->data[] = array(get_string('questiontype', 'adaquiz_statistics'),
                 $datumfromtable['icon'] . '&nbsp;' .
                 question_bank::get_qtype($questionstat->question->qtype, false)->menu_name() . '&nbsp;' .
                 $datumfromtable['icon']);
-        $questioninfotable->data[] = array(get_string('positions', 'quiz_statistics'),
+        $questioninfotable->data[] = array(get_string('positions', 'adaquiz_statistics'),
                 $questionstat->positions);
 
         // Set up the question statistics table.
@@ -320,25 +318,25 @@ class quiz_statistics_report extends quiz_default_report {
         unset($datumfromtable['actions']);
         unset($datumfromtable['name']);
         $labels = array(
-            's' => get_string('attempts', 'quiz_statistics'),
-            'facility' => get_string('facility', 'quiz_statistics'),
-            'sd' => get_string('standarddeviationq', 'quiz_statistics'),
-            'random_guess_score' => get_string('random_guess_score', 'quiz_statistics'),
-            'intended_weight' => get_string('intended_weight', 'quiz_statistics'),
-            'effective_weight' => get_string('effective_weight', 'quiz_statistics'),
-            'discrimination_index' => get_string('discrimination_index', 'quiz_statistics'),
+            's' => get_string('attempts', 'adaquiz_statistics'),
+            'facility' => get_string('facility', 'adaquiz_statistics'),
+            'sd' => get_string('standarddeviationq', 'adaquiz_statistics'),
+            'random_guess_score' => get_string('random_guess_score', 'adaquiz_statistics'),
+            'intended_weight' => get_string('intended_weight', 'adaquiz_statistics'),
+            'effective_weight' => get_string('effective_weight', 'adaquiz_statistics'),
+            'discrimination_index' => get_string('discrimination_index', 'adaquiz_statistics'),
             'discriminative_efficiency' =>
-                                get_string('discriminative_efficiency', 'quiz_statistics')
+                                get_string('discriminative_efficiency', 'adaquiz_statistics')
         );
         foreach ($datumfromtable as $item => $value) {
             $questionstatstable->data[] = array($labels[$item], $value);
         }
 
         // Display the various bits.
-        echo $OUTPUT->heading(get_string('questioninformation', 'quiz_statistics'), 3);
+        echo $OUTPUT->heading(get_string('questioninformation', 'adaquiz_statistics'), 3);
         echo html_writer::table($questioninfotable);
         echo $this->render_question_text($questionstat->question);
-        echo $OUTPUT->heading(get_string('questionstatistics', 'quiz_statistics'), 3);
+        echo $OUTPUT->heading(get_string('questionstatistics', 'adaquiz_statistics'), 3);
         echo html_writer::table($questionstatstable);
     }
 
@@ -353,7 +351,7 @@ class quiz_statistics_report extends quiz_default_report {
 
         $text = question_rewrite_question_preview_urls($question->questiontext, $question->id,
                 $question->contextid, 'question', 'questiontext', $question->id,
-                $this->context->id, 'quiz_statistics');
+                $this->context->id, 'adaquiz_statistics');
 
         return $OUTPUT->box(format_text($text, $question->questiontextformat,
                 array('noclean' => true, 'para' => false, 'overflowdiv' => true)),
@@ -378,12 +376,12 @@ class quiz_statistics_report extends quiz_default_report {
             return;
         }
 
-        $qtable = new quiz_statistics_question_table($question->id);
+        $qtable = new adaquiz_statistics_question_table($question->id);
         $exportclass = $this->table->export_class_instance();
         $qtable->export_class_instance($exportclass);
         if (!$this->table->is_downloading()) {
             // Output an appropriate title.
-            echo $OUTPUT->heading(get_string('analysisofresponses', 'quiz_statistics'), 3);
+            echo $OUTPUT->heading(get_string('analysisofresponses', 'adaquiz_statistics'), 3);
 
         } else {
             // Work out an appropriate title.
@@ -391,17 +389,17 @@ class quiz_statistics_report extends quiz_default_report {
             $a->variant = $variantno;
 
             if (!empty($question->number) && !is_null($variantno)) {
-                $questiontabletitle = get_string('analysisnovariant', 'quiz_statistics', $a);
+                $questiontabletitle = get_string('analysisnovariant', 'adaquiz_statistics', $a);
             } else if (!empty($question->number)) {
-                $questiontabletitle = get_string('analysisno', 'quiz_statistics', $a);
+                $questiontabletitle = get_string('analysisno', 'adaquiz_statistics', $a);
             } else if (!is_null($variantno)) {
-                $questiontabletitle = get_string('analysisvariant', 'quiz_statistics', $a);
+                $questiontabletitle = get_string('analysisvariant', 'adaquiz_statistics', $a);
             } else {
-                $questiontabletitle = get_string('analysisnameonly', 'quiz_statistics', $a);
+                $questiontabletitle = get_string('analysisnameonly', 'adaquiz_statistics', $a);
             }
 
             if ($this->table->is_downloading() == 'xhtml') {
-                $questiontabletitle = get_string('analysisofresponsesfor', 'quiz_statistics', $questiontabletitle);
+                $questiontabletitle = get_string('analysisofresponsesfor', 'adaquiz_statistics', $questiontabletitle);
             }
 
             // Set up the table.
@@ -439,13 +437,13 @@ class quiz_statistics_report extends quiz_default_report {
     }
 
     /**
-     * Output the table that lists all the questions in the quiz with their statistics.
+     * Output the table that lists all the questions in the adaptive quiz with their statistics.
      *
      * @param \core_question\statistics\questions\all_calculated_for_qubaid_condition $questionstats the stats for all questions in
-     *                                                                                               the quiz including subqs and
+     *                                                                                               the adaptive quiz including subqs and
      *                                                                                               variants.
      */
-    protected function output_quiz_structure_analysis_table($questionstats) {
+    protected function output_adaquiz_structure_analysis_table($questionstats) {
         $tooutput = array();
         $limitvariants = !$this->table->is_downloading();
         foreach ($questionstats->get_all_slots() as $slot) {
@@ -456,52 +454,52 @@ class quiz_statistics_report extends quiz_default_report {
     }
 
     /**
-     * Return HTML for table of overall quiz statistics.
+     * Return HTML for table of overall adaptive quiz statistics.
      *
-     * @param array $quizinfo as returned by {@link get_formatted_quiz_info_data()}.
+     * @param array $adaquizinfo as returned by {@link get_formatted_adaquiz_info_data()}.
      * @return string the HTML.
      */
-    protected function output_quiz_info_table($quizinfo) {
+    protected function output_adaquiz_info_table($adaquizinfo) {
 
-        $quizinfotable = new html_table();
-        $quizinfotable->align = array('center', 'center');
-        $quizinfotable->width = '60%';
-        $quizinfotable->attributes['class'] = 'generaltable titlesleft';
-        $quizinfotable->data = array();
+        $adaquizinfotable = new html_table();
+        $adaquizinfotable->align = array('center', 'center');
+        $adaquizinfotable->width = '60%';
+        $adaquizinfotable->attributes['class'] = 'generaltable titlesleft';
+        $adaquizinfotable->data = array();
 
-        foreach ($quizinfo as $heading => $value) {
-             $quizinfotable->data[] = array($heading, $value);
+        foreach ($adaquizinfo as $heading => $value) {
+             $adaquizinfotable->data[] = array($heading, $value);
         }
 
-        return html_writer::table($quizinfotable);
+        return html_writer::table($adaquizinfotable);
     }
 
     /**
-     * Download the table of overall quiz statistics.
+     * Download the table of overall adaptive quiz statistics.
      *
-     * @param array $quizinfo as returned by {@link get_formatted_quiz_info_data()}.
+     * @param array $adaquizinfo as returned by {@link get_formatted_adaquiz_info_data()}.
      */
-    protected function download_quiz_info_table($quizinfo) {
+    protected function download_adaquiz_info_table($adaquizinfo) {
         global $OUTPUT;
 
         // XHTML download is a special case.
         if ($this->table->is_downloading() == 'xhtml') {
-            echo $OUTPUT->heading(get_string('quizinformation', 'quiz_statistics'), 3);
-            echo $this->output_quiz_info_table($quizinfo);
+            echo $OUTPUT->heading(get_string('quizinformation', 'adaquiz_statistics'), 3);
+            echo $this->output_adaquiz_info_table($adaquizinfo);
             return;
         }
 
         // Reformat the data ready for output.
         $headers = array();
         $row = array();
-        foreach ($quizinfo as $heading => $value) {
+        foreach ($adaquizinfo as $heading => $value) {
             $headers[] = $heading;
             $row[] = $value;
         }
 
         // Do the output.
         $exportclass = $this->table->export_class_instance();
-        $exportclass->start_table(get_string('quizinformation', 'quiz_statistics'));
+        $exportclass->start_table(get_string('quizinformation', 'adaquiz_statistics'));
         $exportclass->output_headers($headers);
         $exportclass->add_data($row);
         $exportclass->finish_table();
@@ -510,67 +508,67 @@ class quiz_statistics_report extends quiz_default_report {
     /**
      * Output the HTML needed to show the statistics graph.
      *
-     * @param $quizid
+     * @param $adaquizid
      * @param $currentgroup
      * @param $whichattempts
      */
-    protected function output_statistics_graph($quizid, $currentgroup, $whichattempts) {
+    protected function output_statistics_graph($adaquizid, $currentgroup, $whichattempts) {
         global $PAGE;
 
-        $output = $PAGE->get_renderer('mod_quiz');
-        $imageurl = new moodle_url('/mod/quiz/report/statistics/statistics_graph.php',
-                                    compact('quizid', 'currentgroup', 'whichattempts'));
-        $graphname = get_string('statisticsreportgraph', 'quiz_statistics');
+        $output = $PAGE->get_renderer('mod_adaquiz');
+        $imageurl = new moodle_url('/mod/adaquiz/report/statistics/statistics_graph.php',
+                                    compact('adaquizid', 'currentgroup', 'whichattempts'));
+        $graphname = get_string('statisticsreportgraph', 'adaquiz_statistics');
         echo $output->graph($imageurl, $graphname);
     }
 
     /**
-     * Get the quiz and question statistics, either by loading the cached results,
+     * Get the adaptive quiz and question statistics, either by loading the cached results,
      * or by recomputing them.
      *
-     * @param object $quiz               the quiz settings.
+     * @param object $adaquiz            the adaptive quiz settings.
      * @param string $whichattempts      which attempts to use, represented internally as one of the constants as used in
-     *                                   $quiz->grademethod ie.
-     *                                   QUIZ_GRADEAVERAGE, QUIZ_GRADEHIGHEST, QUIZ_ATTEMPTLAST or QUIZ_ATTEMPTFIRST
+     *                                   $adaquiz->grademethod ie.
+     *                                   ADAQUIZ_GRADEAVERAGE, ADAQUIZ_GRADEHIGHEST, ADAQUIZ_ATTEMPTLAST or ADAQUIZ_ATTEMPTFIRST
      *                                   we calculate stats based on which attempts would affect the grade for each student.
      * @param string $whichtries         which tries to analyse for response analysis. Will be one of
      *                                   question_attempt::FIRST_TRY, LAST_TRY or ALL_TRIES.
      * @param array  $groupstudents      students in this group.
      * @param array  $questions          full question data.
      * @param \core\progress\base|null   $progress
-     * @return array with 2 elements:    - $quizstats The statistics for overall attempt scores.
+     * @return array with 2 elements:    - $adaquizstats The statistics for overall attempt scores.
      *                                   - $questionstats \core_question\statistics\questions\all_calculated_for_qubaid_condition
      */
-    public function get_all_stats_and_analysis($quiz, $whichattempts, $whichtries, $groupstudents, $questions, $progress = null) {
+    public function get_all_stats_and_analysis($adaquiz, $whichattempts, $whichtries, $groupstudents, $questions, $progress = null) {
 
         if ($progress === null) {
             $progress = new \core\progress\null();
         }
 
-        $qubaids = quiz_statistics_qubaids_condition($quiz->id, $groupstudents, $whichattempts);
+        $qubaids = adaquiz_statistics_qubaids_condition($adaquiz->id, $groupstudents, $whichattempts);
 
         $qcalc = new \core_question\statistics\questions\calculator($questions, $progress);
 
-        $quizcalc = new \quiz_statistics\calculator($progress);
+        $adaquizcalc = new \adaquiz_statistics\calculator($progress);
 
         $progress->start_progress('', 3);
-        if ($quizcalc->get_last_calculated_time($qubaids) === false) {
+        if ($adaquizcalc->get_last_calculated_time($qubaids) === false) {
 
             // Recalculate now.
             $questionstats = $qcalc->calculate($qubaids);
             $progress->progress(1);
 
-            $quizstats = $quizcalc->calculate($quiz->id, $whichattempts, $groupstudents, count($questions),
+            $adaquizstats = $adaquizcalc->calculate($adaquiz->id, $whichattempts, $groupstudents, count($questions),
                                               $qcalc->get_sum_of_mark_variance());
             $progress->progress(2);
         } else {
-            $quizstats = $quizcalc->get_cached($qubaids);
+            $adaquizstats = $adaquizcalc->get_cached($qubaids);
             $progress->progress(1);
             $questionstats = $qcalc->get_cached($qubaids);
             $progress->progress(2);
         }
 
-        if ($quizstats->s()) {
+        if ($adaquizstats->s()) {
             $subquestions = $questionstats->get_sub_questions();
             $this->analyse_responses_for_all_questions_and_subquestions($questions,
                                                                         $subquestions,
@@ -581,7 +579,7 @@ class quiz_statistics_report extends quiz_default_report {
         $progress->progress(3);
         $progress->end_progress();
 
-        return array($quizstats, $questionstats);
+        return array($adaquizstats, $questionstats);
     }
 
     /**
@@ -592,7 +590,7 @@ class quiz_statistics_report extends quiz_default_report {
     protected function get_progress_trace_instance() {
         if ($this->progress === null) {
             if (!$this->table->is_downloading()) {
-                $this->progress = new \core\progress\display_if_slow(get_string('calculatingallstats', 'quiz_statistics'));
+                $this->progress = new \core\progress\display_if_slow(get_string('calculatingallstats', 'adaquiz_statistics'));
                 $this->progress->set_display_names();
             } else {
                 $this->progress = new \core\progress\null();
@@ -602,7 +600,7 @@ class quiz_statistics_report extends quiz_default_report {
     }
 
     /**
-     * Analyse responses for all questions and sub questions in this quiz.
+     * Analyse responses for all questions and sub questions in this adaptive quiz.
      *
      * @param object[] $questions as returned by self::load_and_initialise_questions_for_calculations
      * @param object[] $subquestions full question objects.
@@ -661,7 +659,7 @@ class quiz_statistics_report extends quiz_default_report {
     }
 
     /**
-     * Return a little form for the user to request to download the full report, including quiz stats and response analysis for
+     * Return a little form for the user to request to download the full report, including adaptive quiz stats and response analysis for
      * all questions and sub-questions.
      *
      * @return string HTML.
@@ -678,7 +676,7 @@ class quiz_statistics_report extends quiz_default_report {
         $output = '<form action="'. $this->table->baseurl .'" method="post">';
         $output .= '<div class="mdl-align">';
         $output .= '<input type="hidden" name="everything" value="1"/>';
-        $output .= html_writer::tag('label', get_string('downloadeverything', 'quiz_statistics', $downloadelements));
+        $output .= html_writer::tag('label', get_string('downloadeverything', 'adaquiz_statistics', $downloadelements));
         $output .= '</div></form>';
 
         return $output;
@@ -688,16 +686,16 @@ class quiz_statistics_report extends quiz_default_report {
      * Return HTML for a message that says when the stats were last calculated and a 'recalculate now' button.
      *
      * @param int    $lastcachetime  the time the stats were last cached.
-     * @param int    $quizid         the quiz id.
+     * @param int    $adaquizid         the adaptive quiz id.
      * @param array  $groupstudents  ids of students in the group or empty array if groups not used.
      * @param string $whichattempts which attempts to use, represented internally as one of the constants as used in
-     *                                   $quiz->grademethod ie.
-     *                                   QUIZ_GRADEAVERAGE, QUIZ_GRADEHIGHEST, QUIZ_ATTEMPTLAST or QUIZ_ATTEMPTFIRST
+     *                                   $adaquiz->grademethod ie.
+     *                                   ADAQUIZ_GRADEAVERAGE, ADAQUIZ_GRADEHIGHEST, ADAQUIZ_ATTEMPTLAST or ADAQUIZ_ATTEMPTFIRST
      *                                   we calculate stats based on which attempts would affect the grade for each student.
      * @param moodle_url $reporturl url for this report
      * @return string HTML.
      */
-    protected function output_caching_info($lastcachetime, $quizid, $groupstudents, $whichattempts, $reporturl) {
+    protected function output_caching_info($lastcachetime, $adaquizid, $groupstudents, $whichattempts, $reporturl) {
         global $DB, $OUTPUT;
 
         if (empty($lastcachetime)) {
@@ -705,7 +703,7 @@ class quiz_statistics_report extends quiz_default_report {
         }
 
         // Find the number of attempts since the cached statistics were computed.
-        list($fromqa, $whereqa, $qaparams) = quiz_statistics_attempts_sql($quizid, $groupstudents, $whichattempts, true);
+        list($fromqa, $whereqa, $qaparams) = adaquiz_statistics_attempts_sql($adaquizid, $groupstudents, $whichattempts, true);
         $count = $DB->count_records_sql("
                 SELECT COUNT(1)
                 FROM $fromqa
@@ -726,9 +724,9 @@ class quiz_statistics_report extends quiz_default_report {
         $output = '';
         $output .= $OUTPUT->box_start(
                 'boxaligncenter generalbox boxwidthnormal mdl-align', 'cachingnotice');
-        $output .= get_string('lastcalculated', 'quiz_statistics', $a);
+        $output .= get_string('lastcalculated', 'adaquiz_statistics', $a);
         $output .= $OUTPUT->single_button($recalcualteurl,
-                get_string('recalculatenow', 'quiz_statistics'));
+                get_string('recalculatenow', 'adaquiz_statistics'));
         $output .= $OUTPUT->box_end(true);
 
         return $output;
@@ -742,20 +740,20 @@ class quiz_statistics_report extends quiz_default_report {
      */
     protected function clear_cached_data($qubaids) {
         global $DB;
-        $DB->delete_records('quiz_statistics', array('hashcode' => $qubaids->get_hash_code()));
+        $DB->delete_records('adaquiz_statistics', array('hashcode' => $qubaids->get_hash_code()));
         $DB->delete_records('question_statistics', array('hashcode' => $qubaids->get_hash_code()));
         $DB->delete_records('question_response_analysis', array('hashcode' => $qubaids->get_hash_code()));
     }
 
     /**
-     * Load the questions in this quiz and add some properties to the objects needed in the reports.
+     * Load the questions in this adaptive quiz and add some properties to the objects needed in the reports.
      *
-     * @param object $quiz the quiz.
-     * @return array of questions for this quiz.
+     * @param object $adaquiz the adaptive quiz.
+     * @return array of questions for this adaptive quiz.
      */
-    public function load_and_initialise_questions_for_calculations($quiz) {
+    public function load_and_initialise_questions_for_calculations($adaquiz) {
         // Load the questions.
-        $questions = quiz_report_get_significant_questions($quiz);
+        $questions = adaquiz_report_get_significant_questions($adaquiz);
         $questionids = array();
         foreach ($questions as $question) {
             $questionids[] = $question->id;

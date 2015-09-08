@@ -15,43 +15,42 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Quiz attempt walk through tests.
+ * Adaptive quiz attempt walk through tests.
  *
- * @package    mod_quiz
- * @category   phpunit
- * @copyright  2013 The Open University
- * @author     Jamie Pratt <me@jamiep.org>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_adaquiz
+ * @category  test
+ * @copyright 2015 Maths for More S.L.
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
 
 /**
- * Quiz attempt walk through.
+ * Adaptive quiz attempt walk through.
  *
- * @package    mod_quiz
+ * @package    mod_adaquiz
  * @category   phpunit
  * @copyright  2013 The Open University
  * @author     Jamie Pratt <me@jamiep.org>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_quiz_attempt_walkthrough_testcase extends advanced_testcase {
+class mod_adaquiz_attempt_walkthrough_testcase extends advanced_testcase {
 
     /**
-     * Create a quiz with questions and walk through a quiz attempt.
+     * Create an adaptive quiz with questions and walk through an adaptive quiz attempt.
      */
-    public function test_quiz_attempt_walkthrough() {
+    public function test_adaquiz_attempt_walkthrough() {
         global $SITE;
 
         $this->resetAfterTest(true);
 
-        // Make a quiz.
-        $quizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_quiz');
+        // Make an adaptive quiz.
+        $adaquizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_adaquiz');
 
-        $quiz = $quizgenerator->create_instance(array('course'=>$SITE->id, 'questionsperpage' => 0, 'grade' => 100.0,
+        $adaquiz = $adaquizgenerator->create_instance(array('course'=>$SITE->id, 'questionsperpage' => 0, 'grade' => 100.0,
                                                       'sumgrades' => 2));
 
         // Create a couple of questions.
@@ -61,29 +60,29 @@ class mod_quiz_attempt_walkthrough_testcase extends advanced_testcase {
         $saq = $questiongenerator->create_question('shortanswer', null, array('category' => $cat->id));
         $numq = $questiongenerator->create_question('numerical', null, array('category' => $cat->id));
 
-        // Add them to the quiz.
-        quiz_add_quiz_question($saq->id, $quiz);
-        quiz_add_quiz_question($numq->id, $quiz);
+        // Add them to the adaptive quiz.
+        adaquiz_add_adaquiz_question($saq->id, $adaquiz);
+        adaquiz_add_adaquiz_question($numq->id, $adaquiz);
 
-        // Make a user to do the quiz.
+        // Make a user to do the adaptive quiz.
         $user1 = $this->getDataGenerator()->create_user();
 
-        $quizobj = quiz::create($quiz->id, $user1->id);
+        $adaquizobj = adaquiz::create($adaquiz->id, $user1->id);
 
         // Start the attempt.
-        $quba = question_engine::make_questions_usage_by_activity('mod_quiz', $quizobj->get_context());
-        $quba->set_preferred_behaviour($quizobj->get_quiz()->preferredbehaviour);
+        $quba = question_engine::make_questions_usage_by_activity('mod_adaquiz', $adaquizobj->get_context());
+        $quba->set_preferred_behaviour($adaquizobj->get_adaquiz()->preferredbehaviour);
 
         $timenow = time();
-        $attempt = quiz_create_attempt($quizobj, 1, false, $timenow, false, $user1->id);
+        $attempt = adaquiz_create_attempt($adaquizobj, 1, false, $timenow, false, $user1->id);
 
-        quiz_start_new_attempt($quizobj, $quba, $attempt, 1, $timenow);
+        adaquiz_start_new_attempt($adaquizobj, $quba, $attempt, 1, $timenow);
         $this->assertEquals('1,2,0', $attempt->layout);
 
-        quiz_attempt_save_started($quizobj, $quba, $attempt);
+        adaquiz_attempt_save_started($adaquizobj, $quba, $attempt);
 
         // Process some responses from the student.
-        $attemptobj = quiz_attempt::create($attempt->id);
+        $attemptobj = adaquiz_attempt::create($attempt->id);
         $this->assertFalse($attemptobj->has_response_to_at_least_one_graded_question());
 
         $prefix1 = $quba->get_field_prefix(1);
@@ -95,12 +94,12 @@ class mod_quiz_attempt_walkthrough_testcase extends advanced_testcase {
         $attemptobj->process_submitted_actions($timenow, false, $tosubmit);
 
         // Finish the attempt.
-        $attemptobj = quiz_attempt::create($attempt->id);
+        $attemptobj = adaquiz_attempt::create($attempt->id);
         $this->assertTrue($attemptobj->has_response_to_at_least_one_graded_question());
         $attemptobj->process_finish($timenow, false);
 
-        // Re-load quiz attempt data.
-        $attemptobj = quiz_attempt::create($attempt->id);
+        // Re-load adaptive quiz attempt data.
+        $attemptobj = adaquiz_attempt::create($attempt->id);
 
         // Check that results are stored as expected.
         $this->assertEquals(1, $attemptobj->get_attempt_number());
@@ -110,22 +109,22 @@ class mod_quiz_attempt_walkthrough_testcase extends advanced_testcase {
         $this->assertEquals($user1->id, $attemptobj->get_userid());
         $this->assertTrue($attemptobj->has_response_to_at_least_one_graded_question());
 
-        // Check quiz grades.
-        $grades = quiz_get_user_grades($quiz, $user1->id);
+        // Check adaptive quiz grades.
+        $grades = adaquiz_get_user_grades($adaquiz, $user1->id);
         $grade = array_shift($grades);
         $this->assertEquals(100.0, $grade->rawgrade);
 
         // Check grade book.
-        $gradebookgrades = grade_get_grades($SITE->id, 'mod', 'quiz', $quiz->id, $user1->id);
+        $gradebookgrades = grade_get_grades($SITE->id, 'mod', 'adaquiz', $adaquiz->id, $user1->id);
         $gradebookitem = array_shift($gradebookgrades->items);
         $gradebookgrade = array_shift($gradebookitem->grades);
         $this->assertEquals(100, $gradebookgrade->grade);
     }
 
     /**
-     * Create a quiz with a random as well as other questions and walk through quiz attempts.
+     * Create an adaptive quiz with a random as well as other questions and walk through adaptive quiz attempts.
      */
-    public function test_quiz_with_random_question_attempt_walkthrough() {
+    public function test_adaquiz_with_random_question_attempt_walkthrough() {
         global $SITE;
 
         $this->resetAfterTest(true);
@@ -133,10 +132,10 @@ class mod_quiz_attempt_walkthrough_testcase extends advanced_testcase {
 
         $this->setAdminUser();
 
-        // Make a quiz.
-        $quizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_quiz');
+        // Make an adaptive quiz.
+        $adaquizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_adaquiz');
 
-        $quiz = $quizgenerator->create_instance(array('course' => $SITE->id, 'questionsperpage' => 2, 'grade' => 100.0,
+        $adaquiz = $adaquizgenerator->create_instance(array('course' => $SITE->id, 'questionsperpage' => 2, 'grade' => 100.0,
                                                       'sumgrades' => 4));
 
         $questiongenerator = $this->getDataGenerator()->get_plugin_generator('core_question');
@@ -146,44 +145,44 @@ class mod_quiz_attempt_walkthrough_testcase extends advanced_testcase {
         $saq = $questiongenerator->create_question('shortanswer', null, array('category' => $cat->id));
         $numq = $questiongenerator->create_question('numerical', null, array('category' => $cat->id));
 
-        // Add random question to the quiz.
-        quiz_add_random_questions($quiz, 0, $cat->id, 1, false);
+        // Add random question to the adaptive quiz.
+        adaquiz_add_random_questions($adaquiz, 0, $cat->id, 1, false);
 
         // Make another category.
         $cat2 = $questiongenerator->create_question_category();
         $match = $questiongenerator->create_question('match', null, array('category' => $cat->id));
 
-        quiz_add_quiz_question($match->id, $quiz, 0);
+        adaquiz_add_adaquiz_question($match->id, $adaquiz, 0);
 
         $multichoicemulti = $questiongenerator->create_question('multichoice', 'two_of_four', array('category' => $cat->id));
 
-        quiz_add_quiz_question($multichoicemulti->id, $quiz, 0);
+        adaquiz_add_adaquiz_question($multichoicemulti->id, $adaquiz, 0);
 
         $multichoicesingle = $questiongenerator->create_question('multichoice', 'one_of_four', array('category' => $cat->id));
 
-        quiz_add_quiz_question($multichoicesingle->id, $quiz, 0);
+        adaquiz_add_adaquiz_question($multichoicesingle->id, $adaquiz, 0);
 
         foreach (array($saq->id => 'frog', $numq->id => '3.14') as $randomqidtoselect => $randqanswer) {
-            // Make a new user to do the quiz each loop.
+            // Make a new user to do the adaptive quiz each loop.
             $user1 = $this->getDataGenerator()->create_user();
             $this->setUser($user1);
 
-            $quizobj = quiz::create($quiz->id, $user1->id);
+            $adaquizobj =adaquiz::create($adaquiz->id, $user1->id);
 
             // Start the attempt.
-            $quba = question_engine::make_questions_usage_by_activity('mod_quiz', $quizobj->get_context());
-            $quba->set_preferred_behaviour($quizobj->get_quiz()->preferredbehaviour);
+            $quba = question_engine::make_questions_usage_by_activity('mod_adaquiz', $adaquizobj->get_context());
+            $quba->set_preferred_behaviour($adaquizobj->get_adaquiz()->preferredbehaviour);
 
             $timenow = time();
-            $attempt = quiz_create_attempt($quizobj, 1, false, $timenow);
+            $attempt = adaquiz_create_attempt($adaquizobj, 1, false, $timenow);
 
-            quiz_start_new_attempt($quizobj, $quba, $attempt, 1, $timenow, array(1 => $randomqidtoselect));
+            adaquiz_start_new_attempt($adaquizobj, $quba, $attempt, 1, $timenow, array(1 => $randomqidtoselect));
             $this->assertEquals('1,2,0,3,4,0', $attempt->layout);
 
-            quiz_attempt_save_started($quizobj, $quba, $attempt);
+            adaquiz_attempt_save_started($adaquizobj, $quba, $attempt);
 
             // Process some responses from the student.
-            $attemptobj = quiz_attempt::create($attempt->id);
+            $attemptobj = adaquiz_attempt::create($attempt->id);
             $this->assertFalse($attemptobj->has_response_to_at_least_one_graded_question());
 
             $tosubmit = array();
@@ -199,12 +198,12 @@ class mod_quiz_attempt_walkthrough_testcase extends advanced_testcase {
             $attemptobj->process_submitted_actions($timenow, false, $tosubmit);
 
             // Finish the attempt.
-            $attemptobj = quiz_attempt::create($attempt->id);
+            $attemptobj = adaquiz_attempt::create($attempt->id);
             $this->assertTrue($attemptobj->has_response_to_at_least_one_graded_question());
             $attemptobj->process_finish($timenow, false);
 
-            // Re-load quiz attempt data.
-            $attemptobj = quiz_attempt::create($attempt->id);
+            // Re-load adaptive quiz attempt data.
+            $attemptobj = adaquiz_attempt::create($attempt->id);
 
             // Check that results are stored as expected.
             $this->assertEquals(1, $attemptobj->get_attempt_number());
@@ -214,13 +213,13 @@ class mod_quiz_attempt_walkthrough_testcase extends advanced_testcase {
             $this->assertEquals($user1->id, $attemptobj->get_userid());
             $this->assertTrue($attemptobj->has_response_to_at_least_one_graded_question());
 
-            // Check quiz grades.
-            $grades = quiz_get_user_grades($quiz, $user1->id);
+            // Check adaptive quiz grades.
+            $grades = adaquiz_get_user_grades($adaquiz, $user1->id);
             $grade = array_shift($grades);
             $this->assertEquals(100.0, $grade->rawgrade);
 
             // Check grade book.
-            $gradebookgrades = grade_get_grades($SITE->id, 'mod', 'quiz', $quiz->id, $user1->id);
+            $gradebookgrades = grade_get_grades($SITE->id, 'mod', 'adaquiz', $adaquiz->id, $user1->id);
             $gradebookitem = array_shift($gradebookgrades->items);
             $gradebookgrade = array_shift($gradebookitem->grades);
             $this->assertEquals(100, $gradebookgrade->grade);
@@ -232,25 +231,25 @@ class mod_quiz_attempt_walkthrough_testcase extends advanced_testcase {
         return array(array(1, 9.9), array(2, 8.5), array(5, 14.2), array(10, 6.8, true));
     }
 
-    protected $quizwithvariants = null;
+    protected $adaquizwithvariants = null;
 
     /**
-     * Create a quiz with a single question with variants and walk through quiz attempts.
+     * Create an adaptive quiz with a single question with variants and walk through adaptive quiz attempts.
      *
      * @dataProvider get_correct_response_for_variants
      */
-    public function test_quiz_with_question_with_variants_attempt_walkthrough($variantno, $correctresponse, $done = false) {
+    public function test_adaquiz_with_question_with_variants_attempt_walkthrough($variantno, $correctresponse, $done = false) {
         global $SITE;
 
         $this->resetAfterTest($done);
 
         $this->setAdminUser();
 
-        if ($this->quizwithvariants === null) {
-            // Make a quiz.
-            $quizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_quiz');
+        if ($this->adaquizwithvariants === null) {
+            // Make an adaptive quiz.
+            $adaquizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_adaquiz');
 
-            $this->quizwithvariants = $quizgenerator->create_instance(array('course'=>$SITE->id,
+            $this->adaquizwithvariants = $adaquizgenerator->create_instance(array('course'=>$SITE->id,
                                                                             'questionsperpage' => 0,
                                                                             'grade' => 100.0,
                                                                             'sumgrades' => 1));
@@ -259,42 +258,42 @@ class mod_quiz_attempt_walkthrough_testcase extends advanced_testcase {
 
             $cat = $questiongenerator->create_question_category();
             $calc = $questiongenerator->create_question('calculatedsimple', 'sumwithvariants', array('category' => $cat->id));
-            quiz_add_quiz_question($calc->id, $this->quizwithvariants, 0);
+            adaquiz_add_adaquiz_question($calc->id, $this->adaquizwithvariants, 0);
         }
 
 
-        // Make a new user to do the quiz.
+        // Make a new user to do the adaptive quiz.
         $user1 = $this->getDataGenerator()->create_user();
         $this->setUser($user1);
-        $quizobj = quiz::create($this->quizwithvariants->id, $user1->id);
+        $adaquizobj = adaquiz::create($this->adaquizwithvariants->id, $user1->id);
 
         // Start the attempt.
-        $quba = question_engine::make_questions_usage_by_activity('mod_quiz', $quizobj->get_context());
-        $quba->set_preferred_behaviour($quizobj->get_quiz()->preferredbehaviour);
+        $quba = question_engine::make_questions_usage_by_activity('mod_adaquiz', $adaquizobj->get_context());
+        $quba->set_preferred_behaviour($adaquizobj->get_adaquiz()->preferredbehaviour);
 
         $timenow = time();
-        $attempt = quiz_create_attempt($quizobj, 1, false, $timenow);
+        $attempt = adaquiz_create_attempt($adaquizobj, 1, false, $timenow);
 
         // Select variant.
-        quiz_start_new_attempt($quizobj, $quba, $attempt, 1, $timenow, array(), array(1 => $variantno));
+        adaquiz_start_new_attempt($adaquizobj, $quba, $attempt, 1, $timenow, array(), array(1 => $variantno));
         $this->assertEquals('1,0', $attempt->layout);
-        quiz_attempt_save_started($quizobj, $quba, $attempt);
+        adaquiz_attempt_save_started($adaquizobj, $quba, $attempt);
 
         // Process some responses from the student.
-        $attemptobj = quiz_attempt::create($attempt->id);
+        $attemptobj = adaquiz_attempt::create($attempt->id);
         $this->assertFalse($attemptobj->has_response_to_at_least_one_graded_question());
 
         $tosubmit = array(1 => array('answer' => $correctresponse));
         $attemptobj->process_submitted_actions($timenow, false, $tosubmit);
 
         // Finish the attempt.
-        $attemptobj = quiz_attempt::create($attempt->id);
+        $attemptobj = adaquiz_attempt::create($attempt->id);
         $this->assertTrue($attemptobj->has_response_to_at_least_one_graded_question());
 
         $attemptobj->process_finish($timenow, false);
 
-        // Re-load quiz attempt data.
-        $attemptobj = quiz_attempt::create($attempt->id);
+        // Re-load adaptive quiz attempt data.
+        $attemptobj = adaquiz_attempt::create($attempt->id);
 
         // Check that results are stored as expected.
         $this->assertEquals(1, $attemptobj->get_attempt_number());
@@ -304,13 +303,13 @@ class mod_quiz_attempt_walkthrough_testcase extends advanced_testcase {
         $this->assertEquals($user1->id, $attemptobj->get_userid());
         $this->assertTrue($attemptobj->has_response_to_at_least_one_graded_question());
 
-        // Check quiz grades.
-        $grades = quiz_get_user_grades($this->quizwithvariants, $user1->id);
+        // Check adaptive quiz grades.
+        $grades = adaquiz_get_user_grades($this->adaquizwithvariants, $user1->id);
         $grade = array_shift($grades);
         $this->assertEquals(100.0, $grade->rawgrade);
 
         // Check grade book.
-        $gradebookgrades = grade_get_grades($SITE->id, 'mod', 'quiz', $this->quizwithvariants->id, $user1->id);
+        $gradebookgrades = grade_get_grades($SITE->id, 'mod', 'adaquiz', $this->adaquizwithvariants->id, $user1->id);
         $gradebookitem = array_shift($gradebookgrades->items);
         $gradebookgrade = array_shift($gradebookitem->grades);
         $this->assertEquals(100, $gradebookgrade->grade);

@@ -13,13 +13,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
 /**
- * Admin settings class for the quiz review options.
+ * Admin settings class for the adaptive quiz review options.
  *
- * @package   mod_quiz
- * @copyright 2008 Tim Hunt
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
@@ -27,33 +26,30 @@ defined('MOODLE_INTERNAL') || die();
 
 
 /**
- * Admin settings class for the quiz review options.
- *
- * @copyright  2008 Tim Hunt
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Admin settings class for the adaptive quiz review options.
  */
-class mod_quiz_admin_review_setting extends admin_setting {
+class mod_adaquiz_admin_review_setting extends admin_setting {
     /**
      * @var integer should match the constants defined in
-     * {@link mod_quiz_display_options}. Copied for performance reasons.
+     * {@link mod_adaquiz_display_options}. Copied for performance reasons.
      */
     const DURING            = 0x10000;
 
     /**
      * @var integer should match the constants defined in
-     * {@link mod_quiz_display_options}. Copied for performance reasons.
+     * {@link mod_adaquiz_display_options}. Copied for performance reasons.
      */
     const IMMEDIATELY_AFTER = 0x01000;
 
     /**
      * @var integer should match the constants defined in
-     * {@link mod_quiz_display_options}. Copied for performance reasons.
+     * {@link mod_adaquiz_display_options}. Copied for performance reasons.
      */
     const LATER_WHILE_OPEN  = 0x00100;
 
     /**
-     * @var integer should match the constants defined in
-     * {@link mod_quiz_display_options}. Copied for performance reasons.
+     * @var integer s hould match the constants defined in
+     * {@link mod_adaquiz_display_options}. Copied for performance reasons.
      */
     const AFTER_CLOSE       = 0x00010;
 
@@ -63,19 +59,19 @@ class mod_quiz_admin_review_setting extends admin_setting {
     protected $duringstate;
 
     /**
-     * This should match {@link mod_quiz_mod_form::$reviewfields} but copied
+     * This should match {@link mod_adaquiz_mod_form::$reviewfields} but copied
      * here because generating the admin tree needs to be fast.
      * @return array
      */
     public static function fields() {
         return array(
-            'attempt'          => get_string('theattempt', 'quiz'),
+            'attempt'          => get_string('theattempt', 'adaquiz'),
             'correctness'      => get_string('whethercorrect', 'question'),
             'marks'            => get_string('marks', 'question'),
             'specificfeedback' => get_string('specificfeedback', 'question'),
             'generalfeedback'  => get_string('generalfeedback', 'question'),
             'rightanswer'      => get_string('rightanswer', 'question'),
-            'overallfeedback'  => get_string('overallfeedback', 'quiz'),
+            'overallfeedback'  => get_string('overallfeedback', 'adaquiz'),
         );
     }
 
@@ -110,10 +106,10 @@ class mod_quiz_admin_review_setting extends admin_setting {
      */
     protected static function times() {
         return array(
-            self::DURING            => get_string('reviewduring', 'quiz'),
-            self::IMMEDIATELY_AFTER => get_string('reviewimmediately', 'quiz'),
-            self::LATER_WHILE_OPEN  => get_string('reviewopen', 'quiz'),
-            self::AFTER_CLOSE       => get_string('reviewclosed', 'quiz'),
+            self::DURING            => get_string('reviewduring', 'adaquiz'),
+            self::IMMEDIATELY_AFTER => get_string('reviewimmediately', 'adaquiz'),
+            self::LATER_WHILE_OPEN  => get_string('reviewopen', 'adaquiz'),
+            self::AFTER_CLOSE       => get_string('reviewclosed', 'adaquiz'),
         );
     }
 
@@ -171,6 +167,6 @@ class mod_quiz_admin_review_setting extends admin_setting {
         $return .= "</div>\n";
 
         return format_admin_setting($this, $this->visiblename, $return,
-                $this->description, true, '', get_string('everythingon', 'quiz'), $query);
+                $this->description, true, '', get_string('everythingon', 'adaquiz'), $query);
     }
 }

@@ -15,29 +15,28 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Defines the custom question bank view used on the Edit quiz page.
+ * Defines the custom question bank view used on the Edit adaptive quiz page.
  *
- * @package   mod_quiz
- * @category  question
- * @copyright 1999 onwards Martin Dougiamas and others {@link http://moodle.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_quiz\question\bank;
+namespace mod_adaquiz\question\bank;
 defined('MOODLE_INTERNAL') || die();
 
 
 /**
- * Subclass to customise the view of the question bank for the quiz editing screen.
+ * Subclass to customise the view of the question bank for the adaptive quiz editing screen.
  *
  * @copyright  2009 Tim Hunt
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class custom_view extends \core_question\bank\view {
     /** @var bool whether the quiz this is used by has been attemptd. */
-    protected $quizhasattempts = false;
+    protected $adaquizhasattempts = false;
     /** @var \stdClass the quiz settings. */
-    protected $quiz = false;
+    protected $adaquiz = false;
     /** @var int The maximum displayed length of the category info. */
     const MAX_TEXT_LENGTH = 200;
 
@@ -49,16 +48,16 @@ class custom_view extends \core_question\bank\view {
      * @param \stdClass $cm activity settings.
      * @param \stdClass $quiz quiz settings.
      */
-    public function __construct($contexts, $pageurl, $course, $cm, $quiz) {
+    public function __construct($contexts, $pageurl, $course, $cm, $adaquiz) {
         parent::__construct($contexts, $pageurl, $course, $cm);
-        $this->quiz = $quiz;
+        $this->adaquiz = $adaquiz;
     }
 
     protected function wanted_columns() {
         global $CFG;
 
-        if (empty($CFG->quizquestionbankcolumns)) {
-            $quizquestionbankcolumns = array(
+        if (empty($CFG->adaquizquestionbankcolumns)) {
+            $adaquizquestionbankcolumns = array(
                 'add_action_column',
                 'checkbox_column',
                 'question_type_column',
@@ -66,18 +65,18 @@ class custom_view extends \core_question\bank\view {
                 'preview_action_column',
             );
         } else {
-            $quizquestionbankcolumns = explode(',', $CFG->quizquestionbankcolumns);
+            $adaquizquestionbankcolumns = explode(',', $CFG->adaquizquestionbankcolumns);
         }
 
-        foreach ($quizquestionbankcolumns as $fullname) {
+        foreach ($adaquizquestionbankcolumns as $fullname) {
             if (!class_exists($fullname)) {
-                if (class_exists('mod_quiz\\question\\bank\\' . $fullname)) {
-                    $fullname = 'mod_quiz\\question\\bank\\' . $fullname;
+                if (class_exists('mod_adaquiz\\question\\bank\\' . $fullname)) {
+                    $fullname = 'mod_adaquiz\\question\\bank\\' . $fullname;
                 } else if (class_exists('core_question\\bank\\' . $fullname)) {
                     $fullname = 'core_question\\bank\\' . $fullname;
                 } else if (class_exists('question_bank_' . $fullname)) {
                     debugging('Legacy question bank column class question_bank_' .
-                            $fullname . ' should be renamed to mod_quiz\\question\\bank\\' .
+                            $fullname . ' should be renamed to mod_adaquiz\\question\\bank\\' .
                             $fullname, DEBUG_DEVELOPER);
                     $fullname = 'question_bank_' . $fullname;
                 } else {
@@ -95,39 +94,39 @@ class custom_view extends \core_question\bank\view {
      * @return string Column name for the heading
      */
     protected function heading_column() {
-        return 'mod_quiz\\question\\bank\\question_name_text_column';
+        return 'mod_adaquiz\\question\\bank\\question_name_text_column';
     }
 
     protected function default_sort() {
         return array(
             'core_question\\bank\\question_type_column' => 1,
-            'mod_quiz\\question\\bank\\question_name_text_column' => 1,
+            'mod_adaquiz\\question\\bank\\question_name_text_column' => 1,
         );
     }
 
     /**
-     * Let the question bank display know whether the quiz has been attempted,
-     * hence whether some bits of UI, like the add this question to the quiz icon,
+     * Let the question bank display know whether the adaquiz has been attempted,
+     * hence whether some bits of UI, like the add this question to the adaptive quiz icon,
      * should be displayed.
-     * @param bool $quizhasattempts whether the quiz has attempts.
+     * @param bool $adaquizhasattempts whether the adaptive quiz has attempts.
      */
-    public function set_quiz_has_attempts($quizhasattempts) {
-        $this->quizhasattempts = $quizhasattempts;
-        if ($quizhasattempts && isset($this->visiblecolumns['addtoquizaction'])) {
+    public function set_adaquiz_has_attempts($adaquizhasattempts) {
+        $this->adaquizhasattempts = $adaquizhasattempts;
+        if ($adaquizhasattempts && isset($this->visiblecolumns['addtoquizaction'])) {
             unset($this->visiblecolumns['addtoquizaction']);
         }
     }
 
     public function preview_question_url($question) {
-        return quiz_question_preview_url($this->quiz, $question);
+        return adaquiz_question_preview_url($this->adaquiz, $question);
     }
 
-    public function add_to_quiz_url($questionid) {
+    public function add_to_adaquiz_url($questionid) {
         global $CFG;
         $params = $this->baseurl->params();
         $params['addquestion'] = $questionid;
         $params['sesskey'] = sesskey();
-        return new \moodle_url('/mod/quiz/edit.php', $params);
+        return new \moodle_url('/mod/adaquiz/edit.php', $params);
     }
 
     /**
@@ -156,18 +155,18 @@ class custom_view extends \core_question\bank\view {
      */
     protected function display_bottom_controls($totalnumber, $recurse, $category, \context $catcontext, array $addcontexts) {
         $cmoptions = new \stdClass();
-        $cmoptions->hasattempts = !empty($this->quizhasattempts);
+        $cmoptions->hasattempts = !empty($this->adaquizhasattempts);
 
         $canuseall = has_capability('moodle/question:useall', $catcontext);
 
         echo '<div class="modulespecificbuttonscontainer">';
         if ($canuseall) {
 
-            // Add selected questions to the quiz.
+            // Add selected questions to the adaptive quiz.
             $params = array(
                     'type' => 'submit',
                     'name' => 'add',
-                    'value' => get_string('addselectedquestionstoquiz', 'quiz'),
+                    'value' => get_string('addselectedquestionstoquiz', 'adaquiz'),
             );
             if ($cmoptions->hasattempts) {
                 $params['disabled'] = 'disabled';
@@ -197,7 +196,7 @@ class custom_view extends \core_question\bank\view {
         echo $OUTPUT->box_end();
     }
 
-    protected function display_options_form($showquestiontext, $scriptpath = '/mod/quiz/edit.php',
+    protected function display_options_form($showquestiontext, $scriptpath = '/mod/adaquiz/edit.php',
             $showtextoption = false) {
         // Overridden just to change the default values of the arguments.
         parent::display_options_form($showquestiontext, $scriptpath, $showtextoption);
@@ -206,7 +205,7 @@ class custom_view extends \core_question\bank\view {
     protected function print_category_info($category) {
         $formatoptions = new stdClass();
         $formatoptions->noclean = true;
-        $strcategory = get_string('category', 'quiz');
+        $strcategory = get_string('category', 'adaquiz');
         echo '<div class="categoryinfo"><div class="categorynamefieldcontainer">' .
                 $strcategory;
         echo ': <span class="categorynamefield">';

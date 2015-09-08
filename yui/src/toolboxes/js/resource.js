@@ -2,10 +2,10 @@
  * Resource and activity toolbox class.
  *
  * This class is responsible for managing AJAX interactions with activities and resources
- * when viewing a quiz in editing mode.
+ * when viewing an adaptivequiz in editing mode.
  *
- * @module mod_quiz-resource-toolbox
- * @namespace M.mod_quiz.resource_toolbox
+ * @module mod_adaquiz-resource-toolbox
+ * @namespace M.mod_adaquiz.resource_toolbox
  */
 
 /**
@@ -14,7 +14,7 @@
  * This is a class extending TOOLBOX containing code specific to resources
  *
  * This class is responsible for managing AJAX interactions with activities and resources
- * when viewing a quiz in editing mode.
+ * when viewing an adaptive quiz in editing mode.
  *
  * @class resources
  * @constructor
@@ -59,7 +59,7 @@ Y.extend(RESOURCETOOLBOX, TOOLBOX, {
      * @protected
      */
     initializer: function() {
-        M.mod_quiz.quizbase.register_module(this);
+        M.mod_adaquiz.adaquizbase.register_module(this);
         BODY.delegate('key', this.handle_data_action, 'down:enter', SELECTOR.ACTIVITYACTION, this);
         Y.delegate('click', this.handle_data_action, BODY, SELECTOR.ACTIVITYACTION, this);
     },
@@ -149,7 +149,7 @@ Y.extend(RESOURCETOOLBOX, TOOLBOX, {
             confirmstring = '',
             qtypename = M.util.get_string('pluginname',
                         'qtype_' + element.getAttribute('class').match(/qtype_([^\s]*)/)[1]);
-        confirmstring = M.util.get_string('confirmremovequestion', 'quiz', qtypename);
+        confirmstring = M.util.get_string('confirmremovequestion', 'adaquiz', qtypename);
 
         // Create the confirmation dialogue.
         var confirm = new M.core.confirm({
@@ -164,12 +164,12 @@ Y.extend(RESOURCETOOLBOX, TOOLBOX, {
             var data = {
                 'class': 'resource',
                 'action': 'DELETE',
-                'id': Y.Moodle.mod_quiz.util.slot.getId(element)
+                'id': Y.Moodle.mod_adaquiz.util.slot.getId(element)
             };
             this.send_request(data, spinner, function(response) {
                 if (response.deleted) {
                     // Actually remove the element.
-                    Y.Moodle.mod_quiz.util.slot.remove(element);
+                    Y.Moodle.mod_adaquiz.util.slot.remove(element);
                     this.reorganise_edit_page();
                     if (M.core.actionmenu && M.core.actionmenu.instance) {
                         M.core.actionmenu.instance.hideMenu();
@@ -198,7 +198,7 @@ Y.extend(RESOURCETOOLBOX, TOOLBOX, {
      */
     edit_maxmark : function(ev, button, activity) {
         // Get the element we're working on
-        var activityid = Y.Moodle.mod_quiz.util.slot.getId(activity),
+        var activityid = Y.Moodle.mod_adaquiz.util.slot.getId(activity),
             instancemaxmark  = activity.one(SELECTOR.INSTANCEMAXMARK),
             instance = activity.one(SELECTOR.ACTIVITYINSTANCE),
             currentmaxmark = instancemaxmark.get('firstChild'),
@@ -288,7 +288,7 @@ Y.extend(RESOURCETOOLBOX, TOOLBOX, {
                 'class'   : 'resource',
                 'field'   : 'updatemaxmark',
                 'maxmark'   : newmaxmark,
-                'id'      : Y.Moodle.mod_quiz.util.slot.getId(activity)
+                'id'      : Y.Moodle.mod_adaquiz.util.slot.getId(activity)
             };
             this.send_request(data, spinner, function(response) {
                 if (response.instancemaxmark) {
@@ -377,17 +377,17 @@ Y.extend(RESOURCETOOLBOX, TOOLBOX, {
             'value': value
         };
 
-        slotid = Y.Moodle.mod_quiz.util.slot.getId(nextactivity);
+        slotid = Y.Moodle.mod_adaquiz.util.slot.getId(nextactivity);
         if (slotid) {
             data.id = Number(slotid);
         }
         this.send_request(data, spinner, function(response) {
             if (response.slots) {
                 if (action === 'addpagebreak') {
-                    Y.Moodle.mod_quiz.util.page.add(activity);
+                    Y.Moodle.mod_adaquiz.util.page.add(activity);
                 } else {
-                    var page = activity.next(Y.Moodle.mod_quiz.util.page.SELECTORS.PAGE);
-                    Y.Moodle.mod_quiz.util.page.remove(page, true);
+                    var page = activity.next(Y.Moodle.mod_adaquiz.util.page.SELECTORS.PAGE);
+                    Y.Moodle.mod_adaquiz.util.page.remove(page, true);
                 }
                 this.reorganise_edit_page();
             } else {
@@ -405,24 +405,24 @@ Y.extend(RESOURCETOOLBOX, TOOLBOX, {
      * @method reorganise_edit_page
      */
     reorganise_edit_page: function() {
-        Y.Moodle.mod_quiz.util.slot.reorderSlots();
-        Y.Moodle.mod_quiz.util.slot.reorderPageBreaks();
-        Y.Moodle.mod_quiz.util.page.reorderPages();
+        Y.Moodle.mod_adaquiz.util.slot.reorderSlots();
+        Y.Moodle.mod_adaquiz.util.slot.reorderPageBreaks();
+        Y.Moodle.mod_adaquiz.util.page.reorderPages();
     },
 
-    NAME : 'mod_quiz-resource-toolbox',
+    NAME : 'mod_adaquiz-resource-toolbox',
     ATTRS : {
         courseid : {
             'value' : 0
         },
-        quizid : {
+        adaquizid : {
             'value' : 0
         }
     }
 });
 
-M.mod_quiz.resource_toolbox = null;
-M.mod_quiz.init_resource_toolbox = function(config) {
-    M.mod_quiz.resource_toolbox = new RESOURCETOOLBOX(config);
-    return M.mod_quiz.resource_toolbox;
+M.mod_adaquiz.resource_toolbox = null;
+M.mod_adaquiz.init_resource_toolbox = function(config) {
+    M.mod_adaquiz.resource_toolbox = new RESOURCETOOLBOX(config);
+    return M.mod_adaquiz.resource_toolbox;
 };

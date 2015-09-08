@@ -15,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This file defines the setting form for the quiz grading report.
+ * This file defines the setting form for the adaptive quiz grading report.
  *
- * @package   quiz_grading
- * @copyright 2010 Tim Hunt
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   adaquiz_grading
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
@@ -29,12 +29,12 @@ require_once($CFG->libdir . '/formslib.php');
 
 
 /**
- * Quiz grading report settings form.
+ * Adaptive quiz grading report settings form.
  *
  * @copyright 2010 Tim Hunt
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class quiz_grading_settings_form extends moodleform {
+class adaquiz_grading_settings_form extends moodleform {
     protected $includeauto;
     protected $hidden = array();
     protected $counts;
@@ -48,13 +48,13 @@ class quiz_grading_settings_form extends moodleform {
         $this->counts = $counts;
         $this->shownames = $shownames;
         $this->showidnumbers = $showidnumbers;
-        parent::__construct($CFG->wwwroot . '/mod/quiz/report.php', null, 'get');
+        parent::__construct($CFG->wwwroot . '/mod/adaquiz/report.php', null, 'get');
     }
 
     protected function definition() {
         $mform = $this->_form;
 
-        $mform->addElement('header', 'options', get_string('options', 'quiz_grading'));
+        $mform->addElement('header', 'options', get_string('options', 'adaquiz_grading'));
 
         $gradeoptions = array();
         foreach (array('needsgrading', 'manuallygraded', 'autograded', 'all') as $type) {
@@ -64,28 +64,28 @@ class quiz_grading_settings_form extends moodleform {
             if ($type == 'autograded' && !$this->includeauto) {
                 continue;
             }
-            $gradeoptions[$type] = get_string('gradeattempts' . $type, 'quiz_grading',
+            $gradeoptions[$type] = get_string('gradeattempts' . $type, 'adaquiz_grading',
                     $this->counts->$type);
         }
-        $mform->addElement('select', 'grade', get_string('attemptstograde', 'quiz_grading'),
+        $mform->addElement('select', 'grade', get_string('attemptstograde', 'adaquiz_grading'),
                 $gradeoptions);
 
-        $mform->addElement('text', 'pagesize', get_string('questionsperpage', 'quiz_grading'),
+        $mform->addElement('text', 'pagesize', get_string('questionsperpage', 'adaquiz_grading'),
                 array('size' => 3));
         $mform->setType('pagesize', PARAM_INT);
 
         $orderoptions = array(
-            'random' => get_string('randomly', 'quiz_grading'),
-            'date' => get_string('bydate', 'quiz_grading'),
+            'random' => get_string('randomly', 'adaquiz_grading'),
+            'date' => get_string('bydate', 'adaquiz_grading'),
         );
         if ($this->shownames) {
-            $orderoptions['studentfirstname'] = get_string('bystudentfirstname', 'quiz_grading');
-            $orderoptions['studentlastname']  = get_string('bystudentlastname', 'quiz_grading');
+            $orderoptions['studentfirstname'] = get_string('bystudentfirstname', 'adaquiz_grading');
+            $orderoptions['studentlastname']  = get_string('bystudentlastname', 'adaquiz_grading');
         }
         if ($this->showidnumbers) {
-            $orderoptions['idnumber'] = get_string('bystudentidnumber', 'quiz_grading');
+            $orderoptions['idnumber'] = get_string('bystudentidnumber', 'adaquiz_grading');
         }
-        $mform->addElement('select', 'order', get_string('orderattempts', 'quiz_grading'),
+        $mform->addElement('select', 'order', get_string('orderattempts', 'adaquiz_grading'),
                 $orderoptions);
 
         foreach ($this->hidden as $name => $value) {
@@ -97,6 +97,6 @@ class quiz_grading_settings_form extends moodleform {
             }
         }
 
-        $mform->addElement('submit', 'submitbutton', get_string('changeoptions', 'quiz_grading'));
+        $mform->addElement('submit', 'submitbutton', get_string('changeoptions', 'adaquiz_grading'));
     }
 }

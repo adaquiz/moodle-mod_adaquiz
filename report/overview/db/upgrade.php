@@ -17,8 +17,8 @@
 /**
  * Quiz overview report upgrade script.
  *
- * @package   quiz_overview
- * @copyright 2008 Jamie Pratt
+ * @package   adaquiz_overview
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -30,7 +30,7 @@ defined('MOODLE_INTERNAL') || die();
  * Quiz overview report upgrade function.
  * @param number $oldversion
  */
-function xmldb_quiz_overview_upgrade($oldversion) {
+function xmldb_adaquiz_overview_upgrade($oldversion) {
     global $CFG, $DB;
 
     $dbman = $DB->get_manager();

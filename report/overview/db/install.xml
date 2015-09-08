@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/quiz/report/overview/db" VERSION="20120122" COMMENT="XMLDB file for Moodle mod/quiz/report/overview"
+<XMLDB PATH="mod/adaquiz/report/overview/db" VERSION="20120122" COMMENT="XMLDB file for Moodle mod/adaquiz/report/overview"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="quiz_overview_regrades" COMMENT="This table records which question attempts need regrading and the grade they will be regraded to.">
+    <TABLE NAME="adaquiz_overview_regrades" COMMENT="This table records which question attempts need regrading and the grade they will be regraded to.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="questionusageid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key references question_usages.id, or equivalently quiz_attempt.uniqueid."/>
+        <FIELD NAME="questionusageid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key references question_usages.id, or equivalently adaquiz_attempt.uniqueid."/>
         <FIELD NAME="slot" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key, references question_attempts.slot"/>
         <FIELD NAME="newfraction" TYPE="number" LENGTH="12" NOTNULL="false" SEQUENCE="false" DECIMALS="7" COMMENT="The new fraction for this question_attempt after regrading."/>
         <FIELD NAME="oldfraction" TYPE="number" LENGTH="12" NOTNULL="false" SEQUENCE="false" DECIMALS="7" COMMENT="The previous fraction for this question_attempt."/>

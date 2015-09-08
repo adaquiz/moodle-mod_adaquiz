@@ -21,14 +21,14 @@
  * @copyright 2013 Petr Skoda {@link http://skodak.org}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace mod_quiz\plugininfo;
+namespace mod_adaquiz\plugininfo;
 
 use core\plugininfo\base;
 
 defined('MOODLE_INTERNAL') || die();
 
 
-class quiz extends base {
+class adaquiz extends base {
     public function is_uninstall_allowed() {
         return true;
     }
@@ -46,7 +46,7 @@ class quiz extends base {
 
         // Do the opposite of db/install.php scripts - deregister the report.
 
-        $DB->delete_records('quiz_reports', array('name'=>$this->name));
+        $DB->delete_records('adaquiz_reports', array('name'=>$this->name));
 
         parent::uninstall_cleanup();
     }

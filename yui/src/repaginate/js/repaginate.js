@@ -1,3 +1,5 @@
+YUI.add('moodle-mod_adaquiz-repaginate', function (Y, NAME) {
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,9 +17,9 @@
 
 
 /**
- * Repaginate functionality for a popup in quiz editing page.
+ * Repaginate functionality for a popup in adaptive quiz editing page.
  *
- * @package   mod_quiz
+ * @package   mod_adaquiz
  * @copyright 2014 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -74,8 +76,11 @@ Y.extend(POPUP, Y.Base, {
     }
 });
 
-M.mod_quiz = M.mod_quiz || {};
-M.mod_quiz.repaginate = M.mod_quiz.repaginate || {};
-M.mod_quiz.repaginate.init = function() {
+M.mod_adaquiz = M.mod_adaquiz || {};
+M.mod_adaquiz.repaginate = M.mod_adaquiz.repaginate || {};
+M.mod_adaquiz.repaginate.init = function() {
     return new POPUP();
 };
+
+
+}, '@VERSION@');

@@ -15,20 +15,20 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Defines the quiz repaginate class.
+ * Defines the adaptive quiz repaginate class.
  *
- * @package   mod_quiz
- * @copyright 2014 The Open University
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_quiz;
+namespace mod_adaquiz;
 defined('MOODLE_INTERNAL') || die();
 
 /**
  * The repaginate class will rearrange questions in pages.
  *
- * The quiz setting allows users to write quizzes with one question per page,
+ * The adaptive quiz setting allows users to write adaptive quizzes with one question per page,
  * n questions per page, or all questions on one page.
  *
  * @copyright 2014 The Open University
@@ -41,24 +41,24 @@ class repaginate {
     /** @var int means split pages. */
     const UNLINK = 2;
 
-    /** @var int the id of the quiz being manipulated. */
-    private $quizid;
-    /** @var array the quiz_slots for that quiz. */
+    /** @var int the id of the adaptive quiz being manipulated. */
+    private $adaquizid;
+    /** @var array the adaquiz_slots for that adaptive quiz. */
     private $slots;
 
     /**
      * Constructor.
-     * @param int $quizid the id of the quiz being manipulated.
-     * @param stdClass[] $slots the quiz_slots for that quiz.
+     * @param int $adaquizid the id of the adaptive quiz being manipulated.
+     * @param stdClass[] $slots the adaptive quiz_slots for that adaptive quiz.
      */
-    public function __construct($quizid = 0, $slots = null) {
+    public function __construct($adaquizid = 0, $slots = null) {
         global $DB;
-        $this->quizid = $quizid;
-        if (!$this->quizid) {
+        $this->adaquizid = $adaquizid;
+        if (!$this->adaquizid) {
             $this->slots = array();
         }
         if (!$slots) {
-            $this->slots = $DB->get_records('quiz_slots', array('quizid' => $this->quizid), 'slot');
+            $this->slots = $DB->get_records('adaquiz_slots', array('adaquizid' => $this->adaquizid), 'slot');
         } else {
             $this->slots = $slots;
         }
@@ -130,7 +130,7 @@ class repaginate {
      */
     public function repaginate_slots($nextslotnumber, $type) {
         global $DB;
-        $this->slots = $DB->get_records('quiz_slots', array('quizid' => $this->quizid), 'slot');
+        $this->slots = $DB->get_records('adaquiz_slots', array('adaquizid' => $this->adaquizid), 'slot');
         $nextslot = null;
         $newslots = array();
         foreach ($this->slots as $slot) {
@@ -140,7 +140,7 @@ class repaginate {
                 $nextslot = $this->repaginate_next_slot($nextslotnumber, $type);
 
                 // Update DB.
-                $DB->update_record('quiz_slots', $nextslot, true);
+                $DB->update_record('adaquiz_slots', $nextslot, true);
 
                 // Update returning object.
                 $newslots[$slot->id] = $nextslot;
@@ -199,19 +199,19 @@ class repaginate {
 
     /**
      * Repaginate the rest.
-     * @param stdClass[] $quizslots
+     * @param stdClass[] $adaquizslots
      * @param int $slotfrom
      * @param int $type
      * @param bool $dbupdate
      * @return stdClass[]
      */
-    public function repaginate_the_rest($quizslots, $slotfrom, $type, $dbupdate = true) {
+    public function repaginate_the_rest($adaquizslots, $slotfrom, $type, $dbupdate = true) {
         global $DB;
-        if (!$quizslots) {
+        if (!$adaquizslots) {
             return null;
         }
         $newslots = array();
-        foreach ($quizslots as $slot) {
+        foreach ($adaquizslots as $slot) {
             if ($type == self::LINK) {
                 if ($slot->slot <= $slotfrom) {
                     continue;
@@ -225,7 +225,7 @@ class repaginate {
             }
             // Update DB.
             if ($dbupdate) {
-                $DB->update_record('quiz_slots', $slot);
+                $DB->update_record('adaquiz_slots', $slot);
             }
             $newslots[$slot->id] = $slot;
         }

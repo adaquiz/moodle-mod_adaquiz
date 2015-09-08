@@ -1,13 +1,13 @@
 {
-    "moodle-mod_quiz-toolboxes": {
+    "moodle-mod_adaquiz-toolboxes": {
         "requires": [
             "base",
             "node",
             "event",
             "event-key",
             "io",
-            "moodle-mod_quiz-quizbase",
-            "moodle-mod_quiz-util-slot",
+            "moodle-mod_adaquiz-adaquizbase",
+            "moodle-mod_adaquiz-util-slot",
             "moodle-core-notification-ajaxexception"
         ]
     }

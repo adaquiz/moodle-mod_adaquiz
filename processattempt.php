@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This page deals with processing responses during an attempt at a quiz.
+ * This page deals with processing responses during an attempt at an adaptive quiz.
  *
  * People will normally arrive here from a form submission on attempt.php or
  * summary.php, and once the responses are processed, they will be redirected to
@@ -23,13 +23,13 @@
  *
  * This code used to be near the top of attempt.php, if you are looking for CVS history.
  *
- * @package   mod_quiz
- * @copyright 2009 Tim Hunt
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(dirname(__FILE__) . '/../../config.php');
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
 
 // Remember the current time as the time any responses were submitted
 // (so as to make sure students don't get penalized for slow processing on this page).
@@ -45,7 +45,7 @@ $timeup        = optional_param('timeup',        0,      PARAM_BOOL); // True if
 $scrollpos     = optional_param('scrollpos',     '',     PARAM_RAW);
 
 $transaction = $DB->start_delegated_transaction();
-$attemptobj = quiz_attempt::create($attemptid);
+$attemptobj = adaquiz_attempt::create($attemptid);
 
 // Set $nexturl now.
 if ($next) {
@@ -63,7 +63,7 @@ if ($page == -1) {
 }
 
 // If there is only a very small amount of time left, there is no point trying
-// to show the student another page of the quiz. Just finish now.
+// to show the student another page of the adaptive quiz. Just finish now.
 $graceperiodmin = null;
 $accessmanager = $attemptobj->get_access_manager($timenow);
 $timeclose = $accessmanager->get_end_time($attemptobj->get_attempt());
@@ -73,9 +73,9 @@ if ($attemptobj->is_preview()) {
     $timeclose = false;
 }
 $toolate = false;
-if ($timeclose !== false && $timenow > $timeclose - QUIZ_MIN_TIME_TO_CONTINUE) {
+if ($timeclose !== false && $timenow > $timeclose - ADAQUIZ_MIN_TIME_TO_CONTINUE) {
     $timeup = true;
-    $graceperiodmin = get_config('quiz', 'graceperiodmin');
+    $graceperiodmin = get_config('adaquiz', 'graceperiodmin');
     if ($timenow > $timeclose + $graceperiodmin) {
         $toolate = true;
     }
@@ -87,17 +87,17 @@ require_sesskey();
 
 // Check that this attempt belongs to this user.
 if ($attemptobj->get_userid() != $USER->id) {
-    throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'notyourattempt');
+    throw new moodle_adaquiz_exception($attemptobj->get_adaquizobj(), 'notyourattempt');
 }
 
 // Check capabilities.
 if (!$attemptobj->is_preview_user()) {
-    $attemptobj->require_capability('mod/quiz:attempt');
+    $attemptobj->require_capability('mod/adaquiz:attempt');
 }
 
 // If the attempt is already closed, send them to the review page.
 if ($attemptobj->is_finished()) {
-    throw new moodle_quiz_exception($attemptobj->get_quizobj(),
+    throw new moodle_adaquiz_exception($attemptobj->get_adaquizobj(),
             'attemptalreadyclosed', null, $attemptobj->review_url());
 }
 
@@ -105,11 +105,11 @@ if ($attemptobj->is_finished()) {
 $becomingoverdue = false;
 $becomingabandoned = false;
 if ($timeup) {
-    if ($attemptobj->get_quiz()->overduehandling == 'graceperiod') {
+    if ($attemptobj->get_adaquiz()->overduehandling == 'graceperiod') {
         if (is_null($graceperiodmin)) {
-            $graceperiodmin = get_config('quiz', 'graceperiodmin');
+            $graceperiodmin = get_config('adaquiz', 'graceperiodmin');
         }
-        if ($timenow > $timeclose + $attemptobj->get_quiz()->graceperiod + $graceperiodmin) {
+        if ($timenow > $timeclose + $attemptobj->get_adaquiz()->graceperiod + $graceperiodmin) {
             // Grace period has run out.
             $finishattempt = true;
             $becomingabandoned = true;
@@ -157,7 +157,7 @@ if (!$finishattempt) {
     }
 }
 
-// Update the quiz attempt record.
+// Update the adaptive quiz attempt record.
 try {
     if ($becomingabandoned) {
         $attemptobj->process_abandon($timenow, true);

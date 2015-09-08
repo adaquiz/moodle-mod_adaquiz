@@ -15,26 +15,26 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Class to store the options for a {@link quiz_overview_report}.
+ * Class to store the options for a {@link adaquiz_overview_report}.
  *
- * @package   quiz_overview
- * @copyright 2012 The Open University
+ * @package   adaquiz_overview
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/quiz/report/attemptsreport_options.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/attemptsreport_options.php');
 
 
 /**
- * Class to store the options for a {@link quiz_overview_report}.
+ * Class to store the options for a {@link adaquiz_overview_report}.
  *
  * @copyright 2012 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class quiz_overview_options extends mod_quiz_attempts_report_options {
+class adaquiz_overview_options extends mod_adaquiz_attempts_report_options {
 
     /** @var bool whether to show only attempt that need regrading. */
     public $onlyregraded = false;
@@ -74,21 +74,21 @@ class quiz_overview_options extends mod_quiz_attempts_report_options {
     public function setup_from_user_preferences() {
         parent::setup_from_user_preferences();
 
-        $this->slotmarks = get_user_preferences('quiz_overview_slotmarks', $this->slotmarks);
+        $this->slotmarks = get_user_preferences('adaquiz_overview_slotmarks', $this->slotmarks);
     }
 
     public function update_user_preferences() {
         parent::update_user_preferences();
 
-        if (quiz_has_grades($this->quiz)) {
-            set_user_preference('quiz_overview_slotmarks', $this->slotmarks);
+        if (adaquiz_has_grades($this->adaquiz)) {
+            set_user_preference('adaquiz_overview_slotmarks', $this->slotmarks);
         }
     }
 
     public function resolve_dependencies() {
         parent::resolve_dependencies();
 
-        if ($this->attempts == quiz_attempts_report::ENROLLED_WITHOUT) {
+        if ($this->attempts == adaquiz_attempts_report::ENROLLED_WITHOUT) {
             $this->onlyregraded = false;
         }
 
@@ -99,7 +99,7 @@ class quiz_overview_options extends mod_quiz_attempts_report_options {
         // We only want to show the checkbox to delete attempts
         // if the user has permissions and if the report mode is showing attempts.
         $this->checkboxcolumn = has_any_capability(
-                array('mod/quiz:regrade', 'mod/quiz:deleteattempts'), context_module::instance($this->cm->id))
-                && ($this->attempts != quiz_attempts_report::ENROLLED_WITHOUT);
+                array('mod/adaquiz:regrade', 'mod/adaquiz:deleteattempts'), context_module::instance($this->cm->id))
+                && ($this->attempts != adaquiz_attempts_report::ENROLLED_WITHOUT);
     }
 }

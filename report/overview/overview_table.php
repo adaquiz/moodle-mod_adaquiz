@@ -15,43 +15,41 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This file defines the quiz grades table.
+ * This file defines the adaptive quiz grades table.
  *
- * @package   quiz_overview
- * @copyright 2008 Jamie Pratt
+ * @package   adaquiz_overview
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/quiz/report/attemptsreport_table.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/attemptsreport_table.php');
 
 
 /**
- * This is a table subclass for displaying the quiz grades report.
+ * This is a table subclass for displaying the adaptive quiz grades report.
  *
- * @copyright 2008 Jamie Pratt
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class quiz_overview_table extends quiz_attempts_report_table {
+class adaquiz_overview_table extends adaquiz_attempts_report_table {
 
     protected $regradedqs = array();
 
     /**
      * Constructor
-     * @param object $quiz
+     * @param object $adaquiz
      * @param context $context
      * @param string $qmsubselect
-     * @param quiz_overview_options $options
+     * @param adaquiz_overview_options $options
      * @param array $groupstudents
      * @param array $students
      * @param array $questions
      * @param moodle_url $reporturl
      */
-    public function __construct($quiz, $context, $qmsubselect,
-            quiz_overview_options $options, $groupstudents, $students, $questions, $reporturl) {
-        parent::__construct('mod-quiz-report-overview-report', $quiz , $context,
+    public function __construct($adaquiz, $context, $qmsubselect,
+            adaquiz_overview_options $options, $groupstudents, $students, $questions, $reporturl) {
+        parent::__construct('mod-adaquiz-report-overview-report', $adaquiz , $context,
                 $qmsubselect, $options, $groupstudents, $students, $questions, $reporturl);
     }
 
@@ -90,7 +88,7 @@ class quiz_overview_table extends quiz_attempts_report_table {
                 SELECT AVG(quiza.sumgrades) AS grade, COUNT(quiza.sumgrades) AS numaveraged
                   FROM $from
                  WHERE $where", $params);
-        $record->grade = quiz_rescale_grade($record->grade, $this->quiz, false);
+        $record->grade = adaquiz_rescale_grade($record->grade, $this->adaquiz, false);
 
         if ($this->is_downloading()) {
             $namekey = 'lastname';
@@ -100,8 +98,8 @@ class quiz_overview_table extends quiz_attempts_report_table {
         $averagerow = array(
             $namekey    => $label,
             'sumgrades' => $this->format_average($record),
-            'feedbacktext'=> strip_tags(quiz_report_feedback_for_grade(
-                                        $record->grade, $this->quiz->id, $this->context))
+            'feedbacktext'=> strip_tags(adaquiz_report_feedback_for_grade(
+                                        $record->grade, $this->adaquiz->id, $this->context))
         );
 
         if ($this->options->slotmarks) {
@@ -130,8 +128,8 @@ class quiz_overview_table extends quiz_attempts_report_table {
         foreach ($this->questions as $question) {
             if (isset($gradeaverages[$question->slot]) && $question->maxmark > 0) {
                 $record = $gradeaverages[$question->slot];
-                $record->grade = quiz_rescale_grade(
-                        $record->averagefraction * $question->maxmark, $this->quiz, false);
+                $record->grade = adaquiz_rescale_grade(
+                        $record->averagefraction * $question->maxmark, $this->adaquiz, false);
 
             } else {
                 $record = new stdClass();
@@ -153,9 +151,9 @@ class quiz_overview_table extends quiz_attempts_report_table {
         if (is_null($record->grade)) {
             $average = '-';
         } else if ($question) {
-            $average = quiz_format_question_grade($this->quiz, $record->grade);
+            $average = adaquiz_format_question_grade($this->adaquiz, $record->grade);
         } else {
-            $average = quiz_format_grade($this->quiz, $record->grade);
+            $average = adaquiz_format_grade($this->adaquiz, $record->grade);
         }
 
         if ($this->download) {
@@ -172,19 +170,19 @@ class quiz_overview_table extends quiz_attempts_report_table {
     }
 
     protected function submit_buttons() {
-        if (has_capability('mod/quiz:regrade', $this->context)) {
+        if (has_capability('mod/adaquiz:regrade', $this->context)) {
             echo '<input type="submit" name="regrade" value="' .
-                    get_string('regradeselected', 'quiz_overview') . '"/>';
+                    get_string('regradeselected', 'adaquiz_overview') . '"/>';
         }
         parent::submit_buttons();
     }
 
     public function col_sumgrades($attempt) {
-        if ($attempt->state != quiz_attempt::FINISHED) {
+        if ($attempt->state != adaquiz_attempt::FINISHED) {
             return '-';
         }
 
-        $grade = quiz_rescale_grade($attempt->sumgrades, $this->quiz);
+        $grade = adaquiz_rescale_grade($attempt->sumgrades, $this->adaquiz);
         if ($this->is_downloading()) {
             return $grade;
         }
@@ -205,20 +203,20 @@ class quiz_overview_table extends quiz_attempts_report_table {
                             [$question->slot]->fraction * $question->maxmark;
                 }
             }
-            $newsumgrade = quiz_rescale_grade($newsumgrade, $this->quiz);
-            $oldsumgrade = quiz_rescale_grade($oldsumgrade, $this->quiz);
+            $newsumgrade = adaquiz_rescale_grade($newsumgrade, $this->adaquiz);
+            $oldsumgrade = adaquiz_rescale_grade($oldsumgrade, $this->adaquiz);
             $grade = html_writer::tag('del', $oldsumgrade) . '/' .
                     html_writer::empty_tag('br') . $newsumgrade;
         }
-        return html_writer::link(new moodle_url('/mod/quiz/review.php',
+        return html_writer::link(new moodle_url('/mod/adaquiz/review.php',
                 array('attempt' => $attempt->attempt)), $grade,
-                array('title' => get_string('reviewattempt', 'quiz')));
+                array('title' => get_string('reviewattempt', 'adaquiz')));
     }
 
     /**
      * @param string $colname the name of the column.
      * @param object $attempt the row of data - see the SQL in display() in
-     * mod/quiz/report/overview/report.php to see what fields are present,
+     * mod/adaquiz/report/overview/report.php to see what fields are present,
      * and what they are called.
      * @return string the contents of the cell.
      */
@@ -245,8 +243,8 @@ class quiz_overview_table extends quiz_attempts_report_table {
                 $grade = '-';
             }
         } else {
-            $grade = quiz_rescale_grade(
-                    $stepdata->fraction * $question->maxmark, $this->quiz, 'question');
+            $grade = adaquiz_rescale_grade(
+                    $stepdata->fraction * $question->maxmark, $this->adaquiz, 'question');
         }
 
         if ($this->is_downloading()) {
@@ -255,12 +253,12 @@ class quiz_overview_table extends quiz_attempts_report_table {
 
         if (isset($this->regradedqs[$attempt->usageid][$slot])) {
             $gradefromdb = $grade;
-            $newgrade = quiz_rescale_grade(
+            $newgrade = adaquiz_rescale_grade(
                     $this->regradedqs[$attempt->usageid][$slot]->newfraction * $question->maxmark,
-                    $this->quiz, 'question');
-            $oldgrade = quiz_rescale_grade(
+                    $this->adaquiz, 'question');
+            $oldgrade = adaquiz_rescale_grade(
                     $this->regradedqs[$attempt->usageid][$slot]->oldfraction * $question->maxmark,
-                    $this->quiz, 'question');
+                    $this->adaquiz, 'question');
 
             $grade = html_writer::tag('del', $oldgrade) . '/' .
                     html_writer::empty_tag('br') . $newgrade;
@@ -273,9 +271,9 @@ class quiz_overview_table extends quiz_attempts_report_table {
         if ($attempt->regraded == '') {
             return '';
         } else if ($attempt->regraded == 0) {
-            return get_string('needed', 'quiz_overview');
+            return get_string('needed', 'adaquiz_overview');
         } else if ($attempt->regraded == 1) {
-            return get_string('done', 'quiz_overview');
+            return get_string('done', 'adaquiz_overview');
         }
     }
 
@@ -297,7 +295,7 @@ class quiz_overview_table extends quiz_attempts_report_table {
     public function query_db($pagesize, $useinitialsbar = true) {
         parent::query_db($pagesize, $useinitialsbar);
 
-        if ($this->options->slotmarks && has_capability('mod/quiz:regrade', $this->context)) {
+        if ($this->options->slotmarks && has_capability('mod/adaquiz:regrade', $this->context)) {
             $this->regradedqs = $this->get_regraded_questions();
         }
     }
@@ -310,8 +308,8 @@ class quiz_overview_table extends quiz_attempts_report_table {
         global $DB;
 
         $qubaids = $this->get_qubaids_condition();
-        $regradedqs = $DB->get_records_select('quiz_overview_regrades',
+        $regradedqs = $DB->get_records_select('adaquiz_overview_regrades',
                 'questionusageid ' . $qubaids->usage_id_in(), $qubaids->usage_id_in_params());
-        return quiz_report_index_by_keys($regradedqs, array('questionusageid', 'slot'));
+        return adaquiz_report_index_by_keys($regradedqs, array('questionusageid', 'slot'));
     }
 }

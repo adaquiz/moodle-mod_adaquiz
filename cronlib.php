@@ -15,17 +15,17 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Library code used by quiz cron.
+ * Library code used by adaptive quiz cron.
  *
- * @package   mod_quiz
- * @copyright 2012 the Open University
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
 
 
 /**
@@ -35,13 +35,13 @@ require_once($CFG->dirroot . '/mod/quiz/locallib.php');
  * @copyright 2012 the Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_quiz_overdue_attempt_updater {
+class mod_adaquiz_overdue_attempt_updater {
 
     /**
      * Do the processing required.
      * @param int $timenow the time to consider as 'now' during the processing.
      * @param int $processto only process attempt with timecheckstate longer ago than this.
-     * @return array with two elements, the number of attempt considered, and how many different quizzes that was.
+     * @return array with two elements, the number of attempt considered, and how many different adaptive quizzes that was.
      */
     public function update_overdue_attempts($timenow, $processto) {
         global $DB;
@@ -49,39 +49,39 @@ class mod_quiz_overdue_attempt_updater {
         $attemptstoprocess = $this->get_list_of_overdue_attempts($processto);
 
         $course = null;
-        $quiz = null;
+        $adaquiz = null;
         $cm = null;
 
         $count = 0;
-        $quizcount = 0;
+        $adaquizcount = 0;
         foreach ($attemptstoprocess as $attempt) {
             try {
 
-                // If we have moved on to a different quiz, fetch the new data.
-                if (!$quiz || $attempt->quiz != $quiz->id) {
-                    $quiz = $DB->get_record('quiz', array('id' => $attempt->quiz), '*', MUST_EXIST);
-                    $cm = get_coursemodule_from_instance('quiz', $attempt->quiz);
-                    $quizcount += 1;
+                // If we have moved on to a different adaptive quiz, fetch the new data.
+                if (!$adaquiz || $attempt->quiz != $adaquiz->id) {
+                    $adaquiz = $DB->get_record('adaquiz', array('id' => $attempt->quiz), '*', MUST_EXIST);
+                    $cm = get_coursemodule_from_instance('adaquiz', $attempt->quiz);
+                    $adaquizcount += 1;
                 }
 
                 // If we have moved on to a different course, fetch the new data.
-                if (!$course || $course->id != $quiz->course) {
-                    $course = $DB->get_record('course', array('id' => $quiz->course), '*', MUST_EXIST);
+                if (!$course || $course->id != $adaquiz->course) {
+                    $course = $DB->get_record('course', array('id' => $adaquiz->course), '*', MUST_EXIST);
                 }
 
-                // Make a specialised version of the quiz settings, with the relevant overrides.
-                $quizforuser = clone($quiz);
-                $quizforuser->timeclose = $attempt->usertimeclose;
-                $quizforuser->timelimit = $attempt->usertimelimit;
+                // Make a specialised version of the adaptive quiz settings, with the relevant overrides.
+                $adaquizforuser = clone($adaquiz);
+                $adaquizforuser->timeclose = $attempt->usertimeclose;
+                $adaquizforuser->timelimit = $attempt->usertimelimit;
 
                 // Trigger any transitions that are required.
-                $attemptobj = new quiz_attempt($attempt, $quizforuser, $cm, $course);
+                $attemptobj = new adaquiz_attempt($attempt, $adaquizforuser, $cm, $course);
                 $attemptobj->handle_if_time_expired($timenow, false);
                 $count += 1;
 
             } catch (moodle_exception $e) {
                 // If an error occurs while processing one attempt, don't let that kill cron.
-                mtrace("Error while processing attempt {$attempt->id} at {$attempt->quiz} quiz:");
+                mtrace("Error while processing attempt {$attempt->id} at {$attempt->quiz} adaquiz:");
                 mtrace($e->getMessage());
                 mtrace($e->getTraceAsString());
                 // Close down any currently open transactions, otherwise one error
@@ -91,30 +91,30 @@ class mod_quiz_overdue_attempt_updater {
         }
 
         $attemptstoprocess->close();
-        return array($count, $quizcount);
+        return array($count, $adaquizcount);
     }
 
     /**
-     * @return moodle_recordset of quiz_attempts that need to be processed because time has
-     *     passed. The array is sorted by courseid then quizid.
+     * @return moodle_recordset of adaptive quiz_attempts that need to be processed because time has
+     *     passed. The array is sorted by courseid then adaquizid.
      */
     public function get_list_of_overdue_attempts($processto) {
         global $DB;
 
 
         // SQL to compute timeclose and timelimit for each attempt:
-        $quizausersql = quiz_get_attempt_usertime_sql(
+        $adaquizausersql = adaquiz_get_attempt_usertime_sql(
                 "iquiza.state IN ('inprogress', 'overdue') AND iquiza.timecheckstate <= :iprocessto");
 
-        // This query should have all the quiz_attempts columns.
+        // This query should have all the adaquiz_attempts columns.
         return $DB->get_recordset_sql("
          SELECT quiza.*,
                 quizauser.usertimeclose,
                 quizauser.usertimelimit
 
-           FROM {quiz_attempts} quiza
-           JOIN {quiz} quiz ON quiz.id = quiza.quiz
-           JOIN ( $quizausersql ) quizauser ON quizauser.id = quiza.id
+           FROM {adaquiz_attempts} quiza
+           JOIN {adaquiz} quiz ON quiz.id = quiza.quiz
+           JOIN ( $adaquizausersql ) quizauser ON quizauser.id = quiza.id
 
           WHERE quiza.state IN ('inprogress', 'overdue')
             AND quiza.timecheckstate <= :processto

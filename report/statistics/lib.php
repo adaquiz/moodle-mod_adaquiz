@@ -15,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Standard plugin entry points of the quiz statistics report.
+ * Standard plugin entry points of the adaptive quiz statistics report.
  *
- * @package   quiz_statistics
- * @copyright 2011 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   adaquiz_statistics
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -27,9 +27,9 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Serve questiontext files in the question text when they are displayed in this report.
  *
- * @package  quiz_statistics
+ * @package  adaquiz_statistics
  * @category files
- * @param context $previewcontext the quiz context
+ * @param context $previewcontext the adaptive quiz context
  * @param int $questionid the question id.
  * @param context $filecontext the file (question) context
  * @param string $filecomponent the component the file belongs to.
@@ -38,17 +38,17 @@ defined('MOODLE_INTERNAL') || die();
  * @param bool $forcedownload.
  * @param array $options additional options affecting the file serving.
  */
-function quiz_statistics_question_preview_pluginfile($previewcontext, $questionid,
+function adaquiz_statistics_question_preview_pluginfile($previewcontext, $questionid,
         $filecontext, $filecomponent, $filearea, $args, $forcedownload, $options = array()) {
     global $CFG;
-    require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+    require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
 
     list($context, $course, $cm) = get_context_info_array($previewcontext->id);
     require_login($course, false, $cm);
 
     // Assume only trusted people can see this report. There is no real way to
     // validate questionid, becuase of the complexity of random quetsions.
-    require_capability('quiz/statistics:view', $context);
+    require_capability('adaquiz/statistics:view', $context);
 
     $fs = get_file_storage();
     $relativepath = implode('/', $args);
@@ -61,15 +61,15 @@ function quiz_statistics_question_preview_pluginfile($previewcontext, $questioni
 }
 
 /**
- * Quiz statistics report cron code. Deletes cached data more than a certain age.
+ * Adaptive quiz statistics report cron code. Deletes cached data more than a certain age.
  */
-function quiz_statistics_cron() {
+function adaquiz_statistics_cron() {
     global $DB;
 
-    mtrace("\n  Cleaning up old quiz statistics cache records...", '');
+    mtrace("\n  Cleaning up old adaptive quiz statistics cache records...", '');
 
     $expiretime = time() - 5*HOURSECS;
-    $DB->delete_records_select('quiz_statistics', 'timemodified < ?', array($expiretime));
+    $DB->delete_records_select('adaquiz_statistics', 'timemodified < ?', array($expiretime));
 
     return true;
 }

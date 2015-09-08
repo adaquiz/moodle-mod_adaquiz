@@ -15,15 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Quiz grading report version information.
+ * Adaptive quiz grading report version information.
  *
- * @package   quiz_grading
- * @copyright 2010 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   adaquiz_grading
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version  = 2014111000;
 $plugin->requires = 2014110400;
-$plugin->component = 'quiz_grading';
+$plugin->component = 'adaquiz_grading';

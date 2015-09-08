@@ -15,35 +15,33 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Settings form for overrides in the quiz module.
+ * Settings form for overrides in the adaptive quiz module.
  *
- * @package    mod_quiz
- * @copyright  2010 Matt Petro
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/formslib.php');
-require_once($CFG->dirroot . '/mod/quiz/mod_form.php');
+require_once($CFG->dirroot . '/mod/adaquiz/mod_form.php');
 
 
 /**
  * Form for editing settings overrides.
  *
- * @copyright  2010 Matt Petro
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class quiz_override_form extends moodleform {
+class adaquiz_override_form extends moodleform {
 
     /** @var object course module object. */
     protected $cm;
 
-    /** @var object the quiz settings object. */
-    protected $quiz;
+    /** @var object the adaptive quiz settings object. */
+    protected $adaquiz;
 
-    /** @var context the quiz context. */
+    /** @var context the adaptive quiz context. */
     protected $context;
 
     /** @var bool editing group override (true) or user override (false). */
@@ -59,15 +57,15 @@ class quiz_override_form extends moodleform {
      * Constructor.
      * @param moodle_url $submiturl the form action URL.
      * @param object course module object.
-     * @param object the quiz settings object.
-     * @param context the quiz context.
+     * @param object the adaptive quiz settings object.
+     * @param context the adaptive quiz context.
      * @param bool editing group override (true) or user override (false).
      * @param object $override the override being edited, if it already exists.
      */
-    public function __construct($submiturl, $cm, $quiz, $context, $groupmode, $override) {
+    public function __construct($submiturl, $cm, $adaquiz, $context, $groupmode, $override) {
 
         $this->cm = $cm;
-        $this->quiz = $quiz;
+        $this->adaquiz = $adaquiz;
         $this->context = $context;
         $this->groupmode = $groupmode;
         $this->groupid = empty($override->groupid) ? 0 : $override->groupid;
@@ -83,7 +81,7 @@ class quiz_override_form extends moodleform {
         $cm = $this->cm;
         $mform = $this->_form;
 
-        $mform->addElement('header', 'override', get_string('override', 'quiz'));
+        $mform->addElement('header', 'override', get_string('override', 'adaquiz'));
 
         if ($this->groupmode) {
             // Group override.
@@ -92,15 +90,15 @@ class quiz_override_form extends moodleform {
                 $groupchoices = array();
                 $groupchoices[$this->groupid] = groups_get_group_name($this->groupid);
                 $mform->addElement('select', 'groupid',
-                        get_string('overridegroup', 'quiz'), $groupchoices);
+                        get_string('overridegroup', 'adaquiz'), $groupchoices);
                 $mform->freeze('groupid');
             } else {
                 // Prepare the list of groups.
                 $groups = groups_get_all_groups($cm->course);
                 if (empty($groups)) {
                     // Generate an error.
-                    $link = new moodle_url('/mod/quiz/overrides.php', array('cmid'=>$cm->id));
-                    print_error('groupsnone', 'quiz', $link);
+                    $link = new moodle_url('/mod/adaquiz/overrides.php', array('cmid'=>$cm->id));
+                    print_error('groupsnone', 'adaquiz', $link);
                 }
 
                 $groupchoices = array();
@@ -114,7 +112,7 @@ class quiz_override_form extends moodleform {
                 }
 
                 $mform->addElement('select', 'groupid',
-                        get_string('overridegroup', 'quiz'), $groupchoices);
+                        get_string('overridegroup', 'adaquiz'), $groupchoices);
                 $mform->addRule('groupid', get_string('required'), 'required', null, 'client');
             }
         } else {
@@ -125,7 +123,7 @@ class quiz_override_form extends moodleform {
                 $userchoices = array();
                 $userchoices[$this->userid] = fullname($user);
                 $mform->addElement('select', 'userid',
-                        get_string('overrideuser', 'quiz'), $userchoices);
+                        get_string('overrideuser', 'adaquiz'), $userchoices);
                 $mform->freeze('userid');
             } else {
                 // Prepare the list of users.
@@ -136,7 +134,7 @@ class quiz_override_form extends moodleform {
                             'This is unexpected, and a problem because there is no way to pass these ' .
                             'parameters to get_users_by_capability. See MDL-34657.');
                 }
-                $users = get_users_by_capability($this->context, 'mod/quiz:attempt',
+                $users = get_users_by_capability($this->context, 'mod/adaquiz:attempt',
                         'u.id, u.email, ' . get_all_user_name_fields(true, 'u'),
                         $sort, '', '', '', '', false, true);
 
@@ -146,8 +144,8 @@ class quiz_override_form extends moodleform {
 
                 if (empty($users)) {
                     // Generate an error.
-                    $link = new moodle_url('/mod/quiz/overrides.php', array('cmid'=>$cm->id));
-                    print_error('usersnone', 'quiz', $link);
+                    $link = new moodle_url('/mod/adaquiz/overrides.php', array('cmid'=>$cm->id));
+                    print_error('usersnone', 'adaquiz', $link);
                 }
 
                 $userchoices = array();
@@ -168,7 +166,7 @@ class quiz_override_form extends moodleform {
                     $userchoices[0] = get_string('none');
                 }
                 $mform->addElement('searchableselector', 'userid',
-                        get_string('overrideuser', 'quiz'), $userchoices);
+                        get_string('overrideuser', 'adaquiz'), $userchoices);
                 $mform->addRule('userid', get_string('required'), 'required', null, 'client');
             }
         }
@@ -176,44 +174,44 @@ class quiz_override_form extends moodleform {
         // Password.
         // This field has to be above the date and timelimit fields,
         // otherwise browsers will clear it when those fields are changed.
-        $mform->addElement('passwordunmask', 'password', get_string('requirepassword', 'quiz'));
+        $mform->addElement('passwordunmask', 'password', get_string('requirepassword', 'adaquiz'));
         $mform->setType('password', PARAM_TEXT);
-        $mform->addHelpButton('password', 'requirepassword', 'quiz');
-        $mform->setDefault('password', $this->quiz->password);
+        $mform->addHelpButton('password', 'requirepassword', 'adaquiz');
+        $mform->setDefault('password', $this->adauiz->password);
 
         // Open and close dates.
         $mform->addElement('date_time_selector', 'timeopen',
-                get_string('quizopen', 'quiz'), mod_quiz_mod_form::$datefieldoptions);
-        $mform->setDefault('timeopen', $this->quiz->timeopen);
+                get_string('quizopen', 'adaquiz'), mod_adaquiz_mod_form::$datefieldoptions);
+        $mform->setDefault('timeopen', $this->adaquiz->timeopen);
 
         $mform->addElement('date_time_selector', 'timeclose',
-                get_string('quizclose', 'quiz'), mod_quiz_mod_form::$datefieldoptions);
-        $mform->setDefault('timeclose', $this->quiz->timeclose);
+                get_string('quizclose', 'adaquiz'), mod_adauiz_mod_form::$datefieldoptions);
+        $mform->setDefault('timeclose', $this->adaquiz->timeclose);
 
         // Time limit.
         $mform->addElement('duration', 'timelimit',
-                get_string('timelimit', 'quiz'), array('optional' => true));
-        $mform->addHelpButton('timelimit', 'timelimit', 'quiz');
-        $mform->setDefault('timelimit', $this->quiz->timelimit);
+                get_string('timelimit', 'adaquiz'), array('optional' => true));
+        $mform->addHelpButton('timelimit', 'timelimit', 'adaquiz');
+        $mform->setDefault('timelimit', $this->adaquiz->timelimit);
 
         // Number of attempts.
         $attemptoptions = array('0' => get_string('unlimited'));
-        for ($i = 1; $i <= QUIZ_MAX_ATTEMPT_OPTION; $i++) {
+        for ($i = 1; $i <= ADAQUIZ_MAX_ATTEMPT_OPTION; $i++) {
             $attemptoptions[$i] = $i;
         }
         $mform->addElement('select', 'attempts',
-                get_string('attemptsallowed', 'quiz'), $attemptoptions);
-        $mform->setDefault('attempts', $this->quiz->attempts);
+                get_string('attemptsallowed', 'adaquiz'), $attemptoptions);
+        $mform->setDefault('attempts', $this->adaquiz->attempts);
 
         // Submit buttons.
         $mform->addElement('submit', 'resetbutton',
-                get_string('reverttodefaults', 'quiz'));
+                get_string('reverttodefaults', 'adaquiz'));
 
         $buttonarray = array();
         $buttonarray[] = $mform->createElement('submit', 'submitbutton',
-                get_string('save', 'quiz'));
+                get_string('save', 'adaquiz'));
         $buttonarray[] = $mform->createElement('submit', 'againbutton',
-                get_string('saveoverrideandstay', 'quiz'));
+                get_string('saveoverrideandstay', 'adaquiz'));
         $buttonarray[] = $mform->createElement('cancel');
 
         $mform->addGroup($buttonarray, 'buttonbar', '', array(' '), false);
@@ -226,7 +224,7 @@ class quiz_override_form extends moodleform {
         $errors = parent::validation($data, $files);
 
         $mform =& $this->_form;
-        $quiz = $this->quiz;
+        $adaquiz = $this->adaquiz;
 
         if ($mform->elementExists('userid')) {
             if (empty($data['userid'])) {
@@ -243,21 +241,21 @@ class quiz_override_form extends moodleform {
         // Ensure that the dates make sense.
         if (!empty($data['timeopen']) && !empty($data['timeclose'])) {
             if ($data['timeclose'] < $data['timeopen'] ) {
-                $errors['timeclose'] = get_string('closebeforeopen', 'quiz');
+                $errors['timeclose'] = get_string('closebeforeopen', 'adaquiz');
             }
         }
 
-        // Ensure that at least one quiz setting was changed.
+        // Ensure that at least one adaptive quiz setting was changed.
         $changed = false;
         $keys = array('timeopen', 'timeclose', 'timelimit', 'attempts', 'password');
         foreach ($keys as $key) {
-            if ($data[$key] != $quiz->{$key}) {
+            if ($data[$key] != $adaquiz->{$key}) {
                 $changed = true;
                 break;
             }
         }
         if (!$changed) {
-            $errors['timeopen'] = get_string('nooverridedata', 'quiz');
+            $errors['timeopen'] = get_string('nooverridedata', 'adaquiz');
         }
 
         return $errors;

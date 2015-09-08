@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Base class for the settings form for {@link quiz_attempts_report}s.
+ * Base class for the settings form for {@link adaquiz_attempts_report}s.
  *
- * @package   mod_quiz
- * @copyright 2012 The Open University
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -29,69 +29,69 @@ require_once($CFG->libdir . '/formslib.php');
 
 
 /**
- * Base class for the settings form for {@link quiz_attempts_report}s.
+ * Base class for the settings form for {@link adaquiz_attempts_report}s.
  *
  * @copyright 2012 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class mod_quiz_attempts_report_form extends moodleform {
+abstract class mod_adaquiz_attempts_report_form extends moodleform {
 
     protected function definition() {
         $mform = $this->_form;
 
         $mform->addElement('header', 'preferencespage',
-                get_string('reportwhattoinclude', 'quiz'));
+                get_string('reportwhattoinclude', 'adaquiz'));
 
         $this->standard_attempt_fields($mform);
         $this->other_attempt_fields($mform);
 
         $mform->addElement('header', 'preferencesuser',
-                get_string('reportdisplayoptions', 'quiz'));
+                get_string('reportdisplayoptions', 'adaquiz'));
 
         $this->standard_preference_fields($mform);
         $this->other_preference_fields($mform);
 
         $mform->addElement('submit', 'submitbutton',
-                get_string('showreport', 'quiz'));
+                get_string('showreport', 'adaquiz'));
     }
 
     protected function standard_attempt_fields(MoodleQuickForm $mform) {
 
-        $mform->addElement('select', 'attempts', get_string('reportattemptsfrom', 'quiz'), array(
-                    quiz_attempts_report::ENROLLED_WITH    => get_string('reportuserswith', 'quiz'),
-                    quiz_attempts_report::ENROLLED_WITHOUT => get_string('reportuserswithout', 'quiz'),
-                    quiz_attempts_report::ENROLLED_ALL     => get_string('reportuserswithorwithout', 'quiz'),
-                    quiz_attempts_report::ALL_WITH        => get_string('reportusersall', 'quiz'),
+        $mform->addElement('select', 'attempts', get_string('reportattemptsfrom', 'adaquiz'), array(
+                    adaquiz_attempts_report::ENROLLED_WITH    => get_string('reportuserswith', 'adaquiz'),
+                    adaquiz_attempts_report::ENROLLED_WITHOUT => get_string('reportuserswithout', 'adaquiz'),
+                    adaquiz_attempts_report::ENROLLED_ALL     => get_string('reportuserswithorwithout', 'adaquiz'),
+                    adaquiz_attempts_report::ALL_WITH        => get_string('reportusersall', 'adaquiz'),
                  ));
 
         $stategroup = array(
             $mform->createElement('advcheckbox', 'stateinprogress', '',
-                    get_string('stateinprogress', 'quiz')),
+                    get_string('stateinprogress', 'adaquiz')),
             $mform->createElement('advcheckbox', 'stateoverdue', '',
-                    get_string('stateoverdue', 'quiz')),
+                    get_string('stateoverdue', 'adaquiz')),
             $mform->createElement('advcheckbox', 'statefinished', '',
-                    get_string('statefinished', 'quiz')),
+                    get_string('statefinished', 'adaquiz')),
             $mform->createElement('advcheckbox', 'stateabandoned', '',
-                    get_string('stateabandoned', 'quiz')),
+                    get_string('stateabandoned', 'adaquiz')),
         );
         $mform->addGroup($stategroup, 'stateoptions',
-                get_string('reportattemptsthatare', 'quiz'), array(' '), false);
+                get_string('reportattemptsthatare', 'adaquiz'), array(' '), false);
         $mform->setDefault('stateinprogress', 1);
         $mform->setDefault('stateoverdue',    1);
         $mform->setDefault('statefinished',   1);
         $mform->setDefault('stateabandoned',  1);
-        $mform->disabledIf('stateinprogress', 'attempts', 'eq', quiz_attempts_report::ENROLLED_WITHOUT);
-        $mform->disabledIf('stateoverdue',    'attempts', 'eq', quiz_attempts_report::ENROLLED_WITHOUT);
-        $mform->disabledIf('statefinished',   'attempts', 'eq', quiz_attempts_report::ENROLLED_WITHOUT);
-        $mform->disabledIf('stateabandoned',  'attempts', 'eq', quiz_attempts_report::ENROLLED_WITHOUT);
+        $mform->disabledIf('stateinprogress', 'attempts', 'eq', adaquiz_attempts_report::ENROLLED_WITHOUT);
+        $mform->disabledIf('stateoverdue',    'attempts', 'eq', adaquiz_attempts_report::ENROLLED_WITHOUT);
+        $mform->disabledIf('statefinished',   'attempts', 'eq', adaquiz_attempts_report::ENROLLED_WITHOUT);
+        $mform->disabledIf('stateabandoned',  'attempts', 'eq', adaquiz_attempts_report::ENROLLED_WITHOUT);
 
-        if (quiz_report_can_filter_only_graded($this->_customdata['quiz'])) {
+        if (adaquiz_report_can_filter_only_graded($this->_customdata['adaquiz'])) {
             $gm = html_writer::tag('span',
-                    quiz_get_grading_option_name($this->_customdata['quiz']->grademethod),
+                    adaquiz_get_grading_option_name($this->_customdata['adaquiz']->grademethod),
                     array('class' => 'highlight'));
             $mform->addElement('advcheckbox', 'onlygraded', '',
-                    get_string('reportshowonlyfinished', 'quiz', $gm));
-            $mform->disabledIf('onlygraded', 'attempts', 'eq', quiz_attempts_report::ENROLLED_WITHOUT);
+                    get_string('reportshowonlyfinished', 'adaquiz', $gm));
+            $mform->disabledIf('onlygraded', 'attempts', 'eq', adaquiz_attempts_report::ENROLLED_WITHOUT);
             $mform->disabledIf('onlygraded', 'statefinished', 'notchecked');
         }
     }
@@ -110,7 +110,7 @@ abstract class mod_quiz_attempts_report_form extends moodleform {
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
-        if ($data['attempts'] != quiz_attempts_report::ENROLLED_WITHOUT && !(
+        if ($data['attempts'] != adaquiz_attempts_report::ENROLLED_WITHOUT && !(
                 $data['stateinprogress'] || $data['stateoverdue'] || $data['statefinished'] || $data['stateabandoned'])) {
             $errors['stateoptions'] = get_string('reportmustselectstate', 'quiz');
         }

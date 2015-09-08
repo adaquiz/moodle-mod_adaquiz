@@ -15,22 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The mod_quiz attempt started event.
+ * The mod_adaquiz attempt started event.
  *
- * @package    mod_quiz
- * @copyright  2013 Adrian Greeve <adrian@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace mod_quiz\event;
+namespace mod_adaquiz\event;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * The mod_quiz attempt started event class.
+ * The mod_adaquiz attempt started event class.
  *
- * @package    mod_quiz
- * @since      Moodle 2.6
- * @copyright  2013 Adrian Greeve <adrian@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class attempt_started extends \core\event\base {
 
@@ -38,7 +34,7 @@ class attempt_started extends \core\event\base {
      * Init method.
      */
     protected function init() {
-        $this->data['objecttable'] = 'quiz_attempts';
+        $this->data['objecttable'] = 'adaquiz_attempts';
         $this->data['crud'] = 'c';
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
     }
@@ -50,7 +46,7 @@ class attempt_started extends \core\event\base {
      */
     public function get_description() {
         return "The user with id '$this->relateduserid' has started the attempt with id '$this->objectid' for the " .
-            "quiz with course module id '$this->contextinstanceid'.";
+            "adaptive quiz with course module id '$this->contextinstanceid'.";
     }
 
     /**
@@ -59,7 +55,7 @@ class attempt_started extends \core\event\base {
      * @return string
      */
     public static function get_name() {
-        return get_string('eventquizattemptstarted', 'mod_quiz');
+        return get_string('eventquizattemptstarted', 'mod_adaquiz');
     }
 
     /**
@@ -68,7 +64,7 @@ class attempt_started extends \core\event\base {
      * @return string legacy event name
      */
     static public function get_legacy_eventname() {
-        return 'quiz_attempt_started';
+        return 'adaquiz_attempt_started';
     }
 
     /**
@@ -77,7 +73,7 @@ class attempt_started extends \core\event\base {
      * @return \moodle_url
      */
     public function get_url() {
-        return new \moodle_url('/mod/quiz/review.php', array('attempt' => $this->objectid));
+        return new \moodle_url('/mod/adaquiz/review.php', array('attempt' => $this->objectid));
     }
 
     /**
@@ -86,15 +82,15 @@ class attempt_started extends \core\event\base {
      * @return \stdClass
      */
     protected function get_legacy_eventdata() {
-        $attempt = $this->get_record_snapshot('quiz_attempts', $this->objectid);
+        $attempt = $this->get_record_snapshot('adaquiz_attempts', $this->objectid);
 
         $legacyeventdata = new \stdClass();
-        $legacyeventdata->component = 'mod_quiz';
+        $legacyeventdata->component = 'mod_adaquiz';
         $legacyeventdata->attemptid = $attempt->id;
         $legacyeventdata->timestart = $attempt->timestart;
         $legacyeventdata->timestamp = $attempt->timestart;
         $legacyeventdata->userid = $this->relateduserid;
-        $legacyeventdata->quizid = $attempt->quiz;
+        $legacyeventdata->adaquizid = $attempt->quiz;
         $legacyeventdata->cmid = $this->contextinstanceid;
         $legacyeventdata->courseid = $this->courseid;
 
@@ -107,9 +103,9 @@ class attempt_started extends \core\event\base {
      * @return array
      */
     protected function get_legacy_logdata() {
-        $attempt = $this->get_record_snapshot('quiz_attempts', $this->objectid);
+        $attempt = $this->get_record_snapshot('adaquiz_attempts', $this->objectid);
 
-        return array($this->courseid, 'quiz', 'attempt', 'review.php?attempt=' . $this->objectid,
+        return array($this->courseid, 'adaquiz', 'attempt', 'review.php?attempt=' . $this->objectid,
             $attempt->quiz, $this->contextinstanceid);
     }
 

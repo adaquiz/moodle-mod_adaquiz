@@ -18,15 +18,15 @@ Y.extend(DRAGRESOURCE, M.core.dragdrop, {
 
         this.samenodelabel = {
             identifier: 'dragtoafter',
-            component: 'quiz'
+            component: 'adaquiz'
         };
         this.parentnodelabel = {
             identifier: 'dragtostart',
-            component: 'quiz'
+            component: 'adaquiz'
         };
 
         // Go through all sections
-        var sectionlistselector = M.mod_quiz.edit.get_section_selector(Y);
+        var sectionlistselector = M.mod_adaquiz.edit.get_section_selector(Y);
         if (sectionlistselector) {
             sectionlistselector = '.' + CSS.COURSECONTENT + ' ' + sectionlistselector;
             this.setup_for_section(sectionlistselector);
@@ -46,13 +46,13 @@ Y.extend(DRAGRESOURCE, M.core.dragdrop, {
                 cloneNode: true
             });
             del.dd.plug(Y.Plugin.DDConstrained, {
-                // Keep it inside the .mod-quiz-edit-content
+                // Keep it inside the .mod-adaquiz-edit-content
                 constrain: '#' + CSS.SLOTS
             });
             del.dd.plug(Y.Plugin.DDWinScroll);
 
-            M.mod_quiz.quizbase.register_module(this);
-            M.mod_quiz.dragres = this;
+            M.mod_adaquiz.adaquizbase.register_module(this);
+            M.mod_adaquiz.dragres = this;
         }
     },
 
@@ -136,20 +136,20 @@ Y.extend(DRAGRESOURCE, M.core.dragdrop, {
         // Prepare request parameters
         params.sesskey = M.cfg.sesskey;
         params.courseid = this.get('courseid');
-        params.quizid = this.get('quizid');
+        params.adaquizid = this.get('adaquizid');
         params['class'] = 'resource';
         params.field = 'move';
-        params.id = Number(Y.Moodle.mod_quiz.util.slot.getId(dragnode));
-        params.sectionId = Y.Moodle.core_course.util.section.getId(dropnode.ancestor(M.mod_quiz.edit.get_section_wrapper(Y), true));
+        params.id = Number(Y.Moodle.mod_adaquiz.util.slot.getId(dragnode));
+        params.sectionId = Y.Moodle.core_course.util.section.getId(dropnode.ancestor(M.mod_adaquiz.edit.get_section_wrapper(Y), true));
 
         var previousslot = dragnode.previous(SELECTOR.SLOT);
         if (previousslot) {
-            params.previousid = Number(Y.Moodle.mod_quiz.util.slot.getId(previousslot));
+            params.previousid = Number(Y.Moodle.mod_adaquiz.util.slot.getId(previousslot));
         }
 
         var previouspage = dragnode.previous(SELECTOR.PAGE);
         if (previouspage) {
-            params.page = Number(Y.Moodle.mod_quiz.util.page.getId(previouspage));
+            params.page = Number(Y.Moodle.mod_adaquiz.util.page.getId(previouspage));
         }
 
         // Do AJAX request
@@ -166,12 +166,12 @@ Y.extend(DRAGRESOURCE, M.core.dragdrop, {
                 success: function(tid, response) {
                     var responsetext = Y.JSON.parse(response.responseText);
                     var params = {element: dragnode, visible: responsetext.visible};
-                    M.mod_quiz.quizbase.invoke_function('set_visibility_resource_ui', params);
+                    M.mod_adaquiz.adaquizbase.invoke_function('set_visibility_resource_ui', params);
                     this.unlock_drag_handle(drag, CSS.EDITINGMOVE);
                     window.setTimeout(function() {
                         spinner.hide();
                     }, 250);
-                    M.mod_quiz.resource_toolbox.reorganise_edit_page();
+                    M.mod_adaquiz.resource_toolbox.reorganise_edit_page();
                 },
                 failure: function(tid, response) {
                     this.ajax_failure(response);
@@ -221,12 +221,12 @@ Y.extend(DRAGRESOURCE, M.core.dragdrop, {
         this.drop_over(e);
     }
 }, {
-    NAME: 'mod_quiz-dragdrop-resource',
+    NAME: 'mod_adaquiz-dragdrop-resource',
     ATTRS: {
         courseid: {
             value: null
         },
-        quizid: {
+        adaquizid: {
             value: null
         },
         ajaxurl: {
@@ -238,7 +238,7 @@ Y.extend(DRAGRESOURCE, M.core.dragdrop, {
     }
 });
 
-M.mod_quiz = M.mod_quiz || {};
-M.mod_quiz.init_resource_dragdrop = function(params) {
+M.mod_adaquiz = M.mod_adaquiz || {};
+M.mod_adaquiz.init_resource_dragdrop = function(params) {
     new DRAGRESOURCE(params);
 };

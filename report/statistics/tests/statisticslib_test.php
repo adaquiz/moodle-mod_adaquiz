@@ -17,16 +17,16 @@
 /**
  * Unit tests for (some of) statisticslib.php.
  *
- * @package   quiz_statistics
- * @category  test
- * @copyright 2014 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   adaquiz_statistics
+ * @category  phpunit
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot . '/mod/quiz/report/statistics/statisticslib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/statistics/statisticslib.php');
 
 /**
  * Unit tests for (some of) statisticslib.php.
@@ -34,17 +34,17 @@ require_once($CFG->dirroot . '/mod/quiz/report/statistics/statisticslib.php');
  * @copyright 2014 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class quiz_statistics_statisticslib_testcase extends basic_testcase {
+class adaquiz_statistics_statisticslib_testcase extends basic_testcase {
 
-    public function test_quiz_statistics_renumber_placeholders_no_op() {
-        list($sql, $params) = quiz_statistics_renumber_placeholders(
+    public function test_adaquiz_statistics_renumber_placeholders_no_op() {
+        list($sql, $params) = adaquiz_statistics_renumber_placeholders(
                 ' IN (:u1, :u2)', array('u1' => 1, 'u2' => 2), 'u');
         $this->assertEquals(' IN (:u1, :u2)', $sql);
         $this->assertEquals(array('u1' => 1, 'u2' => 2), $params);
     }
 
-    public function test_quiz_statistics_renumber_placeholders_work_to_do() {
-        list($sql, $params) = quiz_statistics_renumber_placeholders(
+    public function test_adaquiz_statistics_renumber_placeholders_work_to_do() {
+        list($sql, $params) = adaquiz_statistics_renumber_placeholders(
                 'frog1 IN (:frog100 , :frog101)', array('frog100' => 1, 'frog101' => 2), 'frog');
         $this->assertEquals('frog1 IN (:frog1 , :frog2)', $sql);
         $this->assertEquals(array('frog1' => 1, 'frog2' => 2), $params);

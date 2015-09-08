@@ -7,7 +7,7 @@ var CSS = {
 
 /**
  * The questionchooser class  is responsible for instantiating and displaying the question chooser
- * when viewing a quiz in editing mode.
+ * when viewing an adaptive quiz in editing mode.
  *
  * @class questionchooser
  * @constructor
@@ -62,11 +62,11 @@ Y.extend(QUESTIONCHOOSER, M.core.chooserdialogue, {
         input.set('value', value);
     }
 }, {
-    NAME: 'mod_quiz-questionchooser'
+    NAME: 'mod_adaquiz-questionchooser'
 });
 
-M.mod_quiz = M.mod_quiz || {};
-M.mod_quiz.init_questionchooser = function() {
-    M.mod_quiz.question_chooser = new QUESTIONCHOOSER({});
-    return M.mod_quiz.question_chooser;
+M.mod_adaquiz = M.mod_adaquiz || {};
+M.mod_adaquiz.init_questionchooser = function() {
+    M.mod_adaquiz.question_chooser = new QUESTIONCHOOSER({});
+    return M.mod_adaquiz.question_chooser;
 };

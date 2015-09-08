@@ -17,36 +17,36 @@
 /**
  * This page prints a summary of a quiz attempt before it is submitted.
  *
- * @package   mod_quiz
- * @copyright 2009 The Open University
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 require_once(dirname(__FILE__) . '/../../config.php');
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
 
 $attemptid = required_param('attempt', PARAM_INT); // The attempt to summarise.
 
-$PAGE->set_url('/mod/quiz/summary.php', array('attempt' => $attemptid));
+$PAGE->set_url('/mod/adaquiz/summary.php', array('attempt' => $attemptid));
 
-$attemptobj = quiz_attempt::create($attemptid);
+$attemptobj = adaquiz_attempt::create($attemptid);
 
 // Check login.
 require_login($attemptobj->get_course(), false, $attemptobj->get_cm());
 
 // Check that this attempt belongs to this user.
 if ($attemptobj->get_userid() != $USER->id) {
-    if ($attemptobj->has_capability('mod/quiz:viewreports')) {
+    if ($attemptobj->has_capability('mod/adaquiz:viewreports')) {
         redirect($attemptobj->review_url(null));
     } else {
-        throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'notyourattempt');
+        throw new moodle_adaquiz_exception($attemptobj->get_adaquizobj(), 'notyourattempt');
     }
 }
 
 // Check capabilites.
 if (!$attemptobj->is_preview_user()) {
-    $attemptobj->require_capability('mod/quiz:attempt');
+    $attemptobj->require_capability('mod/adaquiz:attempt');
 }
 
 if ($attemptobj->is_preview_user()) {
@@ -56,10 +56,10 @@ if ($attemptobj->is_preview_user()) {
 // Check access.
 $accessmanager = $attemptobj->get_access_manager(time());
 $accessmanager->setup_attempt_page($PAGE);
-$output = $PAGE->get_renderer('mod_quiz');
+$output = $PAGE->get_renderer('mod_adaquiz');
 $messages = $accessmanager->prevent_access();
 if (!$attemptobj->is_preview_user() && $messages) {
-    print_error('attempterror', 'quiz', $attemptobj->view_url(),
+    print_error('attempterror', 'adaquiz', $attemptobj->view_url(),
             $output->access_messages($messages));
 }
 if ($accessmanager->is_preflight_check_required($attemptobj->get_attemptid())) {
@@ -77,16 +77,16 @@ if ($attemptobj->is_finished()) {
 }
 
 // Arrange for the navigation to be displayed.
-if (empty($attemptobj->get_quiz()->showblocks)) {
+if (empty($attemptobj->get_adaquiz()->showblocks)) {
     $PAGE->blocks->show_only_fake_blocks();
 }
 
-$navbc = $attemptobj->get_navigation_panel($output, 'quiz_attempt_nav_panel', -1);
+$navbc = $attemptobj->get_navigation_panel($output, 'adaquiz_attempt_nav_panel', -1);
 $regions = $PAGE->blocks->get_regions();
 $PAGE->blocks->add_fake_block($navbc, reset($regions));
 
-$PAGE->navbar->add(get_string('summaryofattempt', 'quiz'));
-$PAGE->set_title($attemptobj->get_quiz_name());
+$PAGE->navbar->add(get_string('summaryofattempt', 'adaquiz'));
+$PAGE->set_title($attemptobj->get_adaquiz_name());
 $PAGE->set_heading($attemptobj->get_course()->fullname);
 
 // Display the page.
@@ -99,9 +99,9 @@ $params = array(
     'courseid' => $attemptobj->get_courseid(),
     'context' => context_module::instance($attemptobj->get_cmid()),
     'other' => array(
-        'quizid' => $attemptobj->get_quizid()
+        'adaquizid' => $attemptobj->get_adaquizid()
     )
 );
-$event = \mod_quiz\event\attempt_summary_viewed::create($params);
-$event->add_record_snapshot('quiz_attempts', $attemptobj->get_attempt());
+$event = \mod_adaquiz\event\attempt_summary_viewed::create($params);
+$event->add_record_snapshot('adaquiz_attempts', $attemptobj->get_attempt());
 $event->trigger();

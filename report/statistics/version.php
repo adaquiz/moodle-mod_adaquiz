@@ -15,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Quiz statistics report version information.
+ * Adaptive quiz statistics report version information.
  *
- * @package   quiz_statistics
- * @copyright 2008 Jamie Pratt
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    adaquiz_statistics
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -27,4 +27,4 @@ defined('MOODLE_INTERNAL') || die();
 $plugin->version   = 2014111000;
 $plugin->requires  = 2014110400;
 $plugin->cron      = 18000;
-$plugin->component = 'quiz_statistics';
+$plugin->component = 'adaquiz_statistics';

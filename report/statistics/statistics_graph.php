@@ -15,37 +15,37 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This script renders the quiz statistics graph.
+ * This script renders the adaptive quiz statistics graph.
  *
- * It takes one parameter, the quiz_statistics.id. This is enough to identify the
- * quiz etc.
+ * It takes one parameter, the adaptive quiz_statistics.id. This is enough to identify the
+ * adaptive quiz etc.
  *
  * It plots a bar graph showing certain question statistics plotted against
  * question number.
  *
- * @package   quiz_statistics
- * @copyright 2008 Jamie Pratt
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    adaquiz_statistics
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(dirname(__FILE__) . '/../../../../config.php');
 require_once($CFG->libdir . '/graphlib.php');
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-require_once($CFG->dirroot . '/mod/quiz/report/reportlib.php');
-require_once($CFG->dirroot . '/mod/quiz/report/statistics/statisticslib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/reportlib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/statistics/statisticslib.php');
 
 // Get the parameters.
-$quizid = required_param('quizid', PARAM_INT);
+$adaquizid = required_param('adaquizid', PARAM_INT);
 $currentgroup = required_param('currentgroup', PARAM_INT);
 $whichattempts = required_param('whichattempts', PARAM_INT);
 
-$quiz = $DB->get_record('quiz', array('id' => $quizid), '*', MUST_EXIST);
-$cm = get_coursemodule_from_instance('quiz', $quiz->id);
+$adaquiz = $DB->get_record('adaquiz', array('id' => $adaquizid), '*', MUST_EXIST);
+$cm = get_coursemodule_from_instance('adaquiz', $adaquiz->id);
 
 // Check access.
-require_login($quiz->course, false, $cm);
+require_login($adaquiz->course, false, $cm);
 $modcontext = context_module::instance($cm->id);
-require_capability('quiz/statistics:view', $modcontext);
+require_capability('adaquiz/statistics:view', $modcontext);
 
 if (groups_get_activity_groupmode($cm)) {
     $groups = groups_get_activity_allowed_groups($cm);
@@ -59,13 +59,13 @@ if ($currentgroup && !in_array($currentgroup, array_keys($groups))) {
 if (empty($currentgroup)) {
     $groupstudents = array();
 } else {
-    $groupstudents = get_users_by_capability($modcontext, array('mod/quiz:reviewmyattempts', 'mod/quiz:attempt'),
+    $groupstudents = get_users_by_capability($modcontext, array('mod/adaquiz:reviewmyattempts', 'mod/adaquiz:attempt'),
                                              '', '', '', '', $currentgroup, '', false);
 }
-$qubaids = quiz_statistics_qubaids_condition($quizid, $groupstudents, $whichattempts);
+$qubaids = adaquiz_statistics_qubaids_condition($adaquizid, $groupstudents, $whichattempts);
 
 // Load the rest of the required data.
-$questions = quiz_report_get_significant_questions($quiz);
+$questions = adaquiz_report_get_significant_questions($adaquiz);
 
 // Only load main question not sub questions.
 $questionstatistics = $DB->get_records_select('question_statistics', 'hashcode = ? AND slot IS NOT NULL',
@@ -76,7 +76,7 @@ $graph = new graph(800, 600);
 $graph->parameter['title']   = '';
 
 $graph->parameter['y_label_left'] = '%';
-$graph->parameter['x_label'] = get_string('position', 'quiz_statistics');
+$graph->parameter['x_label'] = get_string('position', 'adaquiz_statistics');
 $graph->parameter['y_label_angle'] = 90;
 $graph->parameter['x_label_angle'] = 0;
 $graph->parameter['x_axis_angle'] = 60;
@@ -91,8 +91,8 @@ $graph->parameter['zero_axis'] = 'grayEE';
 
 // Configure what to display.
 $fieldstoplot = array(
-    'facility' => get_string('facility', 'quiz_statistics'),
-    'discriminativeefficiency' => get_string('discriminative_efficiency', 'quiz_statistics')
+    'facility' => get_string('facility', 'adaquiz_statistics'),
+    'discriminativeefficiency' => get_string('discriminative_efficiency', 'adaquiz_statistics')
 );
 $fieldstoplotfactor = array('facility' => 100, 'discriminativeefficiency' => 1);
 
@@ -101,7 +101,7 @@ $xdata = array();
 foreach (array_keys($fieldstoplot) as $fieldtoplot) {
     $ydata[$fieldtoplot] = array();
     $graph->y_format[$fieldtoplot] = array(
-        'colour' => quiz_statistics_graph_get_new_colour(),
+        'colour' => adaquiz_statistics_graph_get_new_colour(),
         'bar' => 'fill',
         'shadow_offset' => 1,
         'legend' => $fieldstoplot[$fieldtoplot]

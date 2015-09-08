@@ -14,28 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace quiz_statistics;
+namespace adaquiz_statistics;
 
 defined('MOODLE_INTERNAL') || die();
 
 /**
  * The statistics calculator returns an instance of this class which contains the calculated statistics.
  *
- * These quiz statistics calculations are described here :
+ * These adaptive quiz statistics are based on quiz statistics calulations desribed here:
  *
  * http://docs.moodle.org/dev/Quiz_statistics_calculations#Test_statistics
  *
- * @package    quiz_statistics
- * @copyright  2013 The Open University
- * @author     James Pratt me@jamiep.org
+ * @package    adaquiz_statistics
+ * @copyright  2015 Maths for More S.L.
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class calculated {
 
     /**
      * @param  string $whichattempts which attempts to use, represented internally as one of the constants as used in
-     *                                   $quiz->grademethod ie.
-     *                                   QUIZ_GRADEAVERAGE, QUIZ_GRADEHIGHEST, QUIZ_ATTEMPTLAST or QUIZ_ATTEMPTFIRST
+     *                                   $adaquiz->grademethod ie.
+     *                                   ADAQUIZ_GRADEAVERAGE, ADAQUIZ_GRADEHIGHEST, ADAQUIZ_ATTEMPTLAST or ADAQUIZ_ATTEMPTFIRST
      *                                   we calculate stats based on which attempts would affect the grade for each student,
      *                                   the default null value is used when constructing an instance whose values will be
      *                                   populated from a db record.
@@ -121,10 +120,10 @@ class calculated {
     /**
      * @param $course
      * @param $cm
-     * @param $quiz
+     * @param $adaquiz
      * @return array to display in table or spreadsheet.
      */
-    public function get_formatted_quiz_info_data($course, $cm, $quiz) {
+    public function get_formatted_adaquiz_info_data($course, $cm, $adaquiz) {
 
         // You can edit this array to control which statistics are displayed.
         $todisplay = array('firstattemptscount' => 'number',
@@ -141,22 +140,22 @@ class calculated {
                            'errorratio' => 'number_format_percent',
                            'standarderror' => 'summarks_as_percentage');
 
-        // General information about the quiz.
-        $quizinfo = array();
-        $quizinfo[get_string('quizname', 'quiz_statistics')] = format_string($quiz->name);
-        $quizinfo[get_string('coursename', 'quiz_statistics')] = format_string($course->fullname);
+        // General information about the adaptive quiz.
+        $adaquizinfo = array();
+        $adaquizinfo[get_string('quizname', 'adaquiz_statistics')] = format_string($adaquiz->name);
+        $adaquizinfo[get_string('coursename', 'adaquiz_statistics')] = format_string($course->fullname);
         if ($cm->idnumber) {
-            $quizinfo[get_string('idnumbermod')] = $cm->idnumber;
+            $adaquizinfo[get_string('idnumbermod')] = $cm->idnumber;
         }
-        if ($quiz->timeopen) {
-            $quizinfo[get_string('quizopen', 'quiz')] = userdate($quiz->timeopen);
+        if ($adaquiz->timeopen) {
+            $adaquizinfo[get_string('quizopen', 'adaquiz')] = userdate($adaquiz->timeopen);
         }
-        if ($quiz->timeclose) {
-            $quizinfo[get_string('quizclose', 'quiz')] = userdate($quiz->timeclose);
+        if ($adaquiz->timeclose) {
+            $adaquizinfo[get_string('quizclose', 'adaquiz')] = userdate($adaquiz->timeclose);
         }
-        if ($quiz->timeopen && $quiz->timeclose) {
-            $quizinfo[get_string('duration', 'quiz_statistics')] =
-                format_time($quiz->timeclose - $quiz->timeopen);
+        if ($adaquiz->timeopen && $adaquiz->timeclose) {
+            $adaquizinfo[get_string('duration', 'adaquiz_statistics')] =
+                format_time($adaquiz->timeclose - $adaquiz->timeopen);
         }
 
         // The statistics.
@@ -168,15 +167,15 @@ class calculated {
 
             switch ($format) {
                 case 'summarks_as_percentage':
-                    $formattedvalue = quiz_report_scale_summarks_as_percentage($value, $quiz);
+                    $formattedvalue = adaquiz_report_scale_summarks_as_percentage($value, $adaquiz);
                     break;
                 case 'number_format_percent':
-                    $formattedvalue = quiz_format_grade($quiz, $value) . '%';
+                    $formattedvalue = adaquiz_format_grade($adaquiz, $value) . '%';
                     break;
                 case 'number_format':
                     // 2 extra decimal places, since not a percentage,
                     // and we want the same number of sig figs.
-                    $formattedvalue = format_float($value, $quiz->decimalpoints + 2);
+                    $formattedvalue = format_float($value, $adaquiz->decimalpoints + 2);
                     break;
                 case 'number':
                     $formattedvalue = $value + 0;
@@ -185,11 +184,11 @@ class calculated {
                     $formattedvalue = $value;
             }
 
-            $quizinfo[get_string($property, 'quiz_statistics',
+            $adaquizinfo[get_string($property, 'adaquiz_statistics',
                                  calculator::using_attempts_lang_string($this->whichattempts))] = $formattedvalue;
         }
 
-        return $quizinfo;
+        return $adaquizinfo;
     }
 
     /**
@@ -226,12 +225,12 @@ class calculated {
         }
 
         // Store the data.
-        $DB->insert_record('quiz_statistics', $toinsert);
+        $DB->insert_record('adaquiz_statistics', $toinsert);
 
     }
 
     /**
-     * Given a record from 'quiz_statistics' table load the data into the properties of this class.
+     * Given a record from 'adaquiz_statistics' table load the data into the properties of this class.
      *
      * @param $record \stdClass from db.
      */

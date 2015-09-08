@@ -1,5 +1,5 @@
 {
-    "moodle-mod_quiz-dragdrop": {
+    "moodle-mod_adaquiz-dragdrop": {
         "requires": [
             "base",
             "node",
@@ -9,10 +9,10 @@
             "dd-scroll",
             "moodle-core-dragdrop",
             "moodle-core-notification",
-            "moodle-mod_quiz-quizbase",
-            "moodle-mod_quiz-util-base",
-            "moodle-mod_quiz-util-page",
-            "moodle-mod_quiz-util-slot",
+            "moodle-mod_adaquiz-adaquizbase",
+            "moodle-mod_adaquiz-util-base",
+            "moodle-mod_adaquiz-util-page",
+            "moodle-mod_adaquiz-util-slot",
             "moodle-course-util"
         ]
     }

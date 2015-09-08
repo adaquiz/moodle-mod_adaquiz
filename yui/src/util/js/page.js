@@ -1,19 +1,19 @@
 /**
  * A collection of utility classes for use with pages.
  *
- * @module moodle-mod_quiz-util
- * @submodule moodle-mod_quiz-util-page
+ * @module moodle-mod_adaquiz-util
+ * @submodule moodle-mod_adaquiz-util-page
  */
 
-Y.namespace('Moodle.mod_quiz.util.page');
+Y.namespace('Moodle.mod_adaquiz.util.page');
 
 /**
  * A collection of utility classes for use with pages.
  *
- * @class Moodle.mod_quiz.util.page
+ * @class Moodle.mod_adaquiz.util.page
  * @static
  */
-Y.Moodle.mod_quiz.util.page = {
+Y.Moodle.mod_adaquiz.util.page = {
     CSS: {
         PAGE : 'page'
     },
@@ -140,7 +140,7 @@ Y.Moodle.mod_quiz.util.page = {
      * @return {node[]} An array containing page nodes.
      */
     getPages: function() {
-        return Y.all(Y.Moodle.mod_quiz.util.slot.SELECTORS.PAGECONTENT + ' ' + Y.Moodle.mod_quiz.util.slot.SELECTORS.SECTIONUL + ' ' + this.SELECTORS.PAGE);
+        return Y.all(Y.Moodle.mod_adaquiz.util.slot.SELECTORS.PAGECONTENT + ' ' + Y.Moodle.mod_adaquiz.util.slot.SELECTORS.SECTIONUL + ' ' + this.SELECTORS.PAGE);
     },
 
     /**
@@ -181,7 +181,7 @@ Y.Moodle.mod_quiz.util.page = {
      */
     add: function(beforenode) {
         var pagenumber = this.getNumber(this.getPageFromSlot(beforenode)) + 1;
-        var pagehtml = M.mod_quiz.resource_toolbox.get('config').pagehtml;
+        var pagehtml = M.mod_adaquiz.resource_toolbox.get('config').pagehtml;
 
         // Normalise the page number.
         pagehtml = pagehtml.replace(/%%PAGENUMBER%%/g, pagenumber);
@@ -193,7 +193,7 @@ Y.Moodle.mod_quiz.util.page = {
         YUI().use('dd-drop', function(Y) {
             var drop = new Y.DD.Drop({
                 node: page,
-                groups: M.mod_quiz.dragres.groups
+                groups: M.mod_adaquiz.dragres.groups
             });
             page.drop = drop;
         });
@@ -215,9 +215,9 @@ Y.Moodle.mod_quiz.util.page = {
      */
     remove: function(page, keeppagebreak) {
         // Remove page break from previous slot.
-        var previousslot = page.previous(Y.Moodle.mod_quiz.util.slot.SELECTORS.SLOT);
+        var previousslot = page.previous(Y.Moodle.mod_adaquiz.util.slot.SELECTORS.SLOT);
         if (!keeppagebreak && previousslot) {
-            Y.Moodle.mod_quiz.util.slot.removePageBreak(previousslot);
+            Y.Moodle.mod_adaquiz.util.slot.removePageBreak(previousslot);
         }
         page.remove();
     },
@@ -287,7 +287,7 @@ Y.Moodle.mod_quiz.util.page = {
      * @return {node[]} An array containing page nodes.
      */
     getActionMenus: function() {
-        return Y.all(Y.Moodle.mod_quiz.util.slot.SELECTORS.PAGECONTENT + ' ' + Y.Moodle.mod_quiz.util.slot.SELECTORS.SECTIONUL + ' ' + this.SELECTORS.ACTIONMENU);
+        return Y.all(Y.Moodle.mod_adaquiz.util.slot.SELECTORS.PAGECONTENT + ' ' + Y.Moodle.mod_adaquiz.util.slot.SELECTORS.SECTIONUL + ' ' + this.SELECTORS.ACTIONMENU);
     },
 
     /**

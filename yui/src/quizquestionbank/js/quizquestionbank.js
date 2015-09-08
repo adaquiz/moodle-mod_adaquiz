@@ -57,7 +57,7 @@ Y.extend(POPUP, Y.Base, {
             visible: false,
             postmethod: 'form',
             footerContent: null,
-            extraClasses: ['mod_quiz_qbank_dialogue']
+            extraClasses: ['mod_adaquiz_qbank_dialogue']
         };
         this.dialogue = new M.core.dialogue(config);
         this.dialogue.bodyNode.delegate('click', this.link_clicked, 'a[href]', this);
@@ -95,15 +95,15 @@ Y.extend(POPUP, Y.Base, {
     },
 
     load_content : function(queryString) {
-        Y.log('Starting load.', 'debug', 'moodle-mod_quiz-quizquestionbank');
+        Y.log('Starting load.', 'debug', 'moodle-mod_adaquiz-quizquestionbank');
         this.dialogue.bodyNode.append(this.loadingDiv);
 
         // If to support old IE.
         if (window.history.replaceState) {
-            window.history.replaceState(null, '', M.cfg.wwwroot + '/mod/quiz/edit.php' + queryString);
+            window.history.replaceState(null, '', M.cfg.wwwroot + '/mod/adaquiz/edit.php' + queryString);
         }
 
-        Y.io(M.cfg.wwwroot + '/mod/quiz/questionbank.ajax.php' + queryString, {
+        Y.io(M.cfg.wwwroot + '/mod/adaquiz/questionbank.ajax.php' + queryString, {
             method: 'GET',
             on: {
                 success: this.load_done,
@@ -112,7 +112,7 @@ Y.extend(POPUP, Y.Base, {
             context: this
         });
 
-        Y.log('Load request sent.', 'debug', 'moodle-mod_quiz-quizquestionbank');
+        Y.log('Load request sent.', 'debug', 'moodle-mod_adaquiz-quizquestionbank');
     },
 
     load_done: function(transactionid, response) {
@@ -124,7 +124,7 @@ Y.extend(POPUP, Y.Base, {
             return;
         }
 
-        Y.log('Load completed.', 'debug', 'moodle-mod_quiz-quizquestionbank');
+        Y.log('Load completed.', 'debug', 'moodle-mod_adaquiz-quizquestionbank');
 
         this.dialogue.bodyNode.setHTML(result.contents);
         Y.use('moodle-question-chooser', function() {M.question.init_chooser({});});
@@ -153,7 +153,7 @@ Y.extend(POPUP, Y.Base, {
     },
 
     load_failed: function() {
-        Y.log('Load failed.', 'debug', 'moodle-mod_quiz-quizquestionbank');
+        Y.log('Load failed.', 'debug', 'moodle-mod_adaquiz-quizquestionbank');
     },
 
     link_clicked: function(e) {
@@ -203,8 +203,8 @@ Y.extend(POPUP, Y.Base, {
     }
 });
 
-M.mod_quiz = M.mod_quiz || {};
-M.mod_quiz.quizquestionbank = M.mod_quiz.quizquestionbank || {};
-M.mod_quiz.quizquestionbank.init = function() {
+M.mod_adaquiz = M.mod_adaquiz || {};
+M.mod_adaquiz.quizquestionbank = M.mod_adaquiz.quizquestionbank || {};
+M.mod_adaquiz.quizquestionbank.init = function() {
     return new POPUP();
 };

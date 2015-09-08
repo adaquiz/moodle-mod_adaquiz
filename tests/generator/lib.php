@@ -17,18 +17,18 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Quiz module test data generator class
+ * Adaptive quiz module test data generator class
  *
- * @package mod_quiz
+ * @package mod_adaquiz
  * @copyright 2012 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_quiz_generator extends testing_module_generator {
+class mod_adaquiz_generator extends testing_module_generator {
 
     public function create_instance($record = null, array $options = null) {
         global $CFG;
 
-        require_once($CFG->dirroot.'/mod/quiz/locallib.php');
+        require_once($CFG->dirroot.'/mod/adaquiz/locallib.php');
         $record = (object)(array)$record;
 
         $defaultquizsettings = array(
@@ -37,7 +37,7 @@ class mod_quiz_generator extends testing_module_generator {
             'preferredbehaviour'     => 'deferredfeedback',
             'attempts'               => 0,
             'attemptonlast'          => 0,
-            'grademethod'            => QUIZ_GRADEHIGHEST,
+            'grademethod'            => ADAQUIZ_GRADEHIGHEST,
             'decimalpoints'          => 2,
             'questiondecimalpoints'  => -1,
             'attemptduring'          => 1,
@@ -78,14 +78,14 @@ class mod_quiz_generator extends testing_module_generator {
             'timelimit'              => 0,
             'overduehandling'        => 'autoabandon',
             'graceperiod'            => 86400,
-            'quizpassword'           => '',
+            'adaquizpassword'           => '',
             'subnet'                 => '',
             'browsersecurity'        => '',
             'delay1'                 => 0,
             'delay2'                 => 0,
             'showuserpicture'        => 0,
             'showblocks'             => 0,
-            'navmethod'              => QUIZ_NAVMETHOD_FREE,
+            'navmethod'              => ADAQUIZ_NAVMETHOD_FREE,
         );
 
         foreach ($defaultquizsettings as $name => $value) {

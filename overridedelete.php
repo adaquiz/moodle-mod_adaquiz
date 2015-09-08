@@ -15,29 +15,29 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This page handles deleting quiz overrides
+ * This page handles deleting adaptive quiz overrides
  *
- * @package    mod_quiz
- * @copyright  2010 Matt Petro
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 require_once(dirname(__FILE__) . '/../../config.php');
-require_once($CFG->dirroot.'/mod/quiz/lib.php');
-require_once($CFG->dirroot.'/mod/quiz/locallib.php');
-require_once($CFG->dirroot.'/mod/quiz/override_form.php');
+require_once($CFG->dirroot.'/mod/adaquiz/lib.php');
+require_once($CFG->dirroot.'/mod/adaquiz/locallib.php');
+require_once($CFG->dirroot.'/mod/adaquiz/override_form.php');
 
 $overrideid = required_param('id', PARAM_INT);
 $confirm = optional_param('confirm', false, PARAM_BOOL);
 
-if (! $override = $DB->get_record('quiz_overrides', array('id' => $overrideid))) {
-    print_error('invalidoverrideid', 'quiz');
+if (! $override = $DB->get_record('adaquiz_overrides', array('id' => $overrideid))) {
+    print_error('invalidoverrideid', 'adaquiz');
 }
-if (! $quiz = $DB->get_record('quiz', array('id' => $override->quiz))) {
+if (! $adaquiz = $DB->get_record('adaquiz', array('id' => $override->quiz))) {
     print_error('invalidcoursemodule');
 }
-if (! $cm = get_coursemodule_from_instance("quiz", $quiz->id, $quiz->course)) {
+if (! $cm = get_coursemodule_from_instance("adaquiz", $adaquiz->id, $adaquiz->course)) {
     print_error('invalidcoursemodule');
 }
 $course = $DB->get_record('course', array('id'=>$cm->course), '*', MUST_EXIST);
@@ -47,11 +47,11 @@ $context = context_module::instance($cm->id);
 require_login($course, false, $cm);
 
 // Check the user has the required capabilities to modify an override.
-require_capability('mod/quiz:manageoverrides', $context);
+require_capability('mod/adaquiz:manageoverrides', $context);
 
-$url = new moodle_url('/mod/quiz/overridedelete.php', array('id'=>$override->id));
+$url = new moodle_url('/mod/adaquiz/overridedelete.php', array('id'=>$override->id));
 $confirmurl = new moodle_url($url, array('id'=>$override->id, 'confirm'=>1));
-$cancelurl = new moodle_url('/mod/quiz/overrides.php', array('cmid'=>$cm->id));
+$cancelurl = new moodle_url('/mod/adaquiz/overrides.php', array('cmid'=>$cm->id));
 
 if (!empty($override->userid)) {
     $cancelurl->param('mode', 'user');
@@ -61,15 +61,15 @@ if (!empty($override->userid)) {
 if ($confirm) {
     require_sesskey();
 
-    // Set the course module id before calling quiz_delete_override().
-    $quiz->cmid = $cm->id;
-    quiz_delete_override($quiz, $override->id);
+    // Set the course module id before calling adaquiz_delete_override().
+    $adaquiz->cmid = $cm->id;
+    adaquiz_delete_override($adaquiz, $override->id);
 
     redirect($cancelurl);
 }
 
 // Prepare the page to show the confirmation form.
-$stroverride = get_string('override', 'quiz');
+$stroverride = get_string('override', 'adaquiz');
 $title = get_string('deletecheck', null, $stroverride);
 
 $PAGE->set_url($url);
@@ -79,7 +79,7 @@ $PAGE->set_title($title);
 $PAGE->set_heading($course->fullname);
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($quiz->name, true, array('context' => $context)));
+echo $OUTPUT->heading(format_string($adaquiz->name, true, array('context' => $context)));
 
 if ($override->groupid) {
     $group = $DB->get_record('groups', array('id' => $override->groupid), 'id, name');

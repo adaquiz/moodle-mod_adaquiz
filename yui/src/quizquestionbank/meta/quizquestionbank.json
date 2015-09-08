@@ -1,5 +1,5 @@
 {
-    "moodle-mod_quiz-quizquestionbank": {
+    "moodle-mod_adaquiz-quizquestionbank": {
         "requires": [
             "base",
             "event",

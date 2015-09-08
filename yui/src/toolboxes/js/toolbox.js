@@ -58,12 +58,12 @@
         SHOW : 'a.' + CSS.SHOW,
         SHOWHIDE : 'a.editing_showhide',
         SLOTLI : 'li.slot',
-        SUMMARKS : '.mod_quiz_summarks'
+        SUMMARKS : '.mod_adaquiz_summarks'
     },
     BODY = Y.one(document.body);
 
 // Setup the basic namespace.
-M.mod_quiz = M.mod_quiz || {};
+M.mod_adaquiz = M.mod_adaquiz || {};
 
 /**
  * The toolbox class is a generic class which should never be directly
@@ -103,7 +103,7 @@ Y.extend(TOOLBOX, Y.Base, {
 
         data.sesskey = M.cfg.sesskey;
         data.courseid = this.get('courseid');
-        data.quizid = this.get('quizid');
+        data.adaquizid = this.get('adaquizid');
 
         var uri = M.cfg.wwwroot + this.get('ajaxurl');
 
@@ -126,7 +126,7 @@ Y.extend(TOOLBOX, Y.Base, {
                         Y.one(SELECTOR.SUMMARKS).setHTML(responsetext.newsummarks);
                     }
                     if (responsetext.hasOwnProperty('newnumquestions')) {
-                        Y.one(SELECTOR.NUMQUESTIONS).setHTML(M.util.get_string('numquestionsx', 'quiz', responsetext.newnumquestions));
+                        Y.one(SELECTOR.NUMQUESTIONS).setHTML(M.util.get_string('numquestionsx', 'adaquiz', responsetext.newnumquestions));
                     }
                     if (success_callback) {
                         Y.bind(success_callback, this, responsetext)();
@@ -165,7 +165,7 @@ Y.extend(TOOLBOX, Y.Base, {
     }
 },
 {
-    NAME: 'mod_quiz-toolbox',
+    NAME: 'mod_adaquiz-toolbox',
     ATTRS: {
         /**
          * The ID of the Moodle Course being edited.
@@ -185,7 +185,7 @@ Y.extend(TOOLBOX, Y.Base, {
          * @default 'topics'
          * @type String
          */
-        quizid: {
+        adaquizid: {
             'value': 0
         },
         /**

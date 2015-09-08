@@ -15,39 +15,39 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This page is the entry page into the quiz UI. Displays information about the
- * quiz to students and teachers, and lets students see their previous attempts.
+ * This page is the entry page into the adaptive quiz UI. Displays information about the
+ * adaptive quiz to students and teachers, and lets students see their previous attempts.
  *
- * @package   mod_quiz
- * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->libdir.'/gradelib.php');
-require_once($CFG->dirroot.'/mod/quiz/locallib.php');
+require_once($CFG->dirroot.'/mod/adaquiz/locallib.php');
 require_once($CFG->libdir . '/completionlib.php');
 require_once($CFG->dirroot . '/course/format/lib.php');
 
 $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or ...
-$q = optional_param('q',  0, PARAM_INT);  // Quiz ID.
+$q = optional_param('q',  0, PARAM_INT);  // Adaptive quiz ID.
 
 if ($id) {
-    if (!$cm = get_coursemodule_from_id('quiz', $id)) {
+    if (!$cm = get_coursemodule_from_id('adaquiz', $id)) {
         print_error('invalidcoursemodule');
     }
     if (!$course = $DB->get_record('course', array('id' => $cm->course))) {
         print_error('coursemisconf');
     }
 } else {
-    if (!$quiz = $DB->get_record('quiz', array('id' => $q))) {
-        print_error('invalidquizid', 'quiz');
+    if (!$adaquiz = $DB->get_record('adaquiz', array('id' => $q))) {
+        print_error('invalidquizid', 'adaquiz');
     }
-    if (!$course = $DB->get_record('course', array('id' => $quiz->course))) {
+    if (!$course = $DB->get_record('course', array('id' => $adaquiz->course))) {
         print_error('invalidcourseid');
     }
-    if (!$cm = get_coursemodule_from_instance("quiz", $quiz->id, $course->id)) {
+    if (!$cm = get_coursemodule_from_instance("adaquiz", $adaquiz->id, $course->id)) {
         print_error('invalidcoursemodule');
     }
 }
@@ -55,53 +55,54 @@ if ($id) {
 // Check login and get context.
 require_login($course, false, $cm);
 $context = context_module::instance($cm->id);
-require_capability('mod/quiz:view', $context);
+require_capability('mod/adaquiz:view', $context);
 
 // Cache some other capabilities we use several times.
-$canattempt = has_capability('mod/quiz:attempt', $context);
-$canreviewmine = has_capability('mod/quiz:reviewmyattempts', $context);
-$canpreview = has_capability('mod/quiz:preview', $context);
+$canattempt = has_capability('mod/adaquiz:attempt', $context);
+$canreviewmine = has_capability('mod/adaquiz:reviewmyattempts', $context);
+$canpreview = has_capability('mod/adaquiz:preview', $context);
 
 // Create an object to manage all the other (non-roles) access rules.
 $timenow = time();
-$quizobj = quiz::create($cm->instance, $USER->id);
-$accessmanager = new quiz_access_manager($quizobj, $timenow,
-        has_capability('mod/quiz:ignoretimelimits', $context, null, false));
-$quiz = $quizobj->get_quiz();
+$adaquizobj = adaquiz::create($cm->instance, $USER->id);
+$accessmanager = new adaquiz_access_manager($adaquizobj, $timenow,
+        has_capability('mod/adaquiz:ignoretimelimits', $context, null, false));
+$adaquiz = $adaquizobj->get_adaquiz();
+
 
 // Log this request.
 $params = array(
-    'objectid' => $quiz->id,
+    'objectid' => $adaquiz->id,
     'context' => $context
 );
-$event = \mod_quiz\event\course_module_viewed::create($params);
-$event->add_record_snapshot('quiz', $quiz);
+$event = \mod_adaquiz\event\course_module_viewed::create($params);
+$event->add_record_snapshot('adaquiz', $adaquiz);
 $event->trigger();
 
 $completion = new completion_info($course);
 $completion->set_module_viewed($cm);
 
 // Initialize $PAGE, compute blocks.
-$PAGE->set_url('/mod/quiz/view.php', array('id' => $cm->id));
+$PAGE->set_url('/mod/adaquiz/view.php', array('id' => $cm->id));
 
 // Create view object which collects all the information the renderer will need.
-$viewobj = new mod_quiz_view_object();
+$viewobj = new mod_adaquiz_view_object();
 $viewobj->accessmanager = $accessmanager;
 $viewobj->canreviewmine = $canreviewmine;
 
 // Get this user's attempts.
-$attempts = quiz_get_user_attempts($quiz->id, $USER->id, 'finished', true);
+$attempts = adaquiz_get_user_attempts($adaquiz->id, $USER->id, 'finished', true);
 $lastfinishedattempt = end($attempts);
 $unfinished = false;
-if ($unfinishedattempt = quiz_get_user_attempt_unfinished($quiz->id, $USER->id)) {
+if ($unfinishedattempt = adaquiz_get_user_attempt_unfinished($adaquiz->id, $USER->id)) {
     $attempts[] = $unfinishedattempt;
 
     // If the attempt is now overdue, deal with that - and pass isonline = false.
     // We want the student notified in this case.
-    $quizobj->create_attempt_object($unfinishedattempt)->handle_if_time_expired(time(), false);
+    $adaquizobj->create_attempt_object($unfinishedattempt)->handle_if_time_expired(time(), false);
 
-    $unfinished = $unfinishedattempt->state == quiz_attempt::IN_PROGRESS ||
-            $unfinishedattempt->state == quiz_attempt::OVERDUE;
+    $unfinished = $unfinishedattempt->state == adaquiz_attempt::IN_PROGRESS ||
+            $unfinishedattempt->state == adaquiz_attempt::OVERDUE;
     if (!$unfinished) {
         $lastfinishedattempt = $unfinishedattempt;
     }
@@ -112,16 +113,16 @@ $numattempts = count($attempts);
 $viewobj->attempts = $attempts;
 $viewobj->attemptobjs = array();
 foreach ($attempts as $attempt) {
-    $viewobj->attemptobjs[] = new quiz_attempt($attempt, $quiz, $cm, $course, false);
+    $viewobj->attemptobjs[] = new adaquiz_attempt($attempt, $adaquiz, $cm, $course, false);
 }
 
 // Work out the final grade, checking whether it was overridden in the gradebook.
 if (!$canpreview) {
-    $mygrade = quiz_get_best_grade($quiz, $USER->id);
+    $mygrade = adaquiz_get_best_grade($adaquiz, $USER->id);
 } else if ($lastfinishedattempt) {
-    // Users who can preview the quiz don't get a proper grade, so work out a
+    // Users who can preview the adaptive quiz don't get a proper grade, so work out a
     // plausible value to display instead, so the page looks right.
-    $mygrade = quiz_rescale_grade($lastfinishedattempt->sumgrades, $quiz, false);
+    $mygrade = adaquiz_rescale_grade($lastfinishedattempt->sumgrades, $adaquiz, false);
 } else {
     $mygrade = null;
 }
@@ -129,7 +130,7 @@ if (!$canpreview) {
 $mygradeoverridden = false;
 $gradebookfeedback = '';
 
-$grading_info = grade_get_grades($course->id, 'mod', 'quiz', $quiz->id, $USER->id);
+$grading_info = grade_get_grades($course->id, 'mod', 'adaquiz', $adaquiz->id, $USER->id);
 if (!empty($grading_info->items)) {
     $item = $grading_info->items[0];
     if (isset($item->grades[$USER->id])) {
@@ -145,24 +146,24 @@ if (!empty($grading_info->items)) {
     }
 }
 
-$title = $course->shortname . ': ' . format_string($quiz->name);
+$title = $course->shortname . ': ' . format_string($adaquiz->name);
 $PAGE->set_title($title);
 $PAGE->set_heading($course->fullname);
-$output = $PAGE->get_renderer('mod_quiz');
+$output = $PAGE->get_renderer('mod_adaquiz');
 
 // Print table with existing attempts.
 if ($attempts) {
     // Work out which columns we need, taking account what data is available in each attempt.
-    list($someoptions, $alloptions) = quiz_get_combined_reviewoptions($quiz, $attempts, $context);
+    list($someoptions, $alloptions) = adaquiz_get_combined_reviewoptions($adaquiz, $attempts, $context);
 
-    $viewobj->attemptcolumn  = $quiz->attempts != 1;
+    $viewobj->attemptcolumn  = $adaquiz->attempts != 1;
 
     $viewobj->gradecolumn    = $someoptions->marks >= question_display_options::MARK_AND_MAX &&
-            quiz_has_grades($quiz);
-    $viewobj->markcolumn     = $viewobj->gradecolumn && ($quiz->grade != $quiz->sumgrades);
+            adaquiz_has_grades($adaquiz);
+    $viewobj->markcolumn     = $viewobj->gradecolumn && ($adaquiz->grade != $adaquiz->sumgrades);
     $viewobj->overallstats   = $lastfinishedattempt && $alloptions->marks >= question_display_options::MARK_AND_MAX;
 
-    $viewobj->feedbackcolumn = quiz_has_feedback($quiz) && $alloptions->overallfeedback;
+    $viewobj->feedbackcolumn = adaquiz_has_feedback($adaquiz) && $alloptions->overallfeedback;
 }
 
 $viewobj->timenow = $timenow;
@@ -173,33 +174,33 @@ $viewobj->moreattempts = $unfinished ||
 $viewobj->mygradeoverridden = $mygradeoverridden;
 $viewobj->gradebookfeedback = $gradebookfeedback;
 $viewobj->lastfinishedattempt = $lastfinishedattempt;
-$viewobj->canedit = has_capability('mod/quiz:manage', $context);
-$viewobj->editurl = new moodle_url('/mod/quiz/edit.php', array('cmid' => $cm->id));
+$viewobj->canedit = has_capability('mod/adaquiz:manage', $context);
+$viewobj->editurl = new moodle_url('/mod/adaquiz/edit.php', array('cmid' => $cm->id));
 $viewobj->backtocourseurl = new moodle_url('/course/view.php', array('id' => $course->id));
-$viewobj->startattempturl = $quizobj->start_attempt_url();
-$viewobj->startattemptwarning = $quizobj->confirm_start_attempt_message($unfinished);
+$viewobj->startattempturl = $adaquizobj->start_attempt_url();
+$viewobj->startattemptwarning = $adaquizobj->confirm_start_attempt_message($unfinished);
 $viewobj->popuprequired = $accessmanager->attempt_must_be_in_popup();
 $viewobj->popupoptions = $accessmanager->get_popup_options();
 
-// Display information about this quiz.
+// Display information about this adaptive quiz.
 $viewobj->infomessages = $viewobj->accessmanager->describe_rules();
-if ($quiz->attempts != 1) {
-    $viewobj->infomessages[] = get_string('gradingmethod', 'quiz',
-            quiz_get_grading_option_name($quiz->grademethod));
+if ($adaquiz->attempts != 1) {
+    $viewobj->infomessages[] = get_string('gradingmethod', 'adaquiz',
+            adaquiz_get_grading_option_name($adaquiz->grademethod));
 }
 
 // Determine wheter a start attempt button should be displayed.
-$viewobj->quizhasquestions = $quizobj->has_questions();
+$viewobj->adaquizhasquestions = $adaquizobj->has_questions();
 $viewobj->preventmessages = array();
-if (!$viewobj->quizhasquestions) {
+if (!$viewobj->adaquizhasquestions) {
     $viewobj->buttontext = '';
 
 } else {
     if ($unfinished) {
         if ($canattempt) {
-            $viewobj->buttontext = get_string('continueattemptquiz', 'quiz');
+            $viewobj->buttontext = get_string('continueattemptquiz', 'adaquiz');
         } else if ($canpreview) {
-            $viewobj->buttontext = get_string('continuepreview', 'quiz');
+            $viewobj->buttontext = get_string('continuepreview', 'adaquiz');
         }
 
     } else {
@@ -209,13 +210,13 @@ if (!$viewobj->quizhasquestions) {
             if ($viewobj->preventmessages) {
                 $viewobj->buttontext = '';
             } else if ($viewobj->numattempts == 0) {
-                $viewobj->buttontext = get_string('attemptquiznow', 'quiz');
+                $viewobj->buttontext = get_string('attemptquiznow', 'adaquiz');
             } else {
-                $viewobj->buttontext = get_string('reattemptquiz', 'quiz');
+                $viewobj->buttontext = get_string('reattemptquiz', 'adaquiz');
             }
 
         } else if ($canpreview) {
-            $viewobj->buttontext = get_string('previewquiznow', 'quiz');
+            $viewobj->buttontext = get_string('previewquiznow', 'adaquiz');
         }
     }
 
@@ -237,14 +238,14 @@ $viewobj->showbacktocourse = ($viewobj->buttontext === '' &&
 echo $OUTPUT->header();
 
 if (isguestuser()) {
-    // Guests can't do a quiz, so offer them a choice of logging in or going back.
-    echo $output->view_page_guest($course, $quiz, $cm, $context, $viewobj->infomessages);
+    // Guests can't do an adaptive  quiz, so offer them a choice of logging in or going back.
+    echo $output->view_page_guest($course, $adaquiz, $cm, $context, $viewobj->infomessages);
 } else if (!isguestuser() && !($canattempt || $canpreview
           || $viewobj->canreviewmine)) {
     // If they are not enrolled in this course in a good enough role, tell them to enrol.
-    echo $output->view_page_notenrolled($course, $quiz, $cm, $context, $viewobj->infomessages);
+    echo $output->view_page_notenrolled($course, $adaquiz, $cm, $context, $viewobj->infomessages);
 } else {
-    echo $output->view_page($course, $quiz, $cm, $context, $viewobj);
+    echo $output->view_page($course, $adaquiz, $cm, $context, $viewobj);
 }
 
 echo $OUTPUT->footer();

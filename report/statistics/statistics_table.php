@@ -15,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Quiz statistics report, table for showing statistics of each question in the quiz.
+ * Adaptive quiz uiz statistics report, table for showing statistics of each question in the adaptive quiz.
  *
- * @package   quiz_statistics
- * @copyright 2008 Jamie Pratt
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    adaquiz_statistics
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir.'/tablelib.php');
 
 /**
- * This table has one row for each question in the quiz, with sub-rows when
+ * This table has one row for each question in the adaptive quiz, with sub-rows when
  * random questions and variants appear.
  *
  * There are columns for the various item and position statistics.
@@ -35,31 +35,31 @@ require_once($CFG->libdir.'/tablelib.php');
  * @copyright 2008 Jamie Pratt
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class quiz_statistics_table extends flexible_table {
-    /** @var object the quiz settings. */
-    protected $quiz;
+class adaquiz_statistics_table extends flexible_table {
+    /** @var object the adaptive quiz settings. */
+    protected $adaquiz;
 
-    /** @var integer the quiz course_module id. */
+    /** @var integer the adaptive quiz course_module id. */
     protected $cmid;
 
     /**
      * Constructor.
      */
     public function __construct() {
-        parent::__construct('mod-quiz-report-statistics-report');
+        parent::__construct('mod-adaquiz-report-statistics-report');
     }
 
     /**
      * Set up the columns and headers and other properties of the table and then
      * call flexible_table::setup() method.
      *
-     * @param object $quiz the quiz settings
-     * @param int $cmid the quiz course_module id
+     * @param object $adaquiz the adaptive quiz settings
+     * @param int $cmid the adaptive quiz course_module id
      * @param moodle_url $reporturl the URL to redisplay this report.
      * @param int $s number of attempts included in the statistics.
      */
-    public function statistics_setup($quiz, $cmid, $reporturl, $s) {
-        $this->quiz = $quiz;
+    public function statistics_setup($adaquiz, $cmid, $reporturl, $s) {
+        $this->adaquiz = $adaquiz;
         $this->cmid = $cmid;
 
         // Define the table columns.
@@ -67,7 +67,7 @@ class quiz_statistics_table extends flexible_table {
         $headers = array();
 
         $columns[] = 'number';
-        $headers[] = get_string('questionnumber', 'quiz_statistics');
+        $headers[] = get_string('questionnumber', 'adaquiz_statistics');
 
         if (!$this->is_downloading()) {
             $columns[] = 'icon';
@@ -76,37 +76,37 @@ class quiz_statistics_table extends flexible_table {
             $headers[] = '';
         } else {
             $columns[] = 'qtype';
-            $headers[] = get_string('questiontype', 'quiz_statistics');
+            $headers[] = get_string('questiontype', 'adaquiz_statistics');
         }
 
         $columns[] = 'name';
-        $headers[] = get_string('questionname', 'quiz');
+        $headers[] = get_string('questionname', 'adaquiz');
 
         $columns[] = 's';
-        $headers[] = get_string('attempts', 'quiz_statistics');
+        $headers[] = get_string('attempts', 'adaquiz_statistics');
 
         if ($s > 1) {
             $columns[] = 'facility';
-            $headers[] = get_string('facility', 'quiz_statistics');
+            $headers[] = get_string('facility', 'adaquiz_statistics');
 
             $columns[] = 'sd';
-            $headers[] = get_string('standarddeviationq', 'quiz_statistics');
+            $headers[] = get_string('standarddeviationq', 'adaquiz_statistics');
         }
 
         $columns[] = 'random_guess_score';
-        $headers[] = get_string('random_guess_score', 'quiz_statistics');
+        $headers[] = get_string('random_guess_score', 'adaquiz_statistics');
 
         $columns[] = 'intended_weight';
-        $headers[] = get_string('intended_weight', 'quiz_statistics');
+        $headers[] = get_string('intended_weight', 'adaquiz_statistics');
 
         $columns[] = 'effective_weight';
-        $headers[] = get_string('effective_weight', 'quiz_statistics');
+        $headers[] = get_string('effective_weight', 'adaquiz_statistics');
 
         $columns[] = 'discrimination_index';
-        $headers[] = get_string('discrimination_index', 'quiz_statistics');
+        $headers[] = get_string('discrimination_index', 'adaquiz_statistics');
 
         $columns[] = 'discriminative_efficiency';
-        $headers[] = get_string('discriminative_efficiency', 'quiz_statistics');
+        $headers[] = get_string('discriminative_efficiency', 'adaquiz_statistics');
 
         $this->define_columns($columns);
         $this->define_headers($headers);
@@ -169,7 +169,7 @@ class quiz_statistics_table extends flexible_table {
      * @return string contents of this table cell.
      */
     protected function col_actions($questionstat) {
-        return quiz_question_action_icons($this->quiz, $this->cmid, $questionstat->question, $this->baseurl);
+        return adaquiz_question_action_icons($this->adaquiz, $this->cmid, $questionstat->question, $this->baseurl);
     }
 
     /**
@@ -195,7 +195,7 @@ class quiz_statistics_table extends flexible_table {
             $a = new stdClass();
             $a->name = $name;
             $a->variant = $questionstat->variant;
-            $name = get_string('nameforvariant', 'quiz_statistics', $a);
+            $name = get_string('nameforvariant', 'adaquiz_statistics', $a);
         }
 
         if ($this->is_downloading()) {
@@ -208,20 +208,20 @@ class quiz_statistics_table extends flexible_table {
                 // Variant of a sub-question.
                 $url = new moodle_url($baseurl, array('qid' => $questionstat->questionid, 'variant' => $questionstat->variant));
                 $name = html_writer::link($url, $name, array('title' => get_string('detailedanalysisforvariant',
-                                                                                   'quiz_statistics',
+                                                                                   'adaquiz_statistics',
                                                                                    $questionstat->variant)));
             } else if ($questionstat->slot) {
                 // Variant of a question in a slot.
                 $url = new moodle_url($baseurl, array('slot' => $questionstat->slot, 'variant' => $questionstat->variant));
                 $name = html_writer::link($url, $name, array('title' => get_string('detailedanalysisforvariant',
-                                                                                   'quiz_statistics',
+                                                                                   'adaquiz_statistics',
                                                                                    $questionstat->variant)));
             }
         } else {
             if ($questionstat->subquestion && !$questionstat->get_variants()) {
                 // Sub question without variants.
                 $url = new moodle_url($baseurl, array('qid' => $questionstat->questionid));
-                $name = html_writer::link($url, $name, array('title' => get_string('detailedanalysis', 'quiz_statistics')));
+                $name = html_writer::link($url, $name, array('title' => get_string('detailedanalysis', 'adaquiz_statistics')));
             } else if ($baseurl->param('slot') === null && $questionstat->slot) {
                 // Question in a slot, we are not on a page showing structural analysis of one slot,
                 // we don't want linking on those pages.
@@ -231,12 +231,12 @@ class quiz_statistics_table extends flexible_table {
                     // Question can be broken down into sub-questions or variants. Link will show structural analysis page.
                     $name = html_writer::link($url,
                                               $name,
-                                              array('title' => get_string('slotstructureanalysis', 'quiz_statistics', $number)));
+                                              array('title' => get_string('slotstructureanalysis', 'adaquiz_statistics', $number)));
                 } else {
                     // Question cannot be broken down into sub-questions or variants. Link will show response analysis page.
                     $name = html_writer::link($url,
                                               $name,
-                                              array('title' => get_string('detailedanalysis', 'quiz_statistics')));
+                                              array('title' => get_string('detailedanalysis', 'adaquiz_statistics')));
                 }
             }
         }
@@ -247,7 +247,7 @@ class quiz_statistics_table extends flexible_table {
         }
 
         if (!empty($questionstat->minmedianmaxnotice)) {
-            $name = get_string($questionstat->minmedianmaxnotice, 'quiz_statistics') . '<br />' . $name;
+            $name = get_string($questionstat->minmedianmaxnotice, 'adaquiz_statistics') . '<br />' . $name;
         }
 
         return $name;
@@ -308,13 +308,13 @@ class quiz_statistics_table extends flexible_table {
 
     /**
      * The intended question weight. Maximum mark for the question as a percentage
-     * of maximum mark for the quiz. That is, the indended influence this question
+     * of maximum mark for the adaptive quiz. That is, the indended influence this question
      * on the student's overall mark.
      * @param \core_question\statistics\questions\calculated $questionstat stats for the question.
      * @return string contents of this table cell.
      */
     protected function col_intended_weight($questionstat) {
-        return quiz_report_scale_summarks_as_percentage($questionstat->maxmark, $this->quiz);
+        return adaquiz_report_scale_summarks_as_percentage($questionstat->maxmark, $this->adaquiz);
     }
 
     /**
@@ -331,11 +331,11 @@ class quiz_statistics_table extends flexible_table {
         }
 
         if ($questionstat->negcovar) {
-            $negcovar = get_string('negcovar', 'quiz_statistics');
+            $negcovar = get_string('negcovar', 'adaquiz_statistics');
 
             if (!$this->is_downloading()) {
                 $negcovar = html_writer::tag('div',
-                        $negcovar . $OUTPUT->help_icon('negcovar', 'quiz_statistics'),
+                        $negcovar . $OUTPUT->help_icon('negcovar', 'adaquiz_statistics'),
                         array('class' => 'negcovar'));
             }
 
@@ -348,7 +348,7 @@ class quiz_statistics_table extends flexible_table {
     /**
      * Discrimination index. This is the product moment correlation coefficient
      * between the fraction for this question, and the average fraction for the
-     * other questions in this quiz.
+     * other questions in this adaptive quiz.
      * @param \core_question\statistics\questions\calculated $questionstat stats for the question.
      * @return string contents of this table cell.
      */

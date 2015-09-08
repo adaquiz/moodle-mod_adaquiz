@@ -15,23 +15,23 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Fallback page of /mod/quiz/edit.php add random question dialog,
+ * Fallback page of /mod/adaquiz/edit.php add random question dialog,
  * for users who do not use javascript.
  *
- * @package   mod_quiz
- * @copyright 2008 Olli Savolainen
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 require_once(__DIR__ . '/../../config.php');
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-require_once($CFG->dirroot . '/mod/quiz/addrandomform.php');
+require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/addrandomform.php');
 require_once($CFG->dirroot . '/question/editlib.php');
 require_once($CFG->dirroot . '/question/category_class.php');
 
-list($thispageurl, $contexts, $cmid, $cm, $quiz, $pagevars) =
-        question_edit_setup('editq', '/mod/quiz/addrandom.php', true);
+list($thispageurl, $contexts, $cmid, $cm, $adaquiz, $pagevars) =
+        question_edit_setup('editq', '/mod/adaquiz/addrandom.php', true);
 
 // These params are only passed from page request to request while we stay on
 // this page otherwise they would go in question_edit_setup.
@@ -41,12 +41,12 @@ $category = optional_param('category', 0, PARAM_INT);
 $scrollpos = optional_param('scrollpos', 0, PARAM_INT);
 
 // Get the course object and related bits.
-if (!$course = $DB->get_record('course', array('id' => $quiz->course))) {
+if (!$course = $DB->get_record('course', array('id' => $adaquiz->course))) {
     print_error('invalidcourseid');
 }
-// You need mod/quiz:manage in addition to question capabilities to access this page.
+// You need mod/adaquiz:manage in addition to question capabilities to access this page.
 // You also need the moodle/question:useall capability somewhere.
-require_capability('mod/quiz:manage', $contexts->lowest());
+require_capability('mod/adaquiz:manage', $contexts->lowest());
 if (!$contexts->having_cap('moodle/question:useall')) {
     print_error('nopermissions', '', '', 'use');
 }
@@ -56,7 +56,7 @@ $PAGE->set_url($thispageurl);
 if ($returnurl) {
     $returnurl = new moodle_url($returnurl);
 } else {
-    $returnurl = new moodle_url('/mod/quiz/edit.php', array('cmid' => $cmid));
+    $returnurl = new moodle_url('/mod/adaquiz/edit.php', array('cmid' => $cmid));
 }
 if ($scrollpos) {
     $returnurl->param('scrollpos', $scrollpos);
@@ -74,7 +74,7 @@ $qcobject = new question_category_object(
     null,
     $contexts->having_cap('moodle/question:add'));
 
-$mform = new quiz_add_random_form(new moodle_url('/mod/quiz/addrandom.php'),
+$mform = new adaquiz_add_random_form(new moodle_url('/mod/adaquiz/addrandom.php'),
                 array('contexts' => $contexts, 'cat' => $pagevars['cat']));
 
 if ($mform->is_cancelled()) {
@@ -98,9 +98,9 @@ if ($data = $mform->get_data()) {
                 'It seems a form was submitted without any button being pressed???');
     }
 
-    quiz_add_random_questions($quiz, $addonpage, $categoryid, $data->numbertoadd, $includesubcategories);
-    quiz_delete_previews($quiz);
-    quiz_update_sumgrades($quiz);
+    adaquiz_add_random_questions($adaquiz, $addonpage, $categoryid, $data->numbertoadd, $includesubcategories);
+    adaquiz_delete_previews($adaquiz);
+    adaquiz_update_sumgrades($adaquiz);
     redirect($returnurl);
 }
 
@@ -112,17 +112,17 @@ $mform->set_data(array(
 ));
 
 // Setup $PAGE.
-$streditingquiz = get_string('editinga', 'moodle', get_string('modulename', 'quiz'));
+$streditingquiz = get_string('editinga', 'moodle', get_string('modulename', 'adaquiz'));
 $PAGE->navbar->add($streditingquiz);
 $PAGE->set_title($streditingquiz);
 $PAGE->set_heading($course->fullname);
 echo $OUTPUT->header();
 
-if (!$quizname = $DB->get_field($cm->modname, 'name', array('id' => $cm->instance))) {
+if (!$adaquizname = $DB->get_field($cm->modname, 'name', array('id' => $cm->instance))) {
             print_error('invalidcoursemodule');
 }
 
-echo $OUTPUT->heading(get_string('addrandomquestiontoquiz', 'quiz', $quizname), 2);
+echo $OUTPUT->heading(get_string('addrandomquestiontoquiz', 'adaquiz', $adaquizname), 2);
 $mform->display();
 echo $OUTPUT->footer();
 

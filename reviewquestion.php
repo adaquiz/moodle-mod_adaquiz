@@ -18,8 +18,8 @@
  * This page prints a review of a particular question attempt.
  * This page is expected to only be used in a popup window.
  *
- * @package   mod_quiz
- * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -31,7 +31,7 @@ $attemptid = required_param('attempt', PARAM_INT);
 $slot = required_param('slot', PARAM_INT);
 $seq = optional_param('step', null, PARAM_INT);
 
-$baseurl = new moodle_url('/mod/quiz/reviewquestion.php',
+$baseurl = new moodle_url('/mod/adaquiz/reviewquestion.php',
         array('attempt' => $attemptid, 'slot' => $slot));
 $currenturl = new moodle_url($baseurl);
 if (!is_null($seq)) {
@@ -39,7 +39,7 @@ if (!is_null($seq)) {
 }
 $PAGE->set_url($currenturl);
 
-$attemptobj = quiz_attempt::create($attemptid);
+$attemptobj = adaquiz_attempt::create($attemptid);
 
 // Check login.
 require_login($attemptobj->get_course(), false, $attemptobj->get_cm());
@@ -50,12 +50,12 @@ $options = $attemptobj->get_display_options(true);
 
 $PAGE->set_pagelayout('popup');
 $PAGE->set_heading($attemptobj->get_course()->fullname);
-$output = $PAGE->get_renderer('mod_quiz');
+$output = $PAGE->get_renderer('mod_adaquiz');
 
 // Check permissions.
 if ($attemptobj->is_own_attempt()) {
     if (!$attemptobj->is_finished()) {
-        echo $output->review_question_not_allowed(get_string('cannotreviewopen', 'quiz'));
+        echo $output->review_question_not_allowed(get_string('cannotreviewopen', 'adaquiz'));
         die();
     } else if (!$options->attempt) {
         echo $output->review_question_not_allowed(
@@ -64,30 +64,30 @@ if ($attemptobj->is_own_attempt()) {
     }
 
 } else if (!$attemptobj->is_review_allowed()) {
-    throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'noreviewattempt');
+    throw new moodle_adaquiz_exception($attemptobj->get_adaquizobj(), 'noreviewattempt');
 }
 
 // Prepare summary informat about this question attempt.
 $summarydata = array();
 
 // Quiz name.
-$summarydata['quizname'] = array(
-    'title'   => get_string('modulename', 'quiz'),
-    'content' => format_string($attemptobj->get_quiz_name()),
+$summarydata['adaquizname'] = array(
+    'title'   => get_string('modulename', 'adaquiz'),
+    'content' => format_string($attemptobj->get_adaquiz_name()),
 );
 
 // Question name.
 $summarydata['questionname'] = array(
-    'title'   => get_string('question', 'quiz'),
+    'title'   => get_string('question', 'adaquiz'),
     'content' => $attemptobj->get_question_name($slot),
 );
 
-// Other attempts at the quiz.
-if ($attemptobj->has_capability('mod/quiz:viewreports')) {
+// Other attempts at the adaptive quiz.
+if ($attemptobj->has_capability('mod/adaquiz:viewreports')) {
     $attemptlist = $attemptobj->links_to_other_attempts($baseurl);
     if ($attemptlist) {
         $summarydata['attemptlist'] = array(
-            'title'   => get_string('attempts', 'quiz'),
+            'title'   => get_string('attempts', 'adaquiz'),
             'content' => $attemptlist,
         );
     }
@@ -97,7 +97,7 @@ if ($attemptobj->has_capability('mod/quiz:viewreports')) {
 $timestamp = $attemptobj->get_question_action_time($slot);
 if ($timestamp) {
     $summarydata['timestamp'] = array(
-        'title'   => get_string('completedon', 'quiz'),
+        'title'   => get_string('completedon', 'adaquiz'),
         'content' => userdate($timestamp),
     );
 }

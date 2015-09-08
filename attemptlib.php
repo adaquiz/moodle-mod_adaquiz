@@ -15,55 +15,50 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Back-end code for handling data about quizzes and the current user's attempt.
+ * Back-end code for handling data about adaptive quizzes and the current user's attempt.
  *
- * There are classes for loading all the information about a quiz and attempts,
+ * There are classes for loading all the information about a adaptive quiz and attempts,
  * and for displaying the navigation panel.
  *
- * @package   mod_quiz
- * @copyright 2008 onwards Tim Hunt
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 
 
 defined('MOODLE_INTERNAL') || die();
 
 
 /**
- * Class for quiz exceptions. Just saves a couple of arguments on the
+ * Class for adaptive quiz exceptions. Just saves a couple of arguments on the
  * constructor for a moodle_exception.
- *
- * @copyright 2008 Tim Hunt
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @since     Moodle 2.0
+ * 
  */
-class moodle_quiz_exception extends moodle_exception {
-    public function __construct($quizobj, $errorcode, $a = null, $link = '', $debuginfo = null) {
+class moodle_adaquiz_exception extends moodle_exception {
+    public function __construct($adaquizobj, $errorcode, $a = null, $link = '', $debuginfo = null) {
         if (!$link) {
-            $link = $quizobj->view_url();
+            $link = $adaquizobj->view_url();
         }
-        parent::__construct($errorcode, 'quiz', $link, $a, $debuginfo);
+        parent::__construct($errorcode, 'adaquiz', $link, $a, $debuginfo);
     }
 }
 
 
 /**
- * A class encapsulating a quiz and the questions it contains, and making the
+ * A class encapsulating an adaptive quiz and the questions it contains, and making the
  * information available to scripts like view.php.
  *
  * Initially, it only loads a minimal amout of information about each question - loading
  * extra information only when necessary or when asked. The class tracks which questions
  * are loaded.
  *
- * @copyright  2008 Tim Hunt
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @since      Moodle 2.0
  */
-class quiz {
+class adaquiz {
     // Fields initialised in the constructor.
     protected $course;
     protected $cm;
-    protected $quiz;
+    protected $adaquiz;
     protected $context;
 
     // Fields set later if that data is needed.
@@ -75,15 +70,15 @@ class quiz {
     /**
      * Constructor, assuming we already have the necessary data loaded.
      *
-     * @param object $quiz the row from the quiz table.
-     * @param object $cm the course_module object for this quiz.
+     * @param object $adaquiz the row from the adaptive quiz table.
+     * @param object $cm the course_module object for this adaptive quiz.
      * @param object $course the row from the course table for the course we belong to.
      * @param bool $getcontext intended for testing - stops the constructor getting the context.
      */
-    public function __construct($quiz, $cm, $course, $getcontext = true) {
-        $this->quiz = $quiz;
+    public function __construct($adaquiz, $cm, $course, $getcontext = true) {
+        $this->adaquiz = $adaquiz;
         $this->cm = $cm;
-        $this->quiz->cmid = $this->cm->id;
+        $this->adaquiz->cmid = $this->cm->id;
         $this->course = $course;
         if ($getcontext && !empty($cm->id)) {
             $this->context = context_module::instance($cm->id);
@@ -91,50 +86,50 @@ class quiz {
     }
 
     /**
-     * Static function to create a new quiz object for a specific user.
+     * Static function to create a new adaptive quiz object for a specific user.
      *
-     * @param int $quizid the the quiz id.
+     * @param int $adaquizid the adaptive quiz id.
      * @param int $userid the the userid.
-     * @return quiz the new quiz object
+     * @return adaquiz the new adaptive quiz object
      */
-    public static function create($quizid, $userid = null) {
+    public static function create($adaquizid, $userid = null) {
         global $DB;
 
-        $quiz = quiz_access_manager::load_quiz_and_settings($quizid);
-        $course = $DB->get_record('course', array('id' => $quiz->course), '*', MUST_EXIST);
-        $cm = get_coursemodule_from_instance('quiz', $quiz->id, $course->id, false, MUST_EXIST);
+        $adaquiz = adaquiz_access_manager::load_adaquiz_and_settings($adaquizid);
+        $course = $DB->get_record('course', array('id' => $adaquiz->course), '*', MUST_EXIST);
+        $cm = get_coursemodule_from_instance('adaquiz', $adaquiz->id, $course->id, false, MUST_EXIST);
 
-        // Update quiz with override information.
+        // Update adaptive quiz with override information.
         if ($userid) {
-            $quiz = quiz_update_effective_access($quiz, $userid);
+            $adaquiz = adaquiz_update_effective_access($adaquiz, $userid);
         }
 
-        return new quiz($quiz, $cm, $course);
+        return new adaquiz($adaquiz, $cm, $course);
     }
 
     /**
-     * Create a {@link quiz_attempt} for an attempt at this quiz.
-     * @param object $attemptdata row from the quiz_attempts table.
-     * @return quiz_attempt the new quiz_attempt object.
+     * Create a {@link adaquiz_attempt} for an attempt at this adaptive quiz.
+     * @param object $attemptdata row from the adaptive quiz_attempts table.
+     * @return adaquiz_attempt the new adaptive quiz_attempt object.
      */
     public function create_attempt_object($attemptdata) {
-        return new quiz_attempt($attemptdata, $this->quiz, $this->cm, $this->course);
+        return new adaquiz_attempt($attemptdata, $this->adaquiz, $this->cm, $this->course);
     }
 
     // Functions for loading more data =========================================
 
     /**
-     * Load just basic information about all the questions in this quiz.
+     * Load just basic information about all the questions in this adaptive quiz.
      */
     public function preload_questions() {
         $this->questions = question_preload_questions(null,
                 'slot.maxmark, slot.id AS slotid, slot.slot, slot.page',
-                '{quiz_slots} slot ON slot.quizid = :quizid AND q.id = slot.questionid',
-                array('quizid' => $this->quiz->id), 'slot.slot');
+                '{adaquiz_slots} slot ON slot.adaquizid = :adaquizid AND q.id = slot.questionid',
+                array('adaquizid' => $this->adaquiz->id), 'slot.slot');
     }
 
     /**
-     * Fully load some or all of the questions for this quiz. You must call
+     * Fully load some or all of the questions for this adaptive quiz. You must call
      * {@link preload_questions()} first.
      *
      * @param array $questionids question ids of the questions to load. null for all.
@@ -156,11 +151,11 @@ class quiz {
     }
 
     /**
-     * Get an instance of the {@link \mod_quiz\structure} class for this quiz.
-     * @return \mod_quiz\structure describes the questions in the quiz.
+     * Get an instance of the {@link \mod_adaquiz\structure} class for this adaptive quiz.
+     * @return \mod_adaquiz\structure describes the questions in the adaptive quiz.
      */
     public function get_structure() {
-        return \mod_quiz\structure::create_for_quiz($this);
+        return \mod_adaquiz\structure::create_for_adaquiz($this);
     }
 
     // Simple getters ==========================================================
@@ -174,29 +169,29 @@ class quiz {
         return $this->course;
     }
 
-    /** @return int the quiz id. */
-    public function get_quizid() {
-        return $this->quiz->id;
+    /** @return int the adaptive quiz id. */
+    public function get_adaquizid() {
+        return $this->adaquiz->id;
     }
 
-    /** @return object the row of the quiz table. */
-    public function get_quiz() {
-        return $this->quiz;
+    /** @return object the row of the adaptive quiz table. */
+    public function get_adaquiz() {
+        return $this->adaquiz;
     }
 
-    /** @return string the name of this quiz. */
-    public function get_quiz_name() {
-        return $this->quiz->name;
+    /** @return string the name of this adaptive quiz. */
+    public function get_adaquiz_name() {
+        return $this->adaquiz->name;
     }
 
-    /** @return int the quiz navigation method. */
+    /** @return int the adaptive quiz navigation method. */
     public function get_navigation_method() {
-        return $this->quiz->navmethod;
+        return $this->adaquiz->navmethod;
     }
 
-    /** @return int the number of attempts allowed at this quiz (0 = infinite). */
+    /** @return int the number of attempts allowed at this adaptive quiz (0 = infinite). */
     public function get_num_attempts_allowed() {
-        return $this->quiz->attempts;
+        return $this->adaquiz->attempts;
     }
 
     /** @return int the course_module id. */
@@ -209,24 +204,24 @@ class quiz {
         return $this->cm;
     }
 
-    /** @return object the module context for this quiz. */
+    /** @return object the module context for this adaptive quiz. */
     public function get_context() {
         return $this->context;
     }
 
     /**
-     * @return bool wether the current user is someone who previews the quiz,
+     * @return bool wether the current user is someone who previews the adaptive quiz,
      * rather than attempting it.
      */
     public function is_preview_user() {
         if (is_null($this->ispreviewuser)) {
-            $this->ispreviewuser = has_capability('mod/quiz:preview', $this->context);
+            $this->ispreviewuser = has_capability('mod/adaquiz:preview', $this->context);
         }
         return $this->ispreviewuser;
     }
 
     /**
-     * @return whether any questions have been added to this quiz.
+     * @return whether any questions have been added to this adaptive quiz.
      */
     public function has_questions() {
         if ($this->questions === null) {
@@ -253,7 +248,7 @@ class quiz {
         $questions = array();
         foreach ($questionids as $id) {
             if (!array_key_exists($id, $this->questions)) {
-                throw new moodle_exception('cannotstartmissingquestion', 'quiz', $this->view_url());
+                throw new moodle_exception('cannotstartmissingquestion', 'adaquiz', $this->view_url());
             }
             $questions[$id] = $this->questions[$id];
             $this->ensure_question_loaded($id);
@@ -263,26 +258,26 @@ class quiz {
 
     /**
      * @param int $timenow the current time as a unix timestamp.
-     * @return quiz_access_manager and instance of the quiz_access_manager class
-     *      for this quiz at this time.
+     * @return adaquiz_access_manager and instance of the adaquiz_access_manager class
+     *      for this adaptive quiz at this time.
      */
     public function get_access_manager($timenow) {
         if (is_null($this->accessmanager)) {
-            $this->accessmanager = new quiz_access_manager($this, $timenow,
-                    has_capability('mod/quiz:ignoretimelimits', $this->context, null, false));
+            $this->accessmanager = new adaquiz_access_manager($this, $timenow,
+                    has_capability('mod/adaquiz:ignoretimelimits', $this->context, null, false));
         }
         return $this->accessmanager;
     }
 
     /**
-     * Wrapper round the has_capability funciton that automatically passes in the quiz context.
+     * Wrapper round the has_capability funciton that automatically passes in the adaptive quiz context.
      */
     public function has_capability($capability, $userid = null, $doanything = true) {
         return has_capability($capability, $this->context, $userid, $doanything);
     }
 
     /**
-     * Wrapper round the require_capability funciton that automatically passes in the quiz context.
+     * Wrapper round the require_capability funciton that automatically passes in the adaptive quiz context.
      */
     public function require_capability($capability, $userid = null, $doanything = true) {
         return require_capability($capability, $this->context, $userid, $doanything);
@@ -290,19 +285,19 @@ class quiz {
 
     // URLs related to this attempt ============================================
     /**
-     * @return string the URL of this quiz's view page.
+     * @return string the URL of this adaptive quiz's view page.
      */
     public function view_url() {
         global $CFG;
-        return $CFG->wwwroot . '/mod/quiz/view.php?id=' . $this->cm->id;
+        return $CFG->wwwroot . '/mod/adaquiz/view.php?id=' . $this->cm->id;
     }
 
     /**
-     * @return string the URL of this quiz's edit page.
+     * @return string the URL of this adaptive quiz's edit page.
      */
     public function edit_url() {
         global $CFG;
-        return $CFG->wwwroot . '/mod/quiz/edit.php?cmid=' . $this->cm->id;
+        return $CFG->wwwroot . '/mod/adaquiz/edit.php?cmid=' . $this->cm->id;
     }
 
     /**
@@ -312,7 +307,7 @@ class quiz {
      */
     public function attempt_url($attemptid, $page = 0) {
         global $CFG;
-        $url = $CFG->wwwroot . '/mod/quiz/attempt.php?attempt=' . $attemptid;
+        $url = $CFG->wwwroot . '/mod/adaquiz/attempt.php?attempt=' . $attemptid;
         if ($page) {
             $url .= '&page=' . $page;
         }
@@ -320,14 +315,14 @@ class quiz {
     }
 
     /**
-     * @return string the URL of this quiz's edit page. Needs to be POSTed to with a cmid parameter.
+     * @return string the URL of this adaptive quiz's edit page. Needs to be POSTed to with a cmid parameter.
      */
     public function start_attempt_url($page = 0) {
         $params = array('cmid' => $this->cm->id, 'sesskey' => sesskey());
         if ($page) {
             $params['page'] = $page;
         }
-        return new moodle_url('/mod/quiz/startattempt.php', $params);
+        return new moodle_url('/mod/adaquiz/startattempt.php', $params);
     }
 
     /**
@@ -335,7 +330,7 @@ class quiz {
      * @return string the URL of the review of that attempt.
      */
     public function review_url($attemptid) {
-        return new moodle_url('/mod/quiz/review.php', array('attempt' => $attemptid));
+        return new moodle_url('/mod/adaquiz/review.php', array('attempt' => $attemptid));
     }
 
     /**
@@ -343,14 +338,14 @@ class quiz {
      * @return string the URL of the review of that attempt.
      */
     public function summary_url($attemptid) {
-        return new moodle_url('/mod/quiz/summary.php', array('attempt' => $attemptid));
+        return new moodle_url('/mod/adaquiz/summary.php', array('attempt' => $attemptid));
     }
 
     // Bits of content =========================================================
 
     /**
      * @param bool $unfinished whether there is currently an unfinished attempt active.
-     * @return string if the quiz policies merit it, return a warning string to
+     * @return string if the adaptive quiz policies merit it, return a warning string to
      *      be displayed in a javascript alert on the start attempt button.
      */
     public function confirm_start_attempt_message($unfinished) {
@@ -358,12 +353,12 @@ class quiz {
             return '';
         }
 
-        if ($this->quiz->timelimit && $this->quiz->attempts) {
-            return get_string('confirmstartattempttimelimit', 'quiz', $this->quiz->attempts);
-        } else if ($this->quiz->timelimit) {
-            return get_string('confirmstarttimelimit', 'quiz');
-        } else if ($this->quiz->attempts) {
-            return get_string('confirmstartattemptlimit', 'quiz', $this->quiz->attempts);
+        if ($this->adaquiz->timelimit && $this->adaquiz->attempts) {
+            return get_string('confirmstartattempttimelimit', 'adaquiz', $this->adaquiz->attempts);
+        } else if ($this->adaquiz->timelimit) {
+            return get_string('confirmstarttimelimit', 'adaquiz');
+        } else if ($this->adaquiz->attempts) {
+            return get_string('confirmstartattemptlimit', 'adaquiz', $this->adaquiz->attempts);
         }
 
         return '';
@@ -373,7 +368,7 @@ class quiz {
      * If $reviewoptions->attempt is false, meaning that students can't review this
      * attempt at the moment, return an appropriate string explaining why.
      *
-     * @param int $when One of the mod_quiz_display_options::DURING,
+     * @param int $when One of the mod_adaquiz_display_options::DURING,
      *      IMMEDIATELY_AFTER, LATER_WHILE_OPEN or AFTER_CLOSE constants.
      * @param bool $short if true, return a shorter string.
      * @return string an appropraite message.
@@ -388,20 +383,20 @@ class quiz {
             $dateformat = '';
         }
 
-        if ($when == mod_quiz_display_options::DURING ||
-                $when == mod_quiz_display_options::IMMEDIATELY_AFTER) {
+        if ($when == mod_adaquiz_display_options::DURING ||
+                $when == mod_adaquiz_display_options::IMMEDIATELY_AFTER) {
             return '';
-        } else if ($when == mod_quiz_display_options::LATER_WHILE_OPEN && $this->quiz->timeclose &&
-                $this->quiz->reviewattempt & mod_quiz_display_options::AFTER_CLOSE) {
-            return get_string('noreviewuntil' . $langstrsuffix, 'quiz',
-                    userdate($this->quiz->timeclose, $dateformat));
+        } else if ($when == mod_adaquiz_display_options::LATER_WHILE_OPEN && $this->adaquiz->timeclose &&
+                $this->adaquiz->reviewattempt & mod_adaquiz_display_options::AFTER_CLOSE) {
+            return get_string('noreviewuntil' . $langstrsuffix, 'adaquiz',
+                    userdate($this->adaquiz->timeclose, $dateformat));
         } else {
-            return get_string('noreview' . $langstrsuffix, 'quiz');
+            return get_string('noreview' . $langstrsuffix, 'adaquiz');
         }
     }
 
     /**
-     * @param string $title the name of this particular quiz page.
+     * @param string $title the name of this particular adaptive quiz page.
      * @return array the data that needs to be sent to print_header_simple as the $navigation
      * parameter.
      */
@@ -418,21 +413,21 @@ class quiz {
      */
     protected function ensure_question_loaded($id) {
         if (isset($this->questions[$id]->_partiallyloaded)) {
-            throw new moodle_quiz_exception($this, 'questionnotloaded', $id);
+            throw new moodle_adaquiz_exception($this, 'questionnotloaded', $id);
         }
     }
 }
 
 
 /**
- * This class extends the quiz class to hold data about the state of a particular attempt,
- * in addition to the data about the quiz.
+ * This class extends the adaptive quiz class to hold data about the state of a particular attempt,
+ * in addition to the data about the adaptive quiz.
  *
  * @copyright  2008 Tim Hunt
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      Moodle 2.0
  */
-class quiz_attempt {
+class adaquiz_attempt {
 
     /** @var string to identify the in progress state. */
     const IN_PROGRESS = 'inprogress';
@@ -443,14 +438,14 @@ class quiz_attempt {
     /** @var string to identify the abandoned state. */
     const ABANDONED   = 'abandoned';
 
-    /** @var int maximum number of slots in the quiz for the review page to default to show all. */
+    /** @var int maximum number of slots in the adaptive quiz for the review page to default to show all. */
     const MAX_SLOTS_FOR_DEFAULT_REVIEW_SHOW_ALL = 50;
 
     // Basic data.
-    protected $quizobj;
+    protected $adaquizobj;
     protected $attempt;
 
-    /** @var question_usage_by_activity the question usage for this quiz attempt. */
+    /** @var question_usage_by_activity the question usage for this adaptive quiz attempt. */
     protected $quba;
 
     /** @var array page no => array of slot numbers on the page in order. */
@@ -462,23 +457,23 @@ class quiz_attempt {
     /** @var array slot => page number for this slot. */
     protected $questionpages;
 
-    /** @var mod_quiz_display_options cache for the appropriate review options. */
+    /** @var mod_adaquiz_display_options cache for the appropriate review options. */
     protected $reviewoptions = null;
 
     // Constructor =============================================================
     /**
      * Constructor assuming we already have the necessary data loaded.
      *
-     * @param object $attempt the row of the quiz_attempts table.
-     * @param object $quiz the quiz object for this attempt and user.
-     * @param object $cm the course_module object for this quiz.
+     * @param object $attempt the row of the adaptive quiz_attempts table.
+     * @param object $adaquiz the adaptive quiz object for this attempt and user.
+     * @param object $cm the course_module object for this adaptive quiz.
      * @param object $course the row from the course table for the course we belong to.
      * @param bool $loadquestions (optional) if true, the default, load all the details
      *      of the state of each question. Else just set up the basic details of the attempt.
      */
-    public function __construct($attempt, $quiz, $cm, $course, $loadquestions = true) {
+    public function __construct($attempt, $adaquiz, $cm, $course, $loadquestions = true) {
         $this->attempt = $attempt;
-        $this->quizobj = new quiz($quiz, $cm, $course);
+        $this->adaquizobj = new adaquiz($adaquiz, $cm, $course);
 
         if (!$loadquestions) {
             return;
@@ -491,37 +486,37 @@ class quiz_attempt {
 
     /**
      * Used by {create()} and {create_from_usage_id()}.
-     * @param array $conditions passed to $DB->get_record('quiz_attempts', $conditions).
+     * @param array $conditions passed to $DB->get_record('adaquiz_attempts', $conditions).
      */
     protected static function create_helper($conditions) {
         global $DB;
 
-        $attempt = $DB->get_record('quiz_attempts', $conditions, '*', MUST_EXIST);
-        $quiz = quiz_access_manager::load_quiz_and_settings($attempt->quiz);
-        $course = $DB->get_record('course', array('id' => $quiz->course), '*', MUST_EXIST);
-        $cm = get_coursemodule_from_instance('quiz', $quiz->id, $course->id, false, MUST_EXIST);
+        $attempt = $DB->get_record('adaquiz_attempts', $conditions, '*', MUST_EXIST);
+        $adaquiz = adaquiz_access_manager::load_adaquiz_and_settings($attempt->quiz);
+        $course = $DB->get_record('course', array('id' => $adaquiz->course), '*', MUST_EXIST);
+        $cm = get_coursemodule_from_instance('adaquiz', $adaquiz->id, $course->id, false, MUST_EXIST);
 
-        // Update quiz with override information.
-        $quiz = quiz_update_effective_access($quiz, $attempt->userid);
+        // Update adaptive quiz with override information.
+        $adaquiz = adaquiz_update_effective_access($adaquiz, $attempt->userid);
 
-        return new quiz_attempt($attempt, $quiz, $cm, $course);
+        return new adaquiz_attempt($attempt, $adaquiz, $cm, $course);
     }
 
     /**
-     * Static function to create a new quiz_attempt object given an attemptid.
+     * Static function to create a new adaptive quiz_attempt object given an attemptid.
      *
      * @param int $attemptid the attempt id.
-     * @return quiz_attempt the new quiz_attempt object
+     * @return adaquiz_attempt the new adaptive quiz_attempt object
      */
     public static function create($attemptid) {
         return self::create_helper(array('id' => $attemptid));
     }
 
     /**
-     * Static function to create a new quiz_attempt object given a usage id.
+     * Static function to create a new adaptive quiz_attempt object given a usage id.
      *
      * @param int $usageid the attempt usage id.
-     * @return quiz_attempt the new quiz_attempt object
+     * @return adaquiz_attempt the new adaquiz_attempt object
      */
     public static function create_from_usage_id($usageid) {
         return self::create_helper(array('uniqueid' => $usageid));
@@ -532,7 +527,7 @@ class quiz_attempt {
      * @return string the human-readable state name.
      */
     public static function state_name($state) {
-        return quiz_attempt_state_name($state);
+        return adaquiz_attempt_state_name($state);
     }
 
     /**
@@ -571,7 +566,7 @@ class quiz_attempt {
                     $this->questionnumbers[$slot] = $number;
                     $number += $length;
                 } else {
-                    $this->questionnumbers[$slot] = get_string('infoshort', 'quiz');
+                    $this->questionnumbers[$slot] = get_string('infoshort', 'adaquiz');
                 }
                 $this->questionpages[$slot] = $page;
             }
@@ -589,74 +584,74 @@ class quiz_attempt {
     }
 
     // Simple getters ==========================================================
-    public function get_quiz() {
-        return $this->quizobj->get_quiz();
+    public function get_adaquiz() {
+        return $this->adaquizobj->get_adaquiz();
     }
 
-    public function get_quizobj() {
-        return $this->quizobj;
+    public function get_adaquizobj() {
+        return $this->adaquizobj;
     }
 
     /** @return int the course id. */
     public function get_courseid() {
-        return $this->quizobj->get_courseid();
+        return $this->adaquizobj->get_courseid();
     }
 
     /** @return int the course id. */
     public function get_course() {
-        return $this->quizobj->get_course();
+        return $this->adaquizobj->get_course();
     }
 
-    /** @return int the quiz id. */
-    public function get_quizid() {
-        return $this->quizobj->get_quizid();
+    /** @return int the adaptive quiz id. */
+    public function get_adaquizid() {
+        return $this->adaquizobj->get_adaquizid();
     }
 
-    /** @return string the name of this quiz. */
-    public function get_quiz_name() {
-        return $this->quizobj->get_quiz_name();
+    /** @return string the name of this adaptive quiz. */
+    public function get_adaquiz_name() {
+        return $this->adaquizobj->get_adaquiz_name();
     }
 
-    /** @return int the quiz navigation method. */
+    /** @return int the adaptive quiz navigation method. */
     public function get_navigation_method() {
-        return $this->quizobj->get_navigation_method();
+        return $this->adaquizobj->get_navigation_method();
     }
 
     /** @return object the course_module object. */
     public function get_cm() {
-        return $this->quizobj->get_cm();
+        return $this->adaquizobj->get_cm();
     }
 
     /** @return object the course_module object. */
     public function get_cmid() {
-        return $this->quizobj->get_cmid();
+        return $this->adaquizobj->get_cmid();
     }
 
     /**
-     * @return bool wether the current user is someone who previews the quiz,
+     * @return bool wether the current user is someone who previews the adaptive quiz,
      * rather than attempting it.
      */
     public function is_preview_user() {
-        return $this->quizobj->is_preview_user();
+        return $this->adaquizobj->is_preview_user();
     }
 
-    /** @return int the number of attempts allowed at this quiz (0 = infinite). */
+    /** @return int the number of attempts allowed at this adaptive quiz (0 = infinite). */
     public function get_num_attempts_allowed() {
-        return $this->quizobj->get_num_attempts_allowed();
+        return $this->adaquizobj->get_num_attempts_allowed();
     }
 
-    /** @return int number fo pages in this quiz. */
+    /** @return int number fo pages in this adaptive quiz. */
     public function get_num_pages() {
         return count($this->pagelayout);
     }
 
     /**
      * @param int $timenow the current time as a unix timestamp.
-     * @return quiz_access_manager and instance of the quiz_access_manager class
-     *      for this quiz at this time.
+     * @return adaquiz_access_manager and instance of the adaquiz_access_manager class
+     *      for this adaptive quiz at this time.
      */
     public function get_access_manager($timenow) {
-        return $this->quizobj->get_access_manager($timenow);
+        return $this->adaquizobj->get_access_manager($timenow);
     }
 
     /** @return int the attempt id. */
@@ -669,7 +664,7 @@ class quiz_attempt {
         return $this->attempt->uniqueid;
     }
 
-    /** @return object the row from the quiz_attempts table. */
+    /** @return object the row from the adaquiz_attempts table. */
     public function get_attempt() {
         return $this->attempt;
     }
@@ -679,7 +674,7 @@ class quiz_attempt {
         return $this->attempt->attempt;
     }
 
-    /** @return string one of the quiz_attempt::IN_PROGRESS, FINISHED, OVERDUE or ABANDONED constants. */
+    /** @return string one of the adaquiz_attempt::IN_PROGRESS, FINISHED, OVERDUE or ABANDONED constants. */
     public function get_state() {
         return $this->attempt->state;
     }
@@ -714,7 +709,7 @@ class quiz_attempt {
 
     /**
      * Is this a student dealing with their own attempt/teacher previewing,
-     * or someone with 'mod/quiz:viewreports' reviewing someone elses attempt.
+     * or someone with 'mod/adaquiz:viewreports' reviewing someone elses attempt.
      *
      * @return bool whether this situation should be treated as someone looking at their own
      * attempt. The distinction normally only matters when an attempt is being reviewed.
@@ -740,7 +735,7 @@ class quiz_attempt {
      * @return bool whether the review should be allowed.
      */
     public function is_review_allowed() {
-        if (!$this->has_capability('mod/quiz:viewreports')) {
+        if (!$this->has_capability('mod/adaquiz:viewreports')) {
             return false;
         }
 
@@ -759,7 +754,7 @@ class quiz_attempt {
     }
 
     /**
-     * Has the student, in this attempt, engaged with the quiz in a non-trivial way?
+     * Has the student, in this attempt, engaged with the adaptive quiz in a non-trivial way?
      * That is, is there any question worth a non-zero number of marks, where
      * the student has made some response that we have saved?
      * @return bool true if we have saved a response for at least one graded question.
@@ -781,8 +776,8 @@ class quiz_attempt {
      *
      * Some behaviours may be able to provide interesting summary information
      * about the attempt as a whole, and this method provides access to that data.
-     * To see how this works, try setting a quiz to one of the CBM behaviours,
-     * and then look at the extra information displayed at the top of the quiz
+     * To see how this works, try setting a adaptive quiz to one of the CBM behaviours,
+     * and then look at the extra information displayed at the top of the adaptive quiz
      * review page once you have sumitted an attempt.
      *
      * In the return value, the array keys are identifiers of the form
@@ -790,7 +785,7 @@ class quiz_attempt {
      * The values are arrays with two items, title and content. Each of these
      * will be either a string, or a renderable.
      *
-     * @param question_display_options $options the display options for this quiz attempt at this time.
+     * @param question_display_options $options the display options for this adaptive quiz attempt at this time.
      * @return array as described above.
      */
     public function get_additional_summary_data(question_display_options $options) {
@@ -802,22 +797,22 @@ class quiz_attempt {
      * @param $grade a particular grade.
      */
     public function get_overall_feedback($grade) {
-        return quiz_feedback_for_grade($grade, $this->get_quiz(),
-                $this->quizobj->get_context());
+        return adaquiz_feedback_for_grade($grade, $this->get_adaquiz(),
+                $this->adaquizobj->get_context());
     }
 
     /**
-     * Wrapper round the has_capability funciton that automatically passes in the quiz context.
+     * Wrapper round the has_capability funciton that automatically passes in the adaptive quiz context.
      */
     public function has_capability($capability, $userid = null, $doanything = true) {
-        return $this->quizobj->has_capability($capability, $userid, $doanything);
+        return $this->adaquizobj->has_capability($capability, $userid, $doanything);
     }
 
     /**
-     * Wrapper round the require_capability funciton that automatically passes in the quiz context.
+     * Wrapper round the require_capability funciton that automatically passes in the adaptive quiz context.
      */
     public function require_capability($capability, $userid = null, $doanything = true) {
-        return $this->quizobj->require_capability($capability, $userid, $doanything);
+        return $this->adaquizobj->require_capability($capability, $userid, $doanything);
     }
 
     /**
@@ -825,23 +820,23 @@ class quiz_attempt {
      * If not, prints an error.
      */
     public function check_review_capability() {
-        if ($this->get_attempt_state() == mod_quiz_display_options::IMMEDIATELY_AFTER) {
-            $capability = 'mod/quiz:attempt';
+        if ($this->get_attempt_state() == mod_adaquiz_display_options::IMMEDIATELY_AFTER) {
+            $capability = 'mod/adaquiz:attempt';
         } else {
-            $capability = 'mod/quiz:reviewmyattempts';
+            $capability = 'mod/adaquiz:reviewmyattempts';
         }
 
         // These next tests are in a slighly funny order. The point is that the
-        // common and most performance-critical case is students attempting a quiz
+        // common and most performance-critical case is students attempting an adaptive quiz
         // so we want to check that permisison first.
 
         if ($this->has_capability($capability)) {
-            // User has the permission that lets you do the quiz as a student. Fine.
+            // User has the permission that lets you do the adaptive quiz as a student. Fine.
             return;
         }
 
-        if ($this->has_capability('mod/quiz:viewreports') ||
-                $this->has_capability('mod/quiz:preview')) {
+        if ($this->has_capability('mod/adaquiz:viewreports') ||
+                $this->has_capability('mod/adaquiz:preview')) {
             // User has the permission that lets teachers review. Fine.
             return;
         }
@@ -857,10 +852,10 @@ class quiz_attempt {
      */
     public function can_navigate_to($slot) {
         switch ($this->get_navigation_method()) {
-            case QUIZ_NAVMETHOD_FREE:
+            case ADAQUIZ_NAVMETHOD_FREE:
                 return true;
                 break;
-            case QUIZ_NAVMETHOD_SEQ:
+            case ADAQUIZ_NAVMETHOD_SEQ:
                 return false;
                 break;
         }
@@ -868,15 +863,15 @@ class quiz_attempt {
     }
 
     /**
-     * @return int one of the mod_quiz_display_options::DURING,
+     * @return int one of the mod_adaquiz_display_options::DURING,
      *      IMMEDIATELY_AFTER, LATER_WHILE_OPEN or AFTER_CLOSE constants.
      */
     public function get_attempt_state() {
-        return quiz_attempt_state($this->get_quiz(), $this->attempt);
+        return adaquiz_attempt_state($this->get_adaquiz(), $this->attempt);
     }
 
     /**
-     * Wrapper that the correct mod_quiz_display_options for this quiz at the
+     * Wrapper that the correct mod_adaquiz_display_options for this adaptive  quiz at the
      * moment.
      *
      * @return question_display_options the render options for this user on this attempt.
@@ -884,21 +879,21 @@ class quiz_attempt {
     public function get_display_options($reviewing) {
         if ($reviewing) {
             if (is_null($this->reviewoptions)) {
-                $this->reviewoptions = quiz_get_review_options($this->get_quiz(),
-                        $this->attempt, $this->quizobj->get_context());
+                $this->reviewoptions = adaquiz_get_review_options($this->get_adaquiz(),
+                        $this->attempt, $this->adaquizobj->get_context());
             }
             return $this->reviewoptions;
 
         } else {
-            $options = mod_quiz_display_options::make_from_quiz($this->get_quiz(),
-                    mod_quiz_display_options::DURING);
-            $options->flags = quiz_get_flag_option($this->attempt, $this->quizobj->get_context());
+            $options = mod_adaquiz_display_options::make_from_adaquiz($this->get_adaquiz(),
+                    mod_adaquiz_display_options::DURING);
+            $options->flags = adaquiz_get_flag_option($this->attempt, $this->adaquizobj->get_context());
             return $options;
         }
     }
 
     /**
-     * Wrapper that the correct mod_quiz_display_options for this quiz at the
+     * Wrapper that the correct mod_adaquiz_display_options for this adaptive quiz at the
      * moment.
      *
      * @param bool $reviewing true for review page, else attempt page.
@@ -933,15 +928,15 @@ class quiz_attempt {
 
     /**
      * @param int $page page number
-     * @return bool true if this is the last page of the quiz.
+     * @return bool true if this is the last page of the adaptive quiz.
      */
     public function is_last_page($page) {
         return $page == count($this->pagelayout) - 1;
     }
 
     /**
-     * Return the list of question ids for either a given page of the quiz, or for the
-     * whole quiz.
+     * Return the list of question ids for either a given page of the adaptive quiz, or for the
+     * whole adaptive quiz.
      *
      * @param mixed $page string 'all' or integer page number.
      * @return array the reqested list of question ids.
@@ -997,7 +992,7 @@ class quiz_attempt {
 
     /**
      * @param int $slot the number used to identify this question within this attempt.
-     * @return int the page of the quiz this question appears on.
+     * @return int the page of the adaptive quiz this question appears on.
      */
     public function get_question_page($slot) {
         return $this->questionpages[$slot];
@@ -1010,7 +1005,7 @@ class quiz_attempt {
      *
      * @param int $slot the number used to identify this question within this attempt.
      * @return string the formatted grade, to the number of decimal places specified
-     *      by the quiz.
+     *      by the adaptive quiz.
      */
     public function get_question_name($slot) {
         return $this->quba->get_question($slot)->name;
@@ -1025,7 +1020,7 @@ class quiz_attempt {
      * @param bool $showcorrectness Whether right/partial/wrong states should
      * be distinguised.
      * @return string the formatted grade, to the number of decimal places specified
-     *      by the quiz.
+     *      by the adaptive quiz.
      */
     public function get_question_status($slot, $showcorrectness) {
         return $this->quba->get_question_state_string($slot, $showcorrectness);
@@ -1051,10 +1046,10 @@ class quiz_attempt {
      * data about this question.
      *
      * @param int $slot the number used to identify this question within this attempt.
-     * @return string the formatted grade, to the number of decimal places specified by the quiz.
+     * @return string the formatted grade, to the number of decimal places specified by the adaptive quiz.
      */
     public function get_question_mark($slot) {
-        return quiz_format_question_grade($this->get_quiz(), $this->quba->get_question_mark($slot));
+        return adaquiz_format_question_grade($this->get_adaquiz(), $this->quba->get_question_mark($slot));
     }
 
     /**
@@ -1096,11 +1091,11 @@ class quiz_attempt {
      */
     public function get_due_date() {
         $deadlines = array();
-        if ($this->quizobj->get_quiz()->timelimit) {
-            $deadlines[] = $this->attempt->timestart + $this->quizobj->get_quiz()->timelimit;
+        if ($this->adaquizobj->get_adaquiz()->timelimit) {
+            $deadlines[] = $this->attempt->timestart + $this->adaquizobj->get_adaquiz()->timelimit;
         }
-        if ($this->quizobj->get_quiz()->timeclose) {
-            $deadlines[] = $this->quizobj->get_quiz()->timeclose;
+        if ($this->adaquizobj->get_adaquiz()->timeclose) {
+            $deadlines[] = $this->adaquizobj->get_adaquiz()->timeclose;
         }
         if ($deadlines) {
             $duedate = min($deadlines);
@@ -1113,7 +1108,7 @@ class quiz_attempt {
                 return $duedate;
 
             case self::OVERDUE:
-                return $duedate + $this->quizobj->get_quiz()->graceperiod;
+                return $duedate + $this->adaquizobj->get_adaquiz()->graceperiod;
 
             default:
                 throw new coding_exception('Unexpected state: ' . $this->attempt->state);
@@ -1122,14 +1117,14 @@ class quiz_attempt {
 
     // URLs related to this attempt ============================================
     /**
-     * @return string quiz view url.
+     * @return string adaptive quiz view url.
      */
     public function view_url() {
-        return $this->quizobj->view_url();
+        return $this->adaquizobj->view_url();
     }
 
     /**
-     * @return string the URL of this quiz's edit page. Needs to be POSTed to with a cmid parameter.
+     * @return string the URL of this adaptive quiz's edit page. Needs to be POSTed to with a cmid parameter.
      */
     public function start_attempt_url($slot = null, $page = -1) {
         if ($page == -1 && !is_null($slot)) {
@@ -1137,7 +1132,7 @@ class quiz_attempt {
         } else {
             $page = 0;
         }
-        return $this->quizobj->start_attempt_url($page);
+        return $this->adaquizobj->start_attempt_url($page);
     }
 
     /**
@@ -1155,17 +1150,17 @@ class quiz_attempt {
     }
 
     /**
-     * @return string the URL of this quiz's summary page.
+     * @return string the URL of this adaptive quiz's summary page.
      */
     public function summary_url() {
-        return new moodle_url('/mod/quiz/summary.php', array('attempt' => $this->attempt->id));
+        return new moodle_url('/mod/adaquiz/summary.php', array('attempt' => $this->attempt->id));
     }
 
     /**
-     * @return string the URL of this quiz's summary page.
+     * @return string the URL of this asaptive quiz's summary page.
      */
     public function processattempt_url() {
-        return new moodle_url('/mod/quiz/processattempt.php');
+        return new moodle_url('/mod/adaquiz/processattempt.php');
     }
 
     /**
@@ -1201,7 +1196,7 @@ class quiz_attempt {
      * @return string an appropraite message.
      */
     public function cannot_review_message($short = false) {
-        return $this->quizobj->cannot_review_message(
+        return $this->adaquizobj->cannot_review_message(
                 $this->get_attempt_state(), $short);
     }
 
@@ -1239,7 +1234,7 @@ class quiz_attempt {
         if ($this->is_preview() && $this->is_preview_user()) {
             return $OUTPUT->single_button(new moodle_url(
                     $this->start_attempt_url(), array('forcenew' => true)),
-                    get_string('startnewpreview', 'quiz'));
+                    get_string('startnewpreview', 'adaquiz'));
         } else {
             return '';
         }
@@ -1249,7 +1244,7 @@ class quiz_attempt {
      * Generate the HTML that displayes the question in its current state, with
      * the appropriate display options.
      *
-     * @param int $id the id of a question in this quiz attempt.
+     * @param int $id the id of a question in this adaptive quiz attempt.
      * @param bool $reviewing is the being printed on an attempt or a review page.
      * @param moodle_url $thispageurl the URL of the page this question is being printed on.
      * @return string HTML for the question in its current state.
@@ -1264,7 +1259,7 @@ class quiz_attempt {
      * Like {@link render_question()} but displays the question at the past step
      * indicated by $seq, rather than showing the latest step.
      *
-     * @param int $id the id of a question in this quiz attempt.
+     * @param int $id the id of a question in this adaptive quiz attempt.
      * @param int $seq the seq number of the past state to display.
      * @param bool $reviewing is the being printed on an attempt or a review page.
      * @param string $thispageurl the URL of the page this question is being printed on.
@@ -1279,7 +1274,7 @@ class quiz_attempt {
     /**
      * Wrapper round print_question from lib/questionlib.php.
      *
-     * @param int $id the id of a question in this quiz attempt.
+     * @param int $id the id of a question in this adaptive quiz attempt.
      */
     public function render_question_for_commenting($slot) {
         $options = $this->get_display_options(true);
@@ -1292,7 +1287,7 @@ class quiz_attempt {
     /**
      * Check wheter access should be allowed to a particular file.
      *
-     * @param int $id the id of a question in this quiz attempt.
+     * @param int $id the id of a question in this adaptive quiz attempt.
      * @param bool $reviewing is the being printed on an attempt or a review page.
      * @param string $thispageurl the URL of the page this question is being printed on.
      * @return string HTML for the question in its current state.
@@ -1306,18 +1301,18 @@ class quiz_attempt {
     /**
      * Get the navigation panel object for this attempt.
      *
-     * @param $panelclass The type of panel, quiz_attempt_nav_panel or quiz_review_nav_panel
+     * @param $panelclass The type of panel, adaquiz_attempt_nav_panel or adaquiz_review_nav_panel
      * @param $page the current page number.
-     * @param $showall whether we are showing the whole quiz on one page. (Used by review.php)
-     * @return quiz_nav_panel_base the requested object.
+     * @param $showall whether we are showing the whole adaptive quiz on one page. (Used by review.php)
+     * @return adaquiz_nav_panel_base the requested object.
      */
-    public function get_navigation_panel(mod_quiz_renderer $output,
+    public function get_navigation_panel(mod_adaquiz_renderer $output,
              $panelclass, $page, $showall = false) {
         $panel = new $panelclass($this, $this->get_display_options(true), $page, $showall);
 
         $bc = new block_contents();
-        $bc->attributes['id'] = 'mod_quiz_navblock';
-        $bc->title = get_string('quiznavigation', 'quiz');
+        $bc->attributes['id'] = 'mod_adaquiz_navblock';
+        $bc->title = get_string('quiznavigation', 'adaquiz');
         $bc->content = $output->navigation_panel($panel);
         return $bc;
     }
@@ -1330,12 +1325,12 @@ class quiz_attempt {
      * included but is not a link.
      */
     public function links_to_other_attempts(moodle_url $url) {
-        $attempts = quiz_get_user_attempts($this->get_quiz()->id, $this->attempt->userid, 'all');
+        $attempts = adaquiz_get_user_attempts($this->get_adaquiz()->id, $this->attempt->userid, 'all');
         if (count($attempts) <= 1) {
             return false;
         }
 
-        $links = new mod_quiz_links_to_other_attempts();
+        $links = new mod_adaquiz_links_to_other_attempts();
         foreach ($attempts as $at) {
             if ($at->id == $this->attempt->id) {
                 $links->links[$at->attempt] = null;
@@ -1371,7 +1366,7 @@ class quiz_attempt {
         // If the attempt is already overdue, look to see if it should be abandoned ...
         if ($this->attempt->state == self::OVERDUE) {
             $timeoverdue = $timestamp - $timeclose;
-            $graceperiod = $this->quizobj->get_quiz()->graceperiod;
+            $graceperiod = $this->adaquizobj->get_adaquiz()->graceperiod;
             if ($timeoverdue >= $graceperiod) {
                 $this->process_abandon($timestamp, $studentisonline);
             } else {
@@ -1386,9 +1381,9 @@ class quiz_attempt {
             return; // Attempt is already in a final state.
         }
 
-        // Otherwise, we were in quiz_attempt::IN_PROGRESS, and time has now expired.
+        // Otherwise, we were in adaquiz_attempt::IN_PROGRESS, and time has now expired.
         // Transition to the appropriate state.
-        switch ($this->quizobj->get_quiz()->overduehandling) {
+        switch ($this->adaquizobj->get_adaquiz()->overduehandling) {
             case 'autosubmit':
                 $this->process_finish($timestamp, false);
                 return;
@@ -1439,11 +1434,11 @@ class quiz_attempt {
         if ($becomingoverdue) {
             $this->process_going_overdue($timestamp, true);
         } else {
-            $DB->update_record('quiz_attempts', $this->attempt);
+            $DB->update_record('adaquiz_attempts', $this->attempt);
         }
 
         if (!$this->is_preview() && $this->attempt->state == self::FINISHED) {
-            quiz_save_best_grade($this->get_quiz(), $this->get_userid());
+            adaquiz_save_best_grade($this->get_adaquiz(), $this->get_userid());
         }
 
         $transaction->allow_commit();
@@ -1496,13 +1491,13 @@ class quiz_attempt {
         $this->attempt->sumgrades = $this->quba->get_total_mark();
         $this->attempt->state = self::FINISHED;
         $this->attempt->timecheckstate = null;
-        $DB->update_record('quiz_attempts', $this->attempt);
+        $DB->update_record('adaquiz_attempts', $this->attempt);
 
         if (!$this->is_preview()) {
-            quiz_save_best_grade($this->get_quiz(), $this->attempt->userid);
+            adaquiz_save_best_grade($this->get_adaquiz(), $this->attempt->userid);
 
             // Trigger event.
-            $this->fire_state_transition_event('\mod_quiz\event\attempt_submitted', $timestamp);
+            $this->fire_state_transition_event('\mod_adaquiz\event\attempt_submitted', $timestamp);
 
             // Tell any access rules that care that the attempt is over.
             $this->get_access_manager($timestamp)->current_attempt_finished();
@@ -1519,7 +1514,7 @@ class quiz_attempt {
         global $DB;
         if ($this->attempt->timecheckstate !== $time) {
             $this->attempt->timecheckstate = $time;
-            $DB->set_field('quiz_attempts', 'timecheckstate', $time, array('id'=>$this->attempt->id));
+            $DB->set_field('adaquiz_attempts', 'timecheckstate', $time, array('id'=>$this->attempt->id));
         }
     }
 
@@ -1537,13 +1532,13 @@ class quiz_attempt {
         // If we knew the attempt close time, we could compute when the graceperiod ends.
         // Instead we'll just fix it up through cron.
         $this->attempt->timecheckstate = $timestamp;
-        $DB->update_record('quiz_attempts', $this->attempt);
+        $DB->update_record('adaquiz_attempts', $this->attempt);
 
-        $this->fire_state_transition_event('\mod_quiz\event\attempt_becameoverdue', $timestamp);
+        $this->fire_state_transition_event('\mod_adaquiz\event\attempt_becameoverdue', $timestamp);
 
         $transaction->allow_commit();
 
-        quiz_send_overdue_message($this);
+        adaquiz_send_overdue_message($this);
     }
 
     /**
@@ -1558,9 +1553,9 @@ class quiz_attempt {
         $this->attempt->timemodified = $timestamp;
         $this->attempt->state = self::ABANDONED;
         $this->attempt->timecheckstate = null;
-        $DB->update_record('quiz_attempts', $this->attempt);
+        $DB->update_record('adaquiz_attempts', $this->attempt);
 
-        $this->fire_state_transition_event('\mod_quiz\event\attempt_abandoned', $timestamp);
+        $this->fire_state_transition_event('\mod_adaquiz\event\attempt_abandoned', $timestamp);
 
         $transaction->allow_commit();
     }
@@ -1574,21 +1569,21 @@ class quiz_attempt {
      */
     protected function fire_state_transition_event($eventclass, $timestamp) {
         global $USER;
-        $quizrecord = $this->get_quiz();
+        $adaquizrecord = $this->get_adaquiz();
         $params = array(
-            'context' => $this->get_quizobj()->get_context(),
+            'context' => $this->get_adaquizobj()->get_context(),
             'courseid' => $this->get_courseid(),
             'objectid' => $this->attempt->id,
             'relateduserid' => $this->attempt->userid,
             'other' => array(
                 'submitterid' => CLI_SCRIPT ? null : $USER->id,
-                'quizid' => $quizrecord->id
+                'adaquizid' => $adaquizrecord->id
             )
         );
 
         $event = $eventclass::create($params);
-        $event->add_record_snapshot('quiz', $this->get_quiz());
-        $event->add_record_snapshot('quiz_attempts', $this->get_attempt());
+        $event->add_record_snapshot('adaquiz', $this->get_adaquiz());
+        $event->add_record_snapshot('adaquiz_attempts', $this->get_attempt());
         $event->trigger();
     }
 
@@ -1606,16 +1601,16 @@ class quiz_attempt {
 
         question_print_comment_fields($this->quba->get_question_attempt($slot),
                 $prefix, $this->get_display_options(true)->markdp,
-                get_string('gradingattempt', 'quiz_grading', $a));
+                get_string('gradingattempt', 'adaquiz_grading', $a));
     }
 
     // Private methods =========================================================
 
     /**
-     * Get a URL for a particular question on a particular page of the quiz.
+     * Get a URL for a particular question on a particular page of the adaptive quiz.
      * Used by {@link attempt_url()} and {@link review_url()}.
      *
-     * @param string $script. Used in the URL like /mod/quiz/$script.php
+     * @param string $script. Used in the URL like /mod/adaquiz/$script.php
      * @param int $slot identifies the specific question on the page to jump to.
      *      0 to just use the $page parameter.
      * @param int $page -1 to look up the page number from the slot, otherwise
@@ -1662,7 +1657,7 @@ class quiz_attempt {
             return new moodle_url($fragment);
 
         } else {
-            $url = new moodle_url('/mod/quiz/' . $script . '.php' . $fragment,
+            $url = new moodle_url('/mod/adaquiz/' . $script . '.php' . $fragment,
                     array('attempt' => $this->attempt->id));
             if ($page == 0 && $showall != $defaultshowall) {
                 $url->param('showall', (int) $showall);
@@ -1678,11 +1673,8 @@ class quiz_attempt {
 /**
  * Represents a single link in the navigation panel.
  *
- * @copyright  2011 The Open University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @since      Moodle 2.1
  */
-class quiz_nav_question_button implements renderable {
+class adaquiz_nav_question_button implements renderable {
     /** @var string id="..." to add to the HTML for this button. */
     public $id;
     /** @var string number to display in this button. Either the question number of 'i'. */
@@ -1710,8 +1702,8 @@ class quiz_nav_question_button implements renderable {
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      Moodle 2.0
  */
-abstract class quiz_nav_panel_base {
-    /** @var quiz_attempt */
+abstract class adaquiz_nav_panel_base {
+    /** @var adaquiz_attempt */
     protected $attemptobj;
     /** @var question_display_options */
     protected $options;
@@ -1720,7 +1712,7 @@ abstract class quiz_nav_panel_base {
     /** @var boolean */
     protected $showall;
 
-    public function __construct(quiz_attempt $attemptobj,
+    public function __construct(adaquiz_attempt $attemptobj,
             question_display_options $options, $page, $showall) {
         $this->attemptobj = $attemptobj;
         $this->options = $options;
@@ -1734,8 +1726,8 @@ abstract class quiz_nav_panel_base {
             $qa = $this->attemptobj->get_question_attempt($slot);
             $showcorrectness = $this->options->correctness && $qa->has_marks();
 
-            $button = new quiz_nav_question_button();
-            $button->id          = 'quiznavbutton' . $slot;
+            $button = new adaquiz_nav_question_button();
+            $button->id          = 'adaquiznavbutton' . $slot;
             $button->number      = $this->attemptobj->get_question_number($slot);
             $button->stateclass  = $qa->get_state_class($showcorrectness);
             $button->navmethod   = $this->attemptobj->get_navigation_method();
@@ -1760,17 +1752,17 @@ abstract class quiz_nav_panel_base {
 
         // Special case handling for 'information' items.
         if ($qa->get_state() == question_state::$todo) {
-            return get_string('notyetviewed', 'quiz');
+            return get_string('notyetviewed', 'adaquiz');
         } else {
-            return get_string('viewed', 'quiz');
+            return get_string('viewed', 'adaquiz');
         }
     }
 
-    public function render_before_button_bits(mod_quiz_renderer $output) {
+    public function render_before_button_bits(mod_adaquiz_renderer $output) {
         return '';
     }
 
-    abstract public function render_end_bits(mod_quiz_renderer $output);
+    abstract public function render_end_bits(mod_adaquiz_renderer $output);
 
     protected function render_restart_preview_link($output) {
         if (!$this->attemptobj->is_own_preview()) {
@@ -1784,13 +1776,13 @@ abstract class quiz_nav_panel_base {
 
     public function user_picture() {
         global $DB;
-        if ($this->attemptobj->get_quiz()->showuserpicture == QUIZ_SHOWIMAGE_NONE) {
+        if ($this->attemptobj->get_adaquiz()->showuserpicture == ADAQUIZ_SHOWIMAGE_NONE) {
             return null;
         }
         $user = $DB->get_record('user', array('id' => $this->attemptobj->get_userid()));
         $userpicture = new user_picture($user);
         $userpicture->courseid = $this->attemptobj->get_courseid();
-        if ($this->attemptobj->get_quiz()->showuserpicture == QUIZ_SHOWIMAGE_LARGE) {
+        if ($this->attemptobj->get_adaquiz()->showuserpicture == ADAQUIZ_SHOWIMAGE_LARGE) {
             $userpicture->size = true;
         }
         return $userpicture;
@@ -1802,24 +1794,24 @@ abstract class quiz_nav_panel_base {
      * @return string, CSS class name
      */
     public function get_button_container_class() {
-        // Quiz navigation is set on 'Show all questions on one page'.
+        // Adaptive quiz navigation is set on 'Show all questions on one page'.
         if ($this->showall) {
             return 'allquestionsononepage';
         }
-        // Quiz navigation is set on 'Show one page at a time'.
+        // Adaptive quiz navigation is set on 'Show one page at a time'.
         return 'multipages';
     }
 }
 
 
 /**
- * Specialisation of {@link quiz_nav_panel_base} for the attempt quiz page.
+ * Specialisation of {@link adaquiz_nav_panel_base} for the attempt adaptive quiz page.
  *
  * @copyright  2008 Tim Hunt
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      Moodle 2.0
  */
-class quiz_attempt_nav_panel extends quiz_nav_panel_base {
+class adaquiz_attempt_nav_panel extends adaquiz_nav_panel_base {
     public function get_question_url($slot) {
         if ($this->attemptobj->can_navigate_to($slot)) {
             return $this->attemptobj->attempt_url($slot, -1, $this->page);
@@ -1828,14 +1820,14 @@ class quiz_attempt_nav_panel extends quiz_nav_panel_base {
         }
     }
 
-    public function render_before_button_bits(mod_quiz_renderer $output) {
-        return html_writer::tag('div', get_string('navnojswarning', 'quiz'),
-                array('id' => 'quiznojswarning'));
+    public function render_before_button_bits(mod_adaquiz_renderer $output) {
+        return html_writer::tag('div', get_string('navnojswarning', 'adaquiz'),
+                array('id' => 'adaquiznojswarning'));
     }
 
-    public function render_end_bits(mod_quiz_renderer $output) {
+    public function render_end_bits(mod_adaquiz_renderer $output) {
         return html_writer::link($this->attemptobj->summary_url(),
-                get_string('endtest', 'quiz'), array('class' => 'endtestlink')) .
+                get_string('endtest', 'adaquiz'), array('class' => 'endtestlink')) .
                 $output->countdown_timer($this->attemptobj, time()) .
                 $this->render_restart_preview_link($output);
     }
@@ -1843,26 +1835,26 @@ class quiz_attempt_nav_panel extends quiz_nav_panel_base {
 
 
 /**
- * Specialisation of {@link quiz_nav_panel_base} for the review quiz page.
+ * Specialisation of {@link adaquiz_nav_panel_base} for the review adaptive quiz page.
  *
  * @copyright  2008 Tim Hunt
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      Moodle 2.0
  */
-class quiz_review_nav_panel extends quiz_nav_panel_base {
+class adaquiz_review_nav_panel extends adaquiz_nav_panel_base {
     public function get_question_url($slot) {
         return $this->attemptobj->review_url($slot, -1, $this->showall, $this->page);
     }
 
-    public function render_end_bits(mod_quiz_renderer $output) {
+    public function render_end_bits(mod_adaquiz_renderer $output) {
         $html = '';
         if ($this->attemptobj->get_num_pages() > 1) {
             if ($this->showall) {
                 $html .= html_writer::link($this->attemptobj->review_url(null, 0, false),
-                        get_string('showeachpage', 'quiz'));
+                        get_string('showeachpage', 'adaquiz'));
             } else {
                 $html .= html_writer::link($this->attemptobj->review_url(null, 0, true),
-                        get_string('showall', 'quiz'));
+                        get_string('showall', 'adaquiz'));
             }
         }
         $html .= $output->finish_review_link($this->attemptobj);

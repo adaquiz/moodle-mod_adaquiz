@@ -15,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Defines the Moodle forum used to add random questions to the quiz.
+ * Defines the Moodle forum used to add random questions to the adaptive quiz.
  *
- * @package   mod_quiz
- * @copyright 2008 Olli Savolainen
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
@@ -31,10 +31,8 @@ require_once($CFG->libdir.'/formslib.php');
 /**
  * The add random questions form.
  *
- * @copyright  1999 onwards Martin Dougiamas and others {@link http://moodle.com}
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class quiz_add_random_form extends moodleform {
+class adaquiz_add_random_form extends moodleform {
 
     protected function definition() {
         global $CFG, $DB;
@@ -46,22 +44,22 @@ class quiz_add_random_form extends moodleform {
 
         // Random from existing category section.
         $mform->addElement('header', 'categoryheader',
-                get_string('randomfromexistingcategory', 'quiz'));
+                get_string('randomfromexistingcategory', 'adaquiz'));
 
         $mform->addElement('questioncategory', 'category', get_string('category'),
                 array('contexts' => $usablecontexts, 'top' => false));
         $mform->setDefault('category', $this->_customdata['cat']);
 
-        $mform->addElement('checkbox', 'includesubcategories', '', get_string('recurse', 'quiz'));
+        $mform->addElement('checkbox', 'includesubcategories', '', get_string('recurse', 'adaquiz'));
 
-        $mform->addElement('select', 'numbertoadd', get_string('randomnumber', 'quiz'),
+        $mform->addElement('select', 'numbertoadd', get_string('randomnumber', 'adaquiz'),
                 $this->get_number_of_questions_to_add_choices());
 
-        $mform->addElement('submit', 'existingcategory', get_string('addrandomquestion', 'quiz'));
+        $mform->addElement('submit', 'existingcategory', get_string('addrandomquestion', 'adaquiz'));
 
         // Random from a new category section.
         $mform->addElement('header', 'categoryheader',
-                get_string('randomquestionusinganewcategory', 'quiz'));
+                get_string('randomquestionusinganewcategory', 'adaquiz'));
 
         $mform->addElement('text', 'name', get_string('name'), 'maxlength="254" size="50"');
         $mform->setType('name', PARAM_TEXT);
@@ -71,7 +69,7 @@ class quiz_add_random_form extends moodleform {
         $mform->addHelpButton('parent', 'parentcategory', 'question');
 
         $mform->addElement('submit', 'newcategory',
-                get_string('createcategoryandaddrandomquestion', 'quiz'));
+                get_string('createcategoryandaddrandomquestion', 'adaquiz'));
 
         // Cancel button.
         $mform->addElement('cancel');

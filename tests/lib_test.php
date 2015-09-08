@@ -15,103 +15,103 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Unit tests for (some of) mod/quiz/locallib.php.
+ * Unit tests for (some of) mod/adaquiz/locallib.php.
  *
- * @package    mod_quiz
- * @category   test
- * @copyright  2008 The Open University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU Public License
+ * @package   mod_adaquiz
+ * @category  test
+ * @copyright 2015 Maths for More S.L.
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot . '/mod/quiz/lib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/lib.php');
 
 /**
  * @copyright  2008 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU Public License
  */
-class mod_quiz_lib_testcase extends advanced_testcase {
-    public function test_quiz_has_grades() {
-        $quiz = new stdClass();
-        $quiz->grade = '100.0000';
-        $quiz->sumgrades = '100.0000';
-        $this->assertTrue(quiz_has_grades($quiz));
-        $quiz->sumgrades = '0.0000';
-        $this->assertFalse(quiz_has_grades($quiz));
-        $quiz->grade = '0.0000';
-        $this->assertFalse(quiz_has_grades($quiz));
-        $quiz->sumgrades = '100.0000';
-        $this->assertFalse(quiz_has_grades($quiz));
+class mod_adaquiz_lib_testcase extends advanced_testcase {
+    public function test_adaquiz_has_grades() {
+        $adaquiz = new stdClass();
+        $adaquiz->grade = '100.0000';
+        $adaquiz->sumgrades = '100.0000';
+        $this->assertTrue(adaquiz_has_grades($adaquiz));
+        $adaquiz->sumgrades = '0.0000';
+        $this->assertFalse(adaquiz_has_grades($adaquiz));
+        $adaquiz->grade = '0.0000';
+        $this->assertFalse(adaquiz_has_grades($adaquiz));
+        $adaquiz->sumgrades = '100.0000';
+        $this->assertFalse(adaquiz_has_grades($adaquiz));
     }
 
-    public function test_quiz_format_grade() {
-        $quiz = new stdClass();
-        $quiz->decimalpoints = 2;
-        $this->assertEquals(quiz_format_grade($quiz, 0.12345678), format_float(0.12, 2));
-        $this->assertEquals(quiz_format_grade($quiz, 0), format_float(0, 2));
-        $this->assertEquals(quiz_format_grade($quiz, 1.000000000000), format_float(1, 2));
-        $quiz->decimalpoints = 0;
-        $this->assertEquals(quiz_format_grade($quiz, 0.12345678), '0');
+    public function test_adaquiz_format_grade() {
+        $adaquiz = new stdClass();
+        $adaquiz->decimalpoints = 2;
+        $this->assertEquals(adaquiz_format_grade($adaquiz, 0.12345678), format_float(0.12, 2));
+        $this->assertEquals(adaquiz_format_grade($adaquiz, 0), format_float(0, 2));
+        $this->assertEquals(adaquiz_format_grade($adaquiz, 1.000000000000), format_float(1, 2));
+        $adaquiz->decimalpoints = 0;
+        $this->assertEquals(adaquiz_format_grade($adaquiz, 0.12345678), '0');
     }
 
-    public function test_quiz_get_grade_format() {
-        $quiz = new stdClass();
-        $quiz->decimalpoints = 2;
-        $this->assertEquals(quiz_get_grade_format($quiz), 2);
-        $this->assertEquals($quiz->questiondecimalpoints, -1);
-        $quiz->questiondecimalpoints = 2;
-        $this->assertEquals(quiz_get_grade_format($quiz), 2);
-        $quiz->decimalpoints = 3;
-        $quiz->questiondecimalpoints = -1;
-        $this->assertEquals(quiz_get_grade_format($quiz), 3);
-        $quiz->questiondecimalpoints = 4;
-        $this->assertEquals(quiz_get_grade_format($quiz), 4);
+    public function test_adaquiz_get_grade_format() {
+        $adaquiz = new stdClass();
+        $adaquiz->decimalpoints = 2;
+        $this->assertEquals(adaquiz_get_grade_format($adaquiz), 2);
+        $this->assertEquals($adaquiz->questiondecimalpoints, -1);
+        $adaquiz->questiondecimalpoints = 2;
+        $this->assertEquals(adaquiz_get_grade_format($adaquiz), 2);
+        $adaquiz->decimalpoints = 3;
+        $adaquiz->questiondecimalpoints = -1;
+        $this->assertEquals(adaquiz_get_grade_format($adaquiz), 3);
+        $adaquiz->questiondecimalpoints = 4;
+        $this->assertEquals(adaquiz_get_grade_format($adaquiz), 4);
     }
 
-    public function test_quiz_format_question_grade() {
-        $quiz = new stdClass();
-        $quiz->decimalpoints = 2;
-        $quiz->questiondecimalpoints = 2;
-        $this->assertEquals(quiz_format_question_grade($quiz, 0.12345678), format_float(0.12, 2));
-        $this->assertEquals(quiz_format_question_grade($quiz, 0), format_float(0, 2));
-        $this->assertEquals(quiz_format_question_grade($quiz, 1.000000000000), format_float(1, 2));
-        $quiz->decimalpoints = 3;
-        $quiz->questiondecimalpoints = -1;
-        $this->assertEquals(quiz_format_question_grade($quiz, 0.12345678), format_float(0.123, 3));
-        $this->assertEquals(quiz_format_question_grade($quiz, 0), format_float(0, 3));
-        $this->assertEquals(quiz_format_question_grade($quiz, 1.000000000000), format_float(1, 3));
-        $quiz->questiondecimalpoints = 4;
-        $this->assertEquals(quiz_format_question_grade($quiz, 0.12345678), format_float(0.1235, 4));
-        $this->assertEquals(quiz_format_question_grade($quiz, 0), format_float(0, 4));
-        $this->assertEquals(quiz_format_question_grade($quiz, 1.000000000000), format_float(1, 4));
+    public function test_adaquiz_format_question_grade() {
+        $adaquiz = new stdClass();
+        $adaquiz->decimalpoints = 2;
+        $adaquiz->questiondecimalpoints = 2;
+        $this->assertEquals(adaquiz_format_question_grade($adaquiz, 0.12345678), format_float(0.12, 2));
+        $this->assertEquals(adaquiz_format_question_grade($adaquiz, 0), format_float(0, 2));
+        $this->assertEquals(adaquiz_format_question_grade($adaquiz, 1.000000000000), format_float(1, 2));
+        $adaquiz->decimalpoints = 3;
+        $adaquiz->questiondecimalpoints = -1;
+        $this->assertEquals(adaquiz_format_question_grade($adaquiz, 0.12345678), format_float(0.123, 3));
+        $this->assertEquals(adaquiz_format_question_grade($adaquiz, 0), format_float(0, 3));
+        $this->assertEquals(adaquiz_format_question_grade($adaquiz, 1.000000000000), format_float(1, 3));
+        $adaquiz->questiondecimalpoints = 4;
+        $this->assertEquals(adaquiz_format_question_grade($adaquiz, 0.12345678), format_float(0.1235, 4));
+        $this->assertEquals(adaquiz_format_question_grade($adaquiz, 0), format_float(0, 4));
+        $this->assertEquals(adaquiz_format_question_grade($adaquiz, 1.000000000000), format_float(1, 4));
     }
 
     /**
      * Test deleting a quiz instance.
      */
-    public function test_quiz_delete_instance() {
+    public function test_adaquiz_delete_instance() {
         global $SITE, $DB;
         $this->resetAfterTest(true);
         $this->setAdminUser();
 
-        // Setup a quiz with 1 standard and 1 random question.
-        $quizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_quiz');
-        $quiz = $quizgenerator->create_instance(array('course' => $SITE->id, 'questionsperpage' => 3, 'grade' => 100.0));
+        // Setup an adaptive quiz with 1 standard and 1 random question.
+        $adaquizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_adaquiz');
+        $adaquiz = $adaquizgenerator->create_instance(array('course' => $SITE->id, 'questionsperpage' => 3, 'grade' => 100.0));
 
         $questiongenerator = $this->getDataGenerator()->get_plugin_generator('core_question');
         $cat = $questiongenerator->create_question_category();
         $standardq = $questiongenerator->create_question('shortanswer', null, array('category' => $cat->id));
 
-        quiz_add_quiz_question($standardq->id, $quiz);
-        quiz_add_random_questions($quiz, 0, $cat->id, 1, false);
+        adaquiz_add_adaquiz_question($standardq->id, $adaquiz);
+        adaquiz_add_random_questions($adaquiz, 0, $cat->id, 1, false);
 
         // Get the random question.
         $randomq = $DB->get_record('question', array('qtype' => 'random'));
 
-        quiz_delete_instance($quiz->id);
+        adaquiz_delete_instance($adaquiz->id);
 
         // Check that the random question was deleted.
         $count = $DB->count_records('question', array('id' => $randomq->id));
@@ -121,18 +121,18 @@ class mod_quiz_lib_testcase extends advanced_testcase {
         $this->assertEquals(1, $count);
 
         // Check that all the slots were removed.
-        $count = $DB->count_records('quiz_slots', array('quizid' => $quiz->id));
+        $count = $DB->count_records('adaquiz_slots', array('adaquizid' => $adaquiz->id));
         $this->assertEquals(0, $count);
 
-        // Check that the quiz was removed.
-        $count = $DB->count_records('quiz', array('id' => $quiz->id));
+        // Check that the adaptive quiz was removed.
+        $count = $DB->count_records('adaquiz', array('id' => $adaquiz->id));
         $this->assertEquals(0, $count);
     }
 
     /**
-     * Test checking the completion state of a quiz.
+     * Test checking the completion state of an adaptive quiz.
      */
-    public function test_quiz_get_completion_state() {
+    public function test_adaquiz_get_completion_state() {
         global $CFG, $DB;
         $this->resetAfterTest(true);
 
@@ -158,8 +158,8 @@ class mod_quiz_lib_testcase extends advanced_testcase {
                       'scaleid' => $scale->id);
         $outcome = $this->getDataGenerator()->create_grade_outcome($data);
 
-        // Make a quiz with the outcome on.
-        $quizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_quiz');
+        // Make an adaptive quiz with the outcome on.
+        $adaquizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_adaquiz');
         $data = array('course' => $course->id,
                       'outcome_'.$outcome->id => 1,
                       'grade' => 100.0,
@@ -167,61 +167,61 @@ class mod_quiz_lib_testcase extends advanced_testcase {
                       'sumgrades' => 1,
                       'completion' => COMPLETION_TRACKING_AUTOMATIC,
                       'completionpass' => 1);
-        $quiz = $quizgenerator->create_instance($data);
-        $cm = get_coursemodule_from_id('quiz', $quiz->cmid);
+        $adaquiz = $adaquizgenerator->create_instance($data);
+        $cm = get_coursemodule_from_id('adaquiz', $adaquiz->cmid);
 
         // Create a couple of questions.
         $questiongenerator = $this->getDataGenerator()->get_plugin_generator('core_question');
 
         $cat = $questiongenerator->create_question_category();
         $question = $questiongenerator->create_question('numerical', null, array('category' => $cat->id));
-        quiz_add_quiz_question($question->id, $quiz);
+        adaquiz_add_adaquiz_question($question->id, $adaquiz);
 
-        $quizobj = quiz::create($quiz->id, $passstudent->id);
+        $adaquizobj = adaquiz::create($adaquiz->id, $passstudent->id);
 
         // Set grade to pass.
         $item = grade_item::fetch(array('courseid' => $course->id, 'itemtype' => 'mod',
-                                        'itemmodule' => 'quiz', 'iteminstance' => $quiz->id, 'outcomeid' => null));
+                                        'itemmodule' => 'adaquiz', 'iteminstance' => $adaquiz->id, 'outcomeid' => null));
         $item->gradepass = 80;
         $item->update();
 
         // Start the passing attempt.
-        $quba = question_engine::make_questions_usage_by_activity('mod_quiz', $quizobj->get_context());
-        $quba->set_preferred_behaviour($quizobj->get_quiz()->preferredbehaviour);
+        $quba = question_engine::make_questions_usage_by_activity('mod_adaquiz', $adaquizobj->get_context());
+        $quba->set_preferred_behaviour($adaquizobj->get_adaquiz()->preferredbehaviour);
 
         $timenow = time();
-        $attempt = quiz_create_attempt($quizobj, 1, false, $timenow, false, $passstudent->id);
-        quiz_start_new_attempt($quizobj, $quba, $attempt, 1, $timenow);
-        quiz_attempt_save_started($quizobj, $quba, $attempt);
+        $attempt = adaquiz_create_attempt($adaquizobj, 1, false, $timenow, false, $passstudent->id);
+        adaquiz_start_new_attempt($adaquizobj, $quba, $attempt, 1, $timenow);
+        adaquiz_attempt_save_started($adaquizobj, $quba, $attempt);
 
         // Process some responses from the student.
-        $attemptobj = quiz_attempt::create($attempt->id);
+        $attemptobj = adaquiz_attempt::create($attempt->id);
         $tosubmit = array(1 => array('answer' => '3.14'));
         $attemptobj->process_submitted_actions($timenow, false, $tosubmit);
 
         // Finish the attempt.
-        $attemptobj = quiz_attempt::create($attempt->id);
+        $attemptobj = adaquiz_attempt::create($attempt->id);
         $this->assertTrue($attemptobj->has_response_to_at_least_one_graded_question());
         $attemptobj->process_finish($timenow, false);
 
         // Start the failing attempt.
         $timenow = time();
-        $attempt = quiz_create_attempt($quizobj, 1, false, $timenow, false, $failstudent->id);
-        quiz_start_new_attempt($quizobj, $quba, $attempt, 1, $timenow);
-        quiz_attempt_save_started($quizobj, $quba, $attempt);
+        $attempt = adaquiz_create_attempt($adaquizobj, 1, false, $timenow, false, $failstudent->id);
+        adaquiz_start_new_attempt($adaquizobj, $quba, $attempt, 1, $timenow);
+        adaquiz_attempt_save_started($adaquizobj, $quba, $attempt);
 
         // Process some responses from the student.
-        $attemptobj = quiz_attempt::create($attempt->id);
+        $attemptobj = adaquiz_attempt::create($attempt->id);
         $tosubmit = array(1 => array('answer' => '0'));
         $attemptobj->process_submitted_actions($timenow, false, $tosubmit);
 
         // Finish the attempt.
-        $attemptobj = quiz_attempt::create($attempt->id);
+        $attemptobj = adaquiz_attempt::create($attempt->id);
         $this->assertTrue($attemptobj->has_response_to_at_least_one_graded_question());
         $attemptobj->process_finish($timenow, false);
 
         // Check the results.
-        $this->assertTrue(quiz_get_completion_state($course, $cm, $passstudent->id, 'return'));
-        $this->assertFalse(quiz_get_completion_state($course, $cm, $failstudent->id, 'return'));
+        $this->assertTrue(adaquiz_get_completion_state($course, $cm, $passstudent->id, 'return'));
+        $this->assertFalse(adaquiz_get_completion_state($course, $cm, $failstudent->id, 'return'));
     }
 }

@@ -15,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Base class for the options that control what is visible in an {@link quiz_attempts_report}.
+ * Base class for the options that control what is visible in an {@link adaquiz_attempts_report}.
  *
- * @package   mod_quiz
- * @copyright 2012 The Open University
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
@@ -29,59 +29,59 @@ require_once($CFG->libdir . '/formslib.php');
 
 
 /**
- * Base class for the options that control what is visible in an {@link quiz_attempts_report}.
+ * Base class for the options that control what is visible in an {@link adaquiz_attempts_report}.
  *
  * @copyright 2012 The Open University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_quiz_attempts_report_options {
+class mod_adaquiz_attempts_report_options {
 
     /** @var string the report mode. */
     public $mode;
 
     /** @var object the settings for the quiz being reported on. */
-    public $quiz;
+    public $adaquiz;
 
-    /** @var object the course module objects for the quiz being reported on. */
+    /** @var object the course module objects for the adaptive quiz being reported on. */
     public $cm;
 
-    /** @var object the course settings for the course the quiz is in. */
+    /** @var object the course settings for the course the adaptive quiz is in. */
     public $course;
 
     /**
-     * @var array form field name => corresponding quiz_attempt:: state constant.
+     * @var array form field name => corresponding adaquiz_attempt:: state constant.
      */
     protected static $statefields = array(
-        'stateinprogress' => quiz_attempt::IN_PROGRESS,
-        'stateoverdue'    => quiz_attempt::OVERDUE,
-        'statefinished'   => quiz_attempt::FINISHED,
-        'stateabandoned'  => quiz_attempt::ABANDONED,
+        'stateinprogress' => adaquiz_attempt::IN_PROGRESS,
+        'stateoverdue'    => adaquiz_attempt::OVERDUE,
+        'statefinished'   => adaquiz_attempt::FINISHED,
+        'stateabandoned'  => adaquiz_attempt::ABANDONED,
     );
 
     /**
-     * @var string quiz_attempts_report::ALL_WITH or quiz_attempts_report::ENROLLED_WITH
-     *      quiz_attempts_report::ENROLLED_WITHOUT or quiz_attempts_report::ENROLLED_ALL
+     * @var string adaquiz_attempts_report::ALL_WITH or adaquiz_attempts_report::ENROLLED_WITH
+     *      adaquiz_attempts_report::ENROLLED_WITHOUT or adaquiz_attempts_report::ENROLLED_ALL
      */
-    public $attempts = quiz_attempts_report::ENROLLED_WITH;
+    public $attempts = adaquiz_attempts_report::ENROLLED_WITH;
 
     /** @var int the currently selected group. 0 if no group is selected. */
     public $group = 0;
 
     /**
-     * @var array|null of quiz_attempt::IN_PROGRESS, etc. constants. null means
+     * @var array|null of adaquiz_attempt::IN_PROGRESS, etc. constants. null means
      *      no restriction.
      */
-    public $states = array(quiz_attempt::IN_PROGRESS, quiz_attempt::OVERDUE,
-            quiz_attempt::FINISHED, quiz_attempt::ABANDONED);
+    public $states = array(adaquiz_attempt::IN_PROGRESS, adaquiz_attempt::OVERDUE,
+            adaquiz_attempt::FINISHED, adaquiz_attempt::ABANDONED);
 
     /**
-     * @var bool whether to show all finished attmepts, or just the one that gave
+     * @var bool whether to show all finished attempts, or just the one that gave
      *      the final grade for the user.
      */
     public $onlygraded = false;
 
     /** @var int Number of attempts to show per page. */
-    public $pagesize = quiz_attempts_report::DEFAULT_PAGE_SIZE;
+    public $pagesize = adaquiz_attempts_report::DEFAULT_PAGE_SIZE;
 
     /** @var string whether the data should be downloaded in some format, or '' to display it. */
     public $download = '';
@@ -95,17 +95,17 @@ class mod_quiz_attempts_report_options {
     /**
      * Constructor.
      * @param string $mode which report these options are for.
-     * @param object $quiz the settings for the quiz being reported on.
+     * @param object $adaquiz the settings for the adaptive quiz being reported on.
      * @param object $cm the course module objects for the quiz being reported on.
      * @param object $coures the course settings for the coures this quiz is in.
      */
-    public function __construct($mode, $quiz, $cm, $course) {
+    public function __construct($mode, $adaquiz, $cm, $course) {
         $this->mode   = $mode;
-        $this->quiz   = $quiz;
+        $this->adaquiz   = $adaquiz;
         $this->cm     = $cm;
         $this->course = $course;
 
-        $this->usercanseegrades = quiz_report_should_show_grades($quiz, context_module::instance($cm->id));
+        $this->usercanseegrades = adaquiz_report_should_show_grades($adaquiz, context_module::instance($cm->id));
     }
 
     /**
@@ -135,7 +135,7 @@ class mod_quiz_attempts_report_options {
      * @return moodle_url the URL.
      */
     public function get_url() {
-        return new moodle_url('/mod/quiz/report.php', $this->get_url_params());
+        return new moodle_url('/mod/adaquiz/report.php', $this->get_url_params());
     }
 
     /**
@@ -218,7 +218,7 @@ class mod_quiz_attempts_report_options {
      * (For those settings that are backed by user-preferences).
      */
     public function setup_from_user_preferences() {
-        $this->pagesize = get_user_preferences('quiz_report_pagesize', $this->pagesize);
+        $this->pagesize = get_user_preferences('adaquiz_report_pagesize', $this->pagesize);
     }
 
     /**
@@ -226,7 +226,7 @@ class mod_quiz_attempts_report_options {
      * (For those settings that are backed by user-preferences).
      */
     public function update_user_preferences() {
-        set_user_preference('quiz_report_pagesize', $this->pagesize);
+        set_user_preference('adaquiz_report_pagesize', $this->pagesize);
     }
 
     /**
@@ -235,17 +235,17 @@ class mod_quiz_attempts_report_options {
     public function resolve_dependencies() {
         if ($this->group) {
             // Default for when a group is selected.
-            if ($this->attempts === null || $this->attempts == quiz_attempts_report::ALL_WITH) {
-                $this->attempts = quiz_attempts_report::ENROLLED_WITH;
+            if ($this->attempts === null || $this->attempts == adaquiz_attempts_report::ALL_WITH) {
+                $this->attempts = adaquiz_attempts_report::ENROLLED_WITH;
             }
 
         } else if (!$this->group && $this->course->id == SITEID) {
             // Force report on front page to show all, unless a group is selected.
-            $this->attempts = quiz_attempts_report::ALL_WITH;
+            $this->attempts = adaquiz_attempts_report::ALL_WITH;
 
-        } else if (!in_array($this->attempts, array(quiz_attempts_report::ALL_WITH, quiz_attempts_report::ENROLLED_WITH,
-                quiz_attempts_report::ENROLLED_WITHOUT, quiz_attempts_report::ENROLLED_ALL))) {
-            $this->attempts = quiz_attempts_report::ENROLLED_WITH;
+        } else if (!in_array($this->attempts, array(adaquiz_attempts_report::ALL_WITH, adaquiz_attempts_report::ENROLLED_WITH,
+                adaquiz_attempts_report::ENROLLED_WITHOUT, adaquiz_attempts_report::ENROLLED_ALL))) {
+            $this->attempts = adaquiz_attempts_report::ENROLLED_WITH;
         }
 
         $cleanstates = array();
@@ -261,13 +261,13 @@ class mod_quiz_attempts_report_options {
             $this->states = null;
         }
 
-        if (!quiz_report_can_filter_only_graded($this->quiz)) {
+        if (!adaquiz_report_can_filter_only_graded($this->adaquiz)) {
             // A grading mode like 'average' has been selected, so we cannot do
             // the show the attempt that gave the final grade thing.
             $this->onlygraded = false;
         }
 
-        if ($this->attempts == quiz_attempts_report::ENROLLED_WITHOUT) {
+        if ($this->attempts == adaquiz_attempts_report::ENROLLED_WITHOUT) {
             $this->states = null;
             $this->onlygraded = false;
         }
@@ -277,7 +277,7 @@ class mod_quiz_attempts_report_options {
         }
 
         if ($this->pagesize < 1) {
-            $this->pagesize = quiz_attempts_report::DEFAULT_PAGE_SIZE;
+            $this->pagesize = adaquiz_attempts_report::DEFAULT_PAGE_SIZE;
         }
     }
 
@@ -286,6 +286,6 @@ class mod_quiz_attempts_report_options {
      * @return boolean
      */
     protected function is_showing_finished_attempts() {
-        return $this->states === null || in_array(quiz_attempt::FINISHED, $this->states);
+        return $this->states === null || in_array(adaquiz_attempt::FINISHED, $this->states);
     }
 }

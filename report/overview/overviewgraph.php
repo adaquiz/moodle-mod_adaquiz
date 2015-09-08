@@ -15,29 +15,29 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This file renders the quiz overview graph.
+ * This file renders the adaptive quiz overview graph.
  *
- * @package   quiz_overview
- * @copyright 2008 Jamie Pratt
+ * @package   adaquiz_overview
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 require_once(dirname(__FILE__) . '/../../../../config.php');
 require_once($CFG->libdir . '/graphlib.php');
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-require_once($CFG->dirroot . '/mod/quiz/report/reportlib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/reportlib.php');
 
-$quizid = required_param('id', PARAM_INT);
+$adaquizid = required_param('id', PARAM_INT);
 $groupid = optional_param('groupid', 0, PARAM_INT);
 
-$quiz = $DB->get_record('quiz', array('id' => $quizid));
-$course = $DB->get_record('course', array('id' => $quiz->course));
-$cm = get_coursemodule_from_instance('quiz', $quizid);
+$adaquiz = $DB->get_record('adaquiz', array('id' => $adaquizid));
+$course = $DB->get_record('course', array('id' => $adaquiz->course));
+$cm = get_coursemodule_from_instance('adaquiz', $adaquizid);
 
 require_login($course, false, $cm);
 $modcontext = context_module::instance($cm->id);
-require_capability('mod/quiz:viewreports', $modcontext);
+require_capability('mod/adaquiz:viewreports', $modcontext);
 
 if ($groupid && $groupmode = groups_get_activity_groupmode($cm)) {
     // Groups are being used.
@@ -47,7 +47,7 @@ if ($groupid && $groupmode = groups_get_activity_groupmode($cm)) {
     }
     $group = $groups[$groupid];
     $groupusers = get_users_by_capability($modcontext,
-            array('mod/quiz:reviewmyattempts', 'mod/quiz:attempt'),
+            array('mod/adaquiz:reviewmyattempts', 'mod/adaquiz:attempt'),
             '', '', '', '', $group->id, '', false);
     if (!$groupusers) {
         print_error('nostudentsingroup');
@@ -74,8 +74,8 @@ $line->parameter['bar_size'] = 1;
 // Don't forget to increase spacing so that graph doesn't become one big block of colour.
 $line->parameter['bar_spacing'] = 10;
 
-// Pick a sensible number of bands depending on quiz maximum grade.
-$bands = $quiz->grade;
+// Pick a sensible number of bands depending on adaptive quiz maximum grade.
+$bands = $adaquiz->grade;
 while ($bands > 20 || $bands <= 10) {
     if ($bands > 50) {
         $bands /= 5;
@@ -92,11 +92,11 @@ while ($bands > 20 || $bands <= 10) {
 // See MDL-34589. Using doubles as array keys causes problems in PHP 5.4,
 // hence the explicit cast to int.
 $bands = (int) ceil($bands);
-$bandwidth = $quiz->grade / $bands;
+$bandwidth = $adaquiz->grade / $bands;
 $bandlabels = array();
 for ($i = 1; $i <= $bands; $i++) {
-    $bandlabels[] = quiz_format_grade($quiz, ($i - 1) * $bandwidth) . ' - ' .
-            quiz_format_grade($quiz, $i * $bandwidth);
+    $bandlabels[] = adaquiz_format_grade($adaquiz, ($i - 1) * $bandwidth) . ' - ' .
+            adaquiz_format_grade($adaquiz, $i * $bandwidth);
 }
 $line->x_data = $bandlabels;
 
@@ -106,7 +106,7 @@ $line->y_format['allusers'] = array(
     'shadow_offset' => 1,
     'legend' => get_string('allparticipants')
 );
-$line->y_data['allusers'] = quiz_report_grade_bands($bandwidth, $bands, $quizid, $groupusers);
+$line->y_data['allusers'] = adaquiz_report_grade_bands($bandwidth, $bands, $adaquizid, $groupusers);
 
 $line->y_order = array('allusers');
 

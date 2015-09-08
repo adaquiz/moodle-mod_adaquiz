@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Quiz overview report version information.
+ * Adaptive quiz overview report version information.
  *
- * @package   quiz_overview
- * @copyright 2008 Jamie Pratt
+ * @package   adaquiz_overview
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -26,4 +26,4 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->version  = 2014111000;
 $plugin->requires = 2014110400;
-$plugin->component = 'quiz_overview';
+$plugin->component = 'adaquiz_overview';

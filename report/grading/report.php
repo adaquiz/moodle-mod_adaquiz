@@ -15,21 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This file defines the quiz manual grading report class.
+ * This file defines the adaptive quiz manual grading report class.
  *
- * @package   quiz_grading
- * @copyright 2006 Gustav Delius
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   adaquiz_grading
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/quiz/report/grading/gradingsettings_form.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/grading/gradingsettings_form.php');
 
 
 /**
- * Quiz report to help teachers manually grade questions that need it.
+ * Adaptive quiz report to help teachers manually grade questions that need it.
  *
  * This report basically provides two screens:
  * - List question that might need manual grading (or optionally all questions).
@@ -38,20 +38,20 @@ require_once($CFG->dirroot . '/mod/quiz/report/grading/gradingsettings_form.php'
  * @copyright 2006 Gustav Delius
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class quiz_grading_report extends quiz_default_report {
+class adaquiz_grading_report extends adaquiz_default_report {
     const DEFAULT_PAGE_SIZE = 5;
     const DEFAULT_ORDER = 'random';
 
     protected $viewoptions = array();
     protected $questions;
     protected $cm;
-    protected $quiz;
+    protected $adaquiz;
     protected $context;
 
-    public function display($quiz, $cm, $course) {
+    public function display($adaquiz, $cm, $course) {
         global $CFG, $DB, $PAGE;
 
-        $this->quiz = $quiz;
+        $this->adauiz = $adaquiz;
         $this->cm = $cm;
         $this->course = $course;
 
@@ -84,9 +84,9 @@ class quiz_grading_report extends quiz_default_report {
 
         // Check permissions.
         $this->context = context_module::instance($cm->id);
-        require_capability('mod/quiz:grade', $this->context);
-        $shownames = has_capability('quiz/grading:viewstudentnames', $this->context);
-        $showidnumbers = has_capability('quiz/grading:viewidnumber', $this->context);
+        require_capability('mod/adaquiz:grade', $this->context);
+        $shownames = has_capability('adaquiz/grading:viewstudentnames', $this->context);
+        $showidnumbers = has_capability('adaquiz/grading:viewidnumber', $this->context);
 
         // Validate order.
         if (!in_array($order, array('random', 'date', 'studentfirstname', 'studentlastname', 'idnumber'))) {
@@ -100,10 +100,10 @@ class quiz_grading_report extends quiz_default_report {
             $page = 0;
         }
 
-        // Get the list of questions in this quiz.
-        $this->questions = quiz_report_get_significant_questions($quiz);
+        // Get the list of questions in this adaptive quiz.
+        $this->questions = adaquiz_report_get_significant_questions($adaquiz);
         if ($slot && !array_key_exists($slot, $this->questions)) {
-            throw new moodle_exception('unknownquestion', 'quiz_grading');
+            throw new moodle_exception('unknownquestion', 'adaquiz_grading');
         }
 
         // Process any submitted data.
@@ -119,11 +119,11 @@ class quiz_grading_report extends quiz_default_report {
             $this->users = array();
         } else {
             $this->users = get_users_by_capability($this->context,
-                    array('mod/quiz:reviewmyattempts', 'mod/quiz:attempt'), '', '', '', '',
+                    array('mod/adaquiz:reviewmyattempts', 'mod/adaquiz:attempt'), '', '', '', '',
                     $this->currentgroup, '', false);
         }
 
-        $hasquestions = quiz_has_questions($quiz->id);
+        $hasquestions = adaquiz_has_questions($adaquiz->id);
         $counts = null;
         if ($slot && $hasquestions) {
             // Make sure there is something to do.
@@ -136,16 +136,16 @@ class quiz_grading_report extends quiz_default_report {
             }
             // If not, redirect back to the list.
             if (!$counts || $counts->$grade == 0) {
-                redirect($this->list_questions_url(), get_string('alldoneredirecting', 'quiz_grading'));
+                redirect($this->list_questions_url(), get_string('alldoneredirecting', 'adaquiz_grading'));
             }
         }
 
         // Start output.
-        $this->print_header_and_tabs($cm, $course, $quiz, 'grading');
+        $this->print_header_and_tabs($cm, $course, $adaquiz, 'grading');
 
         // What sort of page to display?
         if (!$hasquestions) {
-            echo quiz_no_questions_message($quiz, $cm, $this->context);
+            echo adaquiz_no_questions_message($adaquiz, $cm, $this->context);
 
         } else if (!$slot) {
             $this->display_index($includeauto);
@@ -163,12 +163,12 @@ class quiz_grading_report extends quiz_default_report {
         $where = "quiza.quiz = :mangrquizid AND
                 quiza.preview = 0 AND
                 quiza.state = :statefinished";
-        $params = array('mangrquizid' => $this->cm->instance, 'statefinished' => quiz_attempt::FINISHED);
+        $params = array('mangrquizid' => $this->cm->instance, 'statefinished' => adaquiz_attempt::FINISHED);
 
         $currentgroup = groups_get_activity_group($this->cm, true);
         if ($currentgroup) {
             $users = get_users_by_capability($this->context,
-                    array('mod/quiz:reviewmyattempts', 'mod/quiz:attempt'), 'u.id, u.id', '', '', '',
+                    array('mod/adaquiz:reviewmyattempts', 'mod/adaquiz:attempt'), 'u.id, u.id', '', '', '',
                     $currentgroup, '', false);
             if (empty($users)) {
                 $where .= ' AND quiza.userid = 0';
@@ -180,21 +180,21 @@ class quiz_grading_report extends quiz_default_report {
             }
         }
 
-        return new qubaid_join('{quiz_attempts} quiza', 'quiza.uniqueid', $where, $params);
+        return new qubaid_join('{adaquiz_attempts} quiza', 'quiza.uniqueid', $where, $params);
     }
 
     protected function load_attempts_by_usage_ids($qubaids) {
         global $DB;
 
         list($asql, $params) = $DB->get_in_or_equal($qubaids);
-        $params[] = quiz_attempt::FINISHED;
-        $params[] = $this->quiz->id;
+        $params[] = adaquiz_attempt::FINISHED;
+        $params[] = $this->adaquiz->id;
 
         $fields = 'quiza.*, u.idnumber, ';
         $fields .= get_all_user_name_fields(true, 'u');
         $attemptsbyid = $DB->get_records_sql("
                 SELECT $fields
-                FROM {quiz_attempts} quiza
+                FROM {adaquiz_attempts} quiza
                 JOIN {user} u ON u.id = quiza.userid
                 WHERE quiza.uniqueid $asql AND quiza.state = ? AND quiza.quiz = ?",
                 $params);
@@ -213,7 +213,7 @@ class quiz_grading_report extends quiz_default_report {
      * @return string the URL.
      */
     protected function base_url() {
-        return new moodle_url('/mod/quiz/report.php',
+        return new moodle_url('/mod/adaquiz/report.php',
                 array('id' => $this->cm->id, 'mode' => 'grading'));
     }
 
@@ -262,7 +262,7 @@ class quiz_grading_report extends quiz_default_report {
         if ($counts->$type > 0) {
             $result .= ' ' . html_writer::link($this->grade_question_url(
                     $counts->slot, $counts->questionid, $type),
-                    get_string($gradestring, 'quiz_grading'),
+                    get_string($gradestring, 'adaquiz_grading'),
                     array('class' => 'gradetheselink'));
         }
         return $result;
@@ -276,11 +276,11 @@ class quiz_grading_report extends quiz_default_report {
             groups_print_activity_menu($this->cm, $this->list_questions_url());
         }
 
-        echo $OUTPUT->heading(get_string('questionsthatneedgrading', 'quiz_grading'), 3);
+        echo $OUTPUT->heading(get_string('questionsthatneedgrading', 'adaquiz_grading'), 3);
         if ($includeauto) {
-            $linktext = get_string('hideautomaticallygraded', 'quiz_grading');
+            $linktext = get_string('hideautomaticallygraded', 'adaquiz_grading');
         } else {
-            $linktext = get_string('alsoshowautomaticallygraded', 'quiz_grading');
+            $linktext = get_string('alsoshowautomaticallygraded', 'adaquiz_grading');
         }
         echo html_writer::tag('p', html_writer::link($this->list_questions_url(!$includeauto),
                 $linktext), array('class' => 'toggleincludeauto'));
@@ -316,7 +316,7 @@ class quiz_grading_report extends quiz_default_report {
         }
 
         if (empty($data)) {
-            echo $OUTPUT->notification(get_string('nothingfound', 'quiz_grading'));
+            echo $OUTPUT->notification(get_string('nothingfound', 'adaquiz_grading'));
             return;
         }
 
@@ -324,14 +324,14 @@ class quiz_grading_report extends quiz_default_report {
         $table->class = 'generaltable';
         $table->id = 'questionstograde';
 
-        $table->head[] = get_string('qno', 'quiz_grading');
-        $table->head[] = get_string('questionname', 'quiz_grading');
-        $table->head[] = get_string('tograde', 'quiz_grading');
-        $table->head[] = get_string('alreadygraded', 'quiz_grading');
+        $table->head[] = get_string('qno', 'adaquiz_grading');
+        $table->head[] = get_string('questionname', 'adaquiz_grading');
+        $table->head[] = get_string('tograde', 'adaquiz_grading');
+        $table->head[] = get_string('alreadygraded', 'adaquiz_grading');
         if ($includeauto) {
-            $table->head[] = get_string('automaticallygraded', 'quiz_grading');
+            $table->head[] = get_string('automaticallygraded', 'adaquiz_grading');
         }
-        $table->head[] = get_string('total', 'quiz_grading');
+        $table->head[] = get_string('total', 'adaquiz_grading');
 
         $table->data = $data;
         echo html_writer::table($table);
@@ -360,7 +360,7 @@ class quiz_grading_report extends quiz_default_report {
         if (array_key_exists('includeauto', $this->viewoptions)) {
             $hidden['includeauto'] = $this->viewoptions['includeauto'];
         }
-        $mform = new quiz_grading_settings_form($hidden, $counts, $shownames, $showidnumbers);
+        $mform = new adaquiz_grading_settings_form($hidden, $counts, $shownames, $showidnumbers);
 
         // Tell the form the current settings.
         $settings = new stdClass();
@@ -375,9 +375,9 @@ class quiz_grading_report extends quiz_default_report {
         $a = new stdClass();
         $a->number = $this->questions[$slot]->number;
         $a->questionname = format_string($counts->name);
-        echo $OUTPUT->heading(get_string('gradingquestionx', 'quiz_grading', $a), 3);
+        echo $OUTPUT->heading(get_string('gradingquestionx', 'adaquiz_grading', $a), 3);
         echo html_writer::tag('p', html_writer::link($this->list_questions_url(),
-                get_string('backtothelistofquestions', 'quiz_grading')),
+                get_string('backtothelistofquestions', 'adaquiz_grading')),
                 array('class' => 'mdl-align'));
 
         $mform->display();
@@ -387,7 +387,7 @@ class quiz_grading_report extends quiz_default_report {
         $a->from = $page * $pagesize + 1;
         $a->to = min(($page + 1) * $pagesize, $count);
         $a->of = $count;
-        echo $OUTPUT->heading(get_string('gradingattemptsxtoyofz', 'quiz_grading', $a), 3);
+        echo $OUTPUT->heading(get_string('gradingattemptsxtoyofz', 'adaquiz_grading', $a), 3);
 
         if ($count > $pagesize && $order != 'random') {
             echo $OUTPUT->paging_bar($count, $page, $pagesize,
@@ -407,7 +407,7 @@ class quiz_grading_report extends quiz_default_report {
         foreach ($qubaids as $qubaid) {
             $attempt = $attempts[$qubaid];
             $quba = question_engine::load_questions_usage_by_activity($qubaid);
-            $displayoptions = quiz_get_review_options($this->quiz, $attempt, $this->context);
+            $displayoptions = adaquiz_get_review_options($this->adaquiz, $attempt, $this->context);
             $displayoptions->hide_all_feedback();
             $displayoptions->history = question_display_options::HIDDEN;
             $displayoptions->manualcomment = question_display_options::EDITABLE;
@@ -420,7 +420,7 @@ class quiz_grading_report extends quiz_default_report {
         }
 
         echo html_writer::tag('div', html_writer::empty_tag('input', array(
-                'type' => 'submit', 'value' => get_string('saveandnext', 'quiz_grading'))),
+                'type' => 'submit', 'value' => get_string('saveandnext', 'adaquiz_grading'))),
                 array('class' => 'mdl-align')) .
                 html_writer::end_tag('div') . html_writer::end_tag('form');
     }
@@ -434,12 +434,12 @@ class quiz_grading_report extends quiz_default_report {
         $showidnumbers &= !empty($attempt->idnumber);
 
         if ($shownames && $showidnumbers) {
-            return get_string('gradingattemptwithidnumber', 'quiz_grading', $a);
+            return get_string('gradingattemptwithidnumber', 'adaquiz_grading', $a);
         } else if ($shownames) {
-            return get_string('gradingattempt', 'quiz_grading', $a);
+            return get_string('gradingattempt', 'adaquiz_grading', $a);
         } else if ($showidnumbers) {
             $a->fullname = $attempt->idnumber;
-            return get_string('gradingattempt', 'quiz_grading', $a);
+            return get_string('gradingattempt', 'adaquiz_grading', $a);
         } else {
             return '';
         }
@@ -488,7 +488,7 @@ class quiz_grading_report extends quiz_default_report {
         $transaction = $DB->start_delegated_transaction();
         foreach ($qubaids as $qubaid) {
             $attempt = $attempts[$qubaid];
-            $attemptobj = new quiz_attempt($attempt, $this->quiz, $this->cm, $this->course);
+            $attemptobj = new adaquiz_attempt($attempt, $this->adaquiz, $this->cm, $this->course);
             $attemptobj->process_submitted_actions(time());
 
             // Add the event we will trigger later.
@@ -497,12 +497,12 @@ class quiz_grading_report extends quiz_default_report {
                 'courseid' => $attemptobj->get_courseid(),
                 'context' => context_module::instance($attemptobj->get_cmid()),
                 'other' => array(
-                    'quizid' => $attemptobj->get_quizid(),
+                    'adaquizid' => $attemptobj->get_adaquizid(),
                     'attemptid' => $attemptobj->get_attemptid(),
                     'slot' => $assumedslotforevents
                 )
             );
-            $events[] = \mod_quiz\event\question_manually_graded::create($params);
+            $events[] = \mod_adaquiz\event\question_manually_graded::create($params);
         }
         $transaction->allow_commit();
 

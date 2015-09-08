@@ -1,5 +1,5 @@
 {
-    "moodle-mod_quiz-repaginate": {
+    "moodle-mod_adaquiz-repaginate": {
         "requires": [
             "base",
             "event",

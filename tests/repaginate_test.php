@@ -15,29 +15,29 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Unit tests for the {@link \mod_quiz\repaginate} class.
- * @package   mod_quiz
+ * Unit tests for the {@link \mod_adaquiz\repaginate} class.
+ *
+ * @package   mod_adaquiz
  * @category  test
- * @copyright 2014 The Open Univsersity
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-require_once($CFG->dirroot . '/mod/quiz/classes/repaginate.php');
+require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/classes/repaginate.php');
 
 
 /**
- * Testable subclass, giving access to the protected methods of {@link \mod_quiz\repaginate}
+ * Testable subclass, giving access to the protected methods of {@link \mod_adaquiz\repaginate}
  * @copyright 2014 The Open Univsersity
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_quiz_repaginate_testable extends \mod_quiz\repaginate {
+class mod_adaquiz_repaginate_testable extends \mod_adaquiz\repaginate {
 
-    public function __construct($quizid = 0, $slots = null) {
-        return parent::__construct($quizid, $slots);
+    public function __construct($adaquizid = 0, $slots = null) {
+        return parent::__construct($adaquizid, $slots);
     }
     public function get_this_slot($slots, $slotnumber) {
         return parent::get_this_slot($slots, $slotnumber);
@@ -61,16 +61,16 @@ class mod_quiz_repaginate_testable extends \mod_quiz\repaginate {
  * @copyright 2014 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_quiz_repaginate_test extends advanced_testcase {
+class mod_adaquiz_repaginate_test extends advanced_testcase {
 
     /** @var array stores the slots. */
-    private $quizslots;
-    /** @var mod_quiz_repaginate_testable the object being tested. */
+    private $adaquizslots;
+    /** @var mod_adaquiz_repaginate_testable the object being tested. */
     private $repaginate = null;
 
     public function setUp() {
-        $this->set_quiz_slots($this->get_quiz_object()->get_slots());
-        $this->repaginate = new mod_quiz_repaginate_testable(0, $this->quizslots);
+        $this->set_adaquiz_slots($this->get_adaquiz_object()->get_slots());
+        $this->repaginate = new mod_adaquiz_repaginate_testable(0, $this->adaquizslots);
     }
 
     public function tearDown() {
@@ -78,19 +78,19 @@ class mod_quiz_repaginate_test extends advanced_testcase {
     }
 
     /**
-     * Create a quiz, add five questions to the quiz
-     * which are all on one page and return the quiz object.
+     * Create a adaptive quiz, add five questions to the adaptive quiz
+     * which are all on one page and return the adaptive quiz object.
      */
-    private function get_quiz_object() {
+    private function get_adaquiz_object() {
         global $SITE;
         $this->resetAfterTest(true);
 
-        // Make a quiz.
-        $quizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_quiz');
+        // Make an adaptive quiz.
+        $adaquizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_adaquiz');
 
-        $quiz = $quizgenerator->create_instance(array(
+        $adaquiz = $adaquizgenerator->create_instance(array(
                 'course' => $SITE->id, 'questionsperpage' => 0, 'grade' => 100.0, 'sumgrades' => 2));
-        $cm = get_coursemodule_from_instance('quiz', $quiz->id, $SITE->id);
+        $cm = get_coursemodule_from_instance('adaquiz', $adaquiz->id, $SITE->id);
 
         // Create five questions.
         $questiongenerator = $this->getDataGenerator()->get_plugin_generator('core_question');
@@ -102,27 +102,27 @@ class mod_quiz_repaginate_test extends advanced_testcase {
         $truefalse = $questiongenerator->create_question('truefalse', null, array('category' => $cat->id));
         $match = $questiongenerator->create_question('match', null, array('category' => $cat->id));
 
-        // Add them to the quiz.
-        quiz_add_quiz_question($shortanswer->id, $quiz);
-        quiz_add_quiz_question($numerical->id, $quiz);
-        quiz_add_quiz_question($essay->id, $quiz);
-        quiz_add_quiz_question($truefalse->id, $quiz);
-        quiz_add_quiz_question($match->id, $quiz);
+        // Add them to the adaptive quiz.
+        adaquiz_add_adaquiz_question($shortanswer->id, $adaquiz);
+        adaquiz_add_adaquiz_question($numerical->id, $adaquiz);
+        adaquiz_add_adaquiz_question($essay->id, $adaquiz);
+        adaquiz_add_adaquiz_question($truefalse->id, $adaquiz);
+        adaquiz_add_adaquiz_question($match->id, $adaquiz);
 
-        // Return the quiz object.
-        $quizobj = new quiz($quiz, $cm, $SITE);
-        return \mod_quiz\structure::create_for_quiz($quizobj);
+        // Return the adaquiz object.
+        $adaquizobj = new adaquiz($adaquiz, $cm, $SITE);
+        return \mod_adaquiz\structure::create_for_adaquiz($adaquizobj);
     }
 
     /**
-     * Set the quiz slots
+     * Set the adaptive quiz slots
      * @param string $slots
      */
-    private function set_quiz_slots($slots = null) {
+    private function set_adaquiz_slots($slots = null) {
         if (!$slots) {
-            $this->quizslots = $this->get_quiz_object()->get_slots();
+            $this->adaquizslots = $this->get_adaquiz_object()->get_slots();
         } else {
-            $this->quizslots = $slots;
+            $this->adaquizslots = $slots;
         }
     }
 
@@ -130,46 +130,46 @@ class mod_quiz_repaginate_test extends advanced_testcase {
      * Test the get_this_slot() method
      */
     public function test_get_this_slot() {
-        $this->set_quiz_slots();
+        $this->set_adaquiz_slots();
         $actual = array();
         $expected = $this->repaginate->get_slots_by_slot_number();
         $this->assertEquals($expected, $actual);
 
-        $slotsbyno = $this->repaginate->get_slots_by_slot_number($this->quizslots);
+        $slotsbyno = $this->repaginate->get_slots_by_slot_number($this->adaquizslots);
         $slotnumber = 5;
-        $thisslot = $this->repaginate->get_this_slot($this->quizslots, $slotnumber);
+        $thisslot = $this->repaginate->get_this_slot($this->adaquizslots, $slotnumber);
         $this->assertEquals($slotsbyno[$slotnumber], $thisslot);
     }
 
     public function test_get_slots_by_slotnumber() {
-        $this->set_quiz_slots();
+        $this->set_adaquiz_slots();
         $expected = array();
         $actual = $this->repaginate->get_slots_by_slot_number();
         $this->assertEquals($expected, $actual);
 
-        foreach ($this->quizslots as $slot) {
+        foreach ($this->adaquizslots as $slot) {
             $expected[$slot->slot] = $slot;
         }
-        $actual = $this->repaginate->get_slots_by_slot_number($this->quizslots);
+        $actual = $this->repaginate->get_slots_by_slot_number($this->adaquizslots);
         $this->assertEquals($expected, $actual);
     }
 
     public function test_get_slots_by_slotid() {
-        $this->set_quiz_slots();
+        $this->set_adaquiz_slots();
         $actual = $this->repaginate->get_slots_by_slotid();
         $this->assertEquals(array(), $actual);
 
-        $slotsbyno = $this->repaginate->get_slots_by_slot_number($this->quizslots);
+        $slotsbyno = $this->repaginate->get_slots_by_slot_number($this->adaquizslots);
         $actual = $this->repaginate->get_slots_by_slotid($slotsbyno);
-        $this->assertEquals($this->quizslots, $actual);
+        $this->assertEquals($this->adaquizslots, $actual);
     }
 
     public function test_repaginate_n_questions_per_page() {
-        $this->set_quiz_slots();
+        $this->set_adaquiz_slots();
 
         // Expect 2 questions per page.
         $expected = array();
-        foreach ($this->quizslots as $slot) {
+        foreach ($this->adaquizslots as $slot) {
             // Page 1 contains Slots 1 and 2.
             if ($slot->slot >= 1 && $slot->slot <= 2) {
                 $slot->page = 1;
@@ -184,12 +184,12 @@ class mod_quiz_repaginate_test extends advanced_testcase {
             }
             $expected[$slot->id] = $slot;
         }
-        $actual = $this->repaginate->repaginate_n_question_per_page($this->quizslots, 2);
+        $actual = $this->repaginate->repaginate_n_question_per_page($this->adaquizslots, 2);
         $this->assertEquals($expected, $actual);
 
         // Expect 3 questions per page.
         $expected = array();
-        foreach ($this->quizslots as $slot) {
+        foreach ($this->adaquizslots as $slot) {
             // Page 1 contains Slots 1, 2 and 3.
             if ($slot->slot >= 1 && $slot->slot <= 3) {
                 $slot->page = 1;
@@ -200,12 +200,12 @@ class mod_quiz_repaginate_test extends advanced_testcase {
             }
             $expected[$slot->id] = $slot;
         }
-        $actual = $this->repaginate->repaginate_n_question_per_page($this->quizslots, 3);
+        $actual = $this->repaginate->repaginate_n_question_per_page($this->adaquizslots, 3);
         $this->assertEquals($expected, $actual);
 
         // Expect 5 questions per page.
         $expected = array();
-        foreach ($this->quizslots as $slot) {
+        foreach ($this->adaquizslots as $slot) {
             // Page 1 contains Slots 1, 2, 3, 4 and 5.
             if ($slot->slot > 0 && $slot->slot < 6) {
                 $slot->page = 1;
@@ -216,12 +216,12 @@ class mod_quiz_repaginate_test extends advanced_testcase {
             }
             $expected[$slot->id] = $slot;
         }
-        $actual = $this->repaginate->repaginate_n_question_per_page($this->quizslots, 5);
+        $actual = $this->repaginate->repaginate_n_question_per_page($this->adaquizslots, 5);
         $this->assertEquals($expected, $actual);
 
         // Expect 10 questions per page.
         $expected = array();
-        foreach ($this->quizslots as $slot) {
+        foreach ($this->adaquizslots as $slot) {
             // Page 1 contains Slots 1 to 10.
             if ($slot->slot >= 1 && $slot->slot <= 10) {
                 $slot->page = 1;
@@ -232,23 +232,23 @@ class mod_quiz_repaginate_test extends advanced_testcase {
             }
             $expected[$slot->id] = $slot;
         }
-        $actual = $this->repaginate->repaginate_n_question_per_page($this->quizslots, 10);
+        $actual = $this->repaginate->repaginate_n_question_per_page($this->adaquizslots, 10);
         $this->assertEquals($expected, $actual);
 
         // Expect 1 questions per page.
         $expected = array();
         $page = 1;
-        foreach ($this->quizslots as $slot) {
+        foreach ($this->adaquizslots as $slot) {
             $slot->page = $page++;
             $expected[$slot->id] = $slot;
         }
-        $actual = $this->repaginate->repaginate_n_question_per_page($this->quizslots, 1);
+        $actual = $this->repaginate->repaginate_n_question_per_page($this->adaquizslots, 1);
         $this->assertEquals($expected, $actual);
     }
 
     public function test_repaginate_this_slot() {
-        $this->set_quiz_slots();
-        $slotsbyslotno = $this->repaginate->get_slots_by_slot_number($this->quizslots);
+        $this->set_adaquiz_slots();
+        $slotsbyslotno = $this->repaginate->get_slots_by_slot_number($this->adaquizslots);
         $slotnumber = 3;
         $newpagenumber = 2;
         $thisslot = $slotsbyslotno[3];
@@ -259,31 +259,31 @@ class mod_quiz_repaginate_test extends advanced_testcase {
     }
 
     public function test_repaginate_the_rest() {
-        $this->set_quiz_slots();
+        $this->set_adaquiz_slots();
         $slotfrom = 1;
-        $type = \mod_quiz\repaginate::LINK;
+        $type = \mod_adaquiz\repaginate::LINK;
         $expected = array();
-        foreach ($this->quizslots as $slot) {
+        foreach ($this->adaquizslots as $slot) {
             if ($slot->slot > $slotfrom) {
                 $slot->page = $slot->page - 1;
                 $expected[$slot->id] = $slot;
             }
         }
-        $actual = $this->repaginate->repaginate_the_rest($this->quizslots, $slotfrom, $type, false);
+        $actual = $this->repaginate->repaginate_the_rest($this->adaquizslots, $slotfrom, $type, false);
         $this->assertEquals($expected, $actual);
 
         $slotfrom = 2;
         $newslots = array();
-        foreach ($this->quizslots as $s) {
+        foreach ($this->adaquizslots as $s) {
             if ($s->slot === $slotfrom) {
                 $s->page = $s->page - 1;
             }
             $newslots[$s->id] = $s;
         }
 
-        $type = \mod_quiz\repaginate::UNLINK;
+        $type = \mod_adaquiz\repaginate::UNLINK;
         $expected = array();
-        foreach ($this->quizslots as $slot) {
+        foreach ($this->adaquizslots as $slot) {
             if ($slot->slot > ($slotfrom - 1)) {
                 $slot->page = $slot->page - 1;
                 $expected[$slot->id] = $slot;

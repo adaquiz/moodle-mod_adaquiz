@@ -18,9 +18,9 @@
  * This page allows the teacher to enter a manual grade for a particular question.
  * This page is expected to only be used in a popup window.
  *
- * @package   mod_quiz
- * @copyright gustav delius 2006
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once('../../config.php');
@@ -29,37 +29,37 @@ require_once('locallib.php');
 $attemptid = required_param('attempt', PARAM_INT);
 $slot = required_param('slot', PARAM_INT); // The question number in the attempt.
 
-$PAGE->set_url('/mod/quiz/comment.php', array('attempt' => $attemptid, 'slot' => $slot));
+$PAGE->set_url('/mod/adaquiz/comment.php', array('attempt' => $attemptid, 'slot' => $slot));
 
-$attemptobj = quiz_attempt::create($attemptid);
+$attemptobj = adaquiz_attempt::create($attemptid);
 
 // Can only grade finished attempts.
 if (!$attemptobj->is_finished()) {
-    print_error('attemptclosed', 'quiz');
+    print_error('attemptclosed', 'adaquiz');
 }
 
 // Check login and permissions.
 require_login($attemptobj->get_course(), false, $attemptobj->get_cm());
-$attemptobj->require_capability('mod/quiz:grade');
+$attemptobj->require_capability('mod/adaquiz:grade');
 
 // Print the page header.
 $PAGE->set_pagelayout('popup');
 $PAGE->set_heading($attemptobj->get_course()->fullname);
-$output = $PAGE->get_renderer('mod_quiz');
+$output = $PAGE->get_renderer('mod_adaquiz');
 echo $output->header();
 
 // Prepare summary information about this question attempt.
 $summarydata = array();
 
-// Quiz name.
+// Adaptive quiz name.
 $summarydata['quizname'] = array(
-    'title'   => get_string('modulename', 'quiz'),
-    'content' => format_string($attemptobj->get_quiz_name()),
+    'title'   => get_string('modulename', 'adaquiz'),
+    'content' => format_string($attemptobj->get_adaquiz_name()),
 );
 
 // Question name.
 $summarydata['questionname'] = array(
-    'title'   => get_string('question', 'quiz'),
+    'title'   => get_string('question', 'adaquiz'),
     'content' => $attemptobj->get_question_name($slot),
 );
 
@@ -76,12 +76,12 @@ if (data_submitted() && confirm_sesskey()) {
             'courseid' => $attemptobj->get_courseid(),
             'context' => context_module::instance($attemptobj->get_cmid()),
             'other' => array(
-                'quizid' => $attemptobj->get_quizid(),
+                'adaquizid' => $attemptobj->get_adaquizid(),
                 'attemptid' => $attemptobj->get_attemptid(),
                 'slot' => $slot
             )
         );
-        $event = \mod_quiz\event\question_manually_graded::create($params);
+        $event = \mod_adaquiz\event\question_manually_graded::create($params);
         $event->trigger();
 
         echo $output->notification(get_string('changessaved'), 'notifysuccess');
@@ -90,12 +90,12 @@ if (data_submitted() && confirm_sesskey()) {
     }
 }
 
-// Print quiz information.
+// Print adaptive quiz information.
 echo $output->review_summary_table($summarydata, 0);
 
 // Print the comment form.
 echo '<form method="post" class="mform" id="manualgradingform" action="' .
-        $CFG->wwwroot . '/mod/quiz/comment.php">';
+        $CFG->wwwroot . '/mod/adaquiz/comment.php">';
 echo $attemptobj->render_question_for_commenting($slot);
 ?>
 <div>
@@ -109,14 +109,14 @@ echo $attemptobj->render_question_for_commenting($slot);
         <div class="fitem fitem_actionbuttons fitem_fsubmit">
             <fieldset class="felement fsubmit">
                 <input id="id_submitbutton" type="submit" name="submit" value="<?php
-                        print_string('save', 'quiz'); ?>"/>
+                        print_string('save', 'adaquiz'); ?>"/>
             </fieldset>
         </div>
     </div>
 </fieldset>
 <?php
 echo '</form>';
-$PAGE->requires->js_init_call('M.mod_quiz.init_comment_popup', null, false, quiz_get_js_module());
+$PAGE->requires->js_init_call('M.mod_adaquiz.init_comment_popup', null, false, adaquiz_get_js_module());
 
 // End of the page.
 echo $output->footer();

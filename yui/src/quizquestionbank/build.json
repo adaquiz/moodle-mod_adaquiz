@@ -1,7 +1,7 @@
 {
-    "name": "moodle-mod_quiz-quizquestionbank",
+    "name": "moodle-mod_adaquiz-quizquestionbank",
     "builds": {
-        "moodle-mod_quiz-quizquestionbank": {
+        "moodle-mod_adaquiz-quizquestionbank": {
             "jsfiles": [
                 "quizquestionbank.js"
             ]

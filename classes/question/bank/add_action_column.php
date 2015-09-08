@@ -15,20 +15,19 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * A column type for the add this question to the quiz action.
+ * A column type for the add this question to the adaptive quiz action.
  *
- * @package   mod_quiz
- * @category  question
- * @copyright 2009 Tim Hunt
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_quiz\question\bank;
+namespace mod_adaquiz\question\bank;
 defined('MOODLE_INTERNAL') || die();
 
 
 /**
- * A column type for the add this question to the quiz action.
+ * A column type for the add this question to the adaptive quiz action.
  *
  * @copyright  2009 Tim Hunt
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -39,7 +38,7 @@ class add_action_column extends \core_question\bank\action_column_base {
 
     public function init() {
         parent::init();
-        $this->stradd = get_string('addtoquiz', 'quiz');
+        $this->stradd = get_string('addtoquiz', 'adaquiz');
     }
 
     public function get_name() {
@@ -50,7 +49,7 @@ class add_action_column extends \core_question\bank\action_column_base {
         if (!question_has_capability_on($question, 'use')) {
             return;
         }
-        $this->print_icon('t/add', $this->stradd, $this->qbank->add_to_quiz_url($question->id));
+        $this->print_icon('t/add', $this->stradd, $this->qbank->add_to_adaquiz_url($question->id));
     }
 
     public function get_required_fields() {

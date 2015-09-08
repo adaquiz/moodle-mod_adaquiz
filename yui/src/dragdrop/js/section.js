@@ -1,7 +1,7 @@
 /**
  * Section drag and drop.
  *
- * @class M.mod_quiz.dragdrop.section
+ * @class M.mod_adaquiz.dragdrop.section
  * @constructor
  * @extends M.core.dragdrop
  */
@@ -14,15 +14,15 @@ Y.extend(DRAGSECTION, M.core.dragdrop, {
     initializer: function() {
         // Set group for parent class
         this.groups = [ CSS.SECTIONDRAGGABLE ];
-        this.samenodeclass = M.mod_quiz.edit.get_sectionwrapperclass();
-        this.parentnodeclass = M.mod_quiz.edit.get_containerclass();
+        this.samenodeclass = M.mod_adaquiz.edit.get_sectionwrapperclass();
+        this.parentnodeclass = M.mod_adaquiz.edit.get_containerclass();
 
         // Check if we are in single section mode
         if (Y.Node.one('.' + CSS.JUMPMENU)) {
             return false;
         }
         // Initialise sections dragging
-        this.sectionlistselector = M.mod_quiz.edit.get_section_wrapper(Y);
+        this.sectionlistselector = M.mod_adaquiz.edit.get_section_wrapper(Y);
         if (this.sectionlistselector) {
             this.sectionlistselector = '.' + CSS.COURSECONTENT + ' ' + this.sectionlistselector;
 
@@ -41,7 +41,7 @@ Y.extend(DRAGSECTION, M.core.dragdrop, {
                 moveOnEnd: false
             });
             del.dd.plug(Y.Plugin.DDConstrained, {
-                // Keep it inside the .mod-quiz-edit-content
+                // Keep it inside the .mod-adaquiz-edit-content
                 constrain: '#' + CSS.PAGECONTENT,
                 stickY: true
             });
@@ -95,10 +95,10 @@ Y.extend(DRAGSECTION, M.core.dragdrop, {
         // Get our drag object
         var drag = e.target;
         // Creat a dummy structure of the outer elemnents for clean styles application
-        var containernode = Y.Node.create('<' + M.mod_quiz.edit.get_containernode() + '></' + M.mod_quiz.edit.get_containernode() + '>');
-        containernode.addClass(M.mod_quiz.edit.get_containerclass());
-        var sectionnode = Y.Node.create('<' + M.mod_quiz.edit.get_sectionwrappernode() + '></' + M.mod_quiz.edit.get_sectionwrappernode() + '>');
-        sectionnode.addClass( M.mod_quiz.edit.get_sectionwrapperclass());
+        var containernode = Y.Node.create('<' + M.mod_adaquiz.edit.get_containernode() + '></' + M.mod_adaquiz.edit.get_containernode() + '>');
+        containernode.addClass(M.mod_adaquiz.edit.get_containerclass());
+        var sectionnode = Y.Node.create('<' + M.mod_adaquiz.edit.get_sectionwrappernode() + '></' + M.mod_adaquiz.edit.get_sectionwrappernode() + '>');
+        sectionnode.addClass( M.mod_adaquiz.edit.get_sectionwrapperclass());
         sectionnode.setStyle('margin', 0);
         sectionnode.setContent(drag.get('node').get('innerHTML'));
         containernode.appendChild(sectionnode);
@@ -114,7 +114,7 @@ Y.extend(DRAGSECTION, M.core.dragdrop, {
     },
 
     get_section_index: function(node) {
-        var sectionlistselector = '.' + CSS.COURSECONTENT + ' ' + M.mod_quiz.edit.get_section_selector(Y),
+        var sectionlistselector = '.' + CSS.COURSECONTENT + ' ' + M.mod_adaquiz.edit.get_section_selector(Y),
             sectionList = Y.all(sectionlistselector),
             nodeIndex = sectionList.indexOf(node),
             zeroIndex = sectionList.indexOf(Y.one('#section-0'));
@@ -134,11 +134,11 @@ Y.extend(DRAGSECTION, M.core.dragdrop, {
             loopend = dropnodeindex;
 
         if (dragnodeid === dropnodeindex) {
-            Y.log("Skipping move - same location moving " + dragnodeid + " to " + dropnodeindex, 'debug', 'moodle-mod_quiz-dragdrop');
+            Y.log("Skipping move - same location moving " + dragnodeid + " to " + dropnodeindex, 'debug', 'moodle-mod_adaquiz-dragdrop');
             return;
         }
 
-        Y.log("Moving from position " + dragnodeid + " to position " + dropnodeindex, 'debug', 'moodle-mod_quiz-dragdrop');
+        Y.log("Moving from position " + dragnodeid + " to position " + dropnodeindex, 'debug', 'moodle-mod_adaquiz-dragdrop');
 
         if (loopstart > loopend) {
             // If we're going up, we need to swap the loop order
@@ -169,7 +169,7 @@ Y.extend(DRAGSECTION, M.core.dragdrop, {
         // Prepare request parameters
         params.sesskey = M.cfg.sesskey;
         params.courseid = this.get('courseid');
-        params.quizid = this.get('quizid');
+        params.adaquizid = this.get('adaquizid');
         params['class'] = 'section';
         params.field = 'move';
         params.id = dragnodeid;
@@ -192,7 +192,7 @@ Y.extend(DRAGSECTION, M.core.dragdrop, {
                         if (responsetext.error) {
                             new M.core.ajaxException(responsetext);
                         }
-                        M.mod_quiz.edit.process_sections(Y, sectionlist, responsetext, loopstart, loopend);
+                        M.mod_adaquiz.edit.process_sections(Y, sectionlist, responsetext, loopstart, loopend);
                     } catch (e) {}
 
                     // Update all of the section IDs - first unset them, then set them
@@ -209,14 +209,14 @@ Y.extend(DRAGSECTION, M.core.dragdrop, {
                                         Y.Moodle.core_course.util.section.getId(sectionlist.item(index))) {
                                 Y.log("Swapping " + Y.Moodle.core_course.util.section.getId(sectionlist.item(index - 1)) +
                                         " with " + Y.Moodle.core_course.util.section.getId(sectionlist.item(index)),
-                                        "debug", "moodle-mod_quiz-dragdrop");
+                                        "debug", "moodle-mod_adaquiz-dragdrop");
                                 // Swap section id.
                                 var sectionid = sectionlist.item(index - 1).get('id');
                                 sectionlist.item(index - 1).set('id', sectionlist.item(index).get('id'));
                                 sectionlist.item(index).set('id', sectionid);
 
                                 // See what format needs to swap.
-                                M.mod_quiz.edit.swap_sections(Y, index - 1, index);
+                                M.mod_adaquiz.edit.swap_sections(Y, index - 1, index);
 
                                 // Update flag.
                                 swapped = true;
@@ -240,12 +240,12 @@ Y.extend(DRAGSECTION, M.core.dragdrop, {
     }
 
 }, {
-    NAME: 'mod_quiz-dragdrop-section',
+    NAME: 'mod_adaquiz-dragdrop-section',
     ATTRS: {
         courseid: {
             value: null
         },
-        quizid: {
+        adaquizid: {
             value: null
         },
         ajaxurl: {
@@ -257,7 +257,7 @@ Y.extend(DRAGSECTION, M.core.dragdrop, {
     }
 });
 
-M.mod_quiz = M.mod_quiz || {};
-M.mod_quiz.init_section_dragdrop = function(params) {
+M.mod_adaquiz = M.mod_adaquiz || {};
+M.mod_adaquiz.init_section_dragdrop = function(params) {
     new DRAGSECTION(params);
 };

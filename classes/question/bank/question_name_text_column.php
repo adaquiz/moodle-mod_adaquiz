@@ -17,13 +17,12 @@
 /**
  * A column type for the name followed by the start of the question text.
  *
- * @package   mod_quiz
- * @category  question
- * @copyright 1999 onwards Martin Dougiamas and others {@link http://moodle.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_quiz\question\bank;
+namespace mod_adaquiz\question\bank;
 defined('MOODLE_INTERNAL') || die();
 
 
@@ -44,7 +43,7 @@ class question_name_text_column extends \core_question\bank\question_name_column
         if ($labelfor) {
             echo '<label for="' . $labelfor . '">';
         }
-        echo quiz_question_tostring($question);
+        echo adaquiz_question_tostring($question);
         if ($labelfor) {
             echo '</label>';
         }

@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Quiz attempt walk through using data from csv file.
+ * Adaptive quiz attempt walk through using data from csv file.
  *
- * The quiz stats below and the question stats found in qstats00.csv were calculated independently in a spreadsheet which is
+ * The adaptive  quiz stats below and the question stats found in qstats00.csv were calculated independently in a spreadsheet which is
  * available in open document or excel format here :
  * https://github.com/jamiepratt/moodle-quiz-tools/tree/master/statsspreadsheet
  *
@@ -25,34 +25,33 @@
  * The calculations in the spreadsheets are the same as for the other question stats but applied just to the attempts where the
  * variants appeared.
  *
- * @package    quiz_statistics
- * @category   phpunit
- * @copyright  2013 The Open University
- * @author     Jamie Pratt <me@jamiep.org>
+ * @package   adaquiz_statistics
+ * @category  phpunit
+ * @copyright  2015 Maths for More S.L.
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot . '/mod/quiz/tests/attempt_walkthrough_from_csv_test.php');
-require_once($CFG->dirroot . '/mod/quiz/report/default.php');
-require_once($CFG->dirroot . '/mod/quiz/report/statistics/report.php');
-require_once($CFG->dirroot . '/mod/quiz/report/reportlib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/tests/attempt_walkthrough_from_csv_test.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/default.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/statistics/report.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/reportlib.php');
 
 /**
- * Quiz attempt walk through using data from csv file.
+ * Adaptive uiz attempt walk through using data from csv file.
  *
- * @package    quiz_statistics
+ * @package    adaquiz_statistics
  * @category   phpunit
  * @copyright  2013 The Open University
  * @author     Jamie Pratt <me@jamiep.org>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class quiz_report_statistics_from_steps_testcase extends mod_quiz_attempt_walkthrough_from_csv_testcase {
+class adaquiz_report_statistics_from_steps_testcase extends mod_adaquiz_attempt_walkthrough_from_csv_testcase {
 
     /**
-     * @var quiz_statistics_report object to do stats calculations.
+     * @var adaquiz_statistics_report object to do stats calculations.
      */
     protected $report;
 
@@ -64,24 +63,24 @@ class quiz_report_statistics_from_steps_testcase extends mod_quiz_attempt_walkth
     protected $files = array('questions', 'steps', 'results', 'qstats', 'responsecounts');
 
     /**
-     * Create a quiz add questions to it, walk through quiz attempts and then check results.
+     * Create an adaptive quiz add questions to it, walk through adaptive quiz attempts and then check results.
      *
      * @param PHPUnit_Extensions_Database_DataSet_ITable[] of data read from csv file "questionsXX.csv",
      *                                                                                  "stepsXX.csv" and "resultsXX.csv".
      * @dataProvider get_data_for_walkthrough
      */
-    public function test_walkthrough_from_csv($quizsettings, $csvdata) {
+    public function test_walkthrough_from_csv($adaquizsettings, $csvdata) {
 
-        $this->create_quiz_simulate_attempts_and_check_results($quizsettings, $csvdata);
+        $this->create_adaquiz_simulate_attempts_and_check_results($adaquizsettings, $csvdata);
 
-        $whichattempts = QUIZ_GRADEAVERAGE; // All attempts.
+        $whichattempts = ADAQUIZ_GRADEAVERAGE; // All attempts.
         $whichtries = question_attempt::ALL_TRIES;
         $groupstudents = array();
-        list($questions, $quizstats, $questionstats, $qubaids) =
+        list($questions, $adaquizstats, $questionstats, $qubaids) =
                     $this->check_stats_calculations_and_response_analysis($csvdata, $whichattempts, $whichtries, $groupstudents);
-        if ($quizsettings['testnumber'] === '00') {
-            $this->check_variants_count_for_quiz_00($questions, $questionstats, $whichtries, $qubaids);
-            $this->check_quiz_stats_for_quiz_00($quizstats);
+        if ($adaquizsettings['testnumber'] === '00') {
+            $this->check_variants_count_for_adaquiz_00($questions, $questionstats, $whichtries, $qubaids);
+            $this->check_adaquiz_stats_for_adaquiz_00($adaquizstats);
         }
     }
 
@@ -253,7 +252,7 @@ class quiz_report_statistics_from_steps_testcase extends mod_quiz_attempt_walkth
      * @param $whichtries
      * @param $qubaids
      */
-    protected function check_variants_count_for_quiz_00($questions, $questionstats, $whichtries, $qubaids) {
+    protected function check_variants_count_for_adaquiz_00($questions, $questionstats, $whichtries, $qubaids) {
         $expectedvariantcounts = array(2 => array(1  => 6,
                                                   4  => 4,
                                                   5  => 3,
@@ -332,10 +331,10 @@ class quiz_report_statistics_from_steps_testcase extends mod_quiz_attempt_walkth
     }
 
     /**
-     * @param $quizstats
+     * @param $adaquizstats
      */
-    protected function check_quiz_stats_for_quiz_00($quizstats) {
-        $quizstatsexpected = array(
+    protected function check_adaquiz_stats_for_adaquiz_00($adaquizstats) {
+        $adaquizstatsexpected = array(
             'median'             => 4.5,
             'firstattemptsavg'   => 4.617333332,
             'allattemptsavg'     => 4.617333332,
@@ -349,8 +348,8 @@ class quiz_report_statistics_from_steps_testcase extends mod_quiz_attempt_walkth
             'standarderror'      => 1.1106813066
         );
 
-        foreach ($quizstatsexpected as $statname => $statvalue) {
-            $this->assertEquals($statvalue, $quizstats->$statname, $quizstats->$statname, abs($statvalue) * 1.5e-5);
+        foreach ($adaquizstatsexpected as $statname => $statvalue) {
+            $this->assertEquals($statvalue, $adaquizstats->$statname, $adaquizstats->$statname, abs($statvalue) * 1.5e-5);
         }
     }
 
@@ -361,25 +360,25 @@ class quiz_report_statistics_from_steps_testcase extends mod_quiz_attempt_walkth
      * @param string $whichattempts
      * @param string $whichtries
      * @param int[] $groupstudents
-     * @return array with contents 0 => $questions, 1 => $quizstats, 2=> $questionstats, 3=> $qubaids Might be needed for further
+     * @return array with contents 0 => $questions, 1 => $adaquizstats, 2=> $questionstats, 3=> $qubaids Might be needed for further
      *               testing.
      */
     protected function check_stats_calculations_and_response_analysis($csvdata, $whichattempts, $whichtries, $groupstudents) {
-        $this->report = new quiz_statistics_report();
-        $questions = $this->report->load_and_initialise_questions_for_calculations($this->quiz);
-        list($quizstats, $questionstats) = $this->report->get_all_stats_and_analysis($this->quiz,
+        $this->report = new adaquiz_statistics_report();
+        $questions = $this->report->load_and_initialise_questions_for_calculations($this->adaquiz);
+        list($adaquizstats, $questionstats) = $this->report->get_all_stats_and_analysis($this->adaquiz,
                                                                                      $whichattempts,
                                                                                      $whichtries,
                                                                                      $groupstudents,
                                                                                      $questions);
 
-        $qubaids = quiz_statistics_qubaids_condition($this->quiz->id, $groupstudents, $whichattempts);
+        $qubaids = adaquiz_statistics_qubaids_condition($this->adaquiz->id, $groupstudents, $whichattempts);
 
-        // We will create some quiz and question stat calculator instances and some response analyser instances, just in order
+        // We will create some adaptive quiz and question stat calculator instances and some response analyser instances, just in order
         // to check the last analysed time then returned.
-        $quizcalc = new \quiz_statistics\calculator();
+        $adaquizcalc = new \adaquiz_statistics\calculator();
         // Should not be a delay of more than one second between the calculation of stats above and here.
-        $this->assertTimeCurrent($quizcalc->get_last_calculated_time($qubaids));
+        $this->assertTimeCurrent($adaquizcalc->get_last_calculated_time($qubaids));
 
         $qcalc = new \core_question\statistics\questions\calculator($questions);
         $this->assertTimeCurrent($qcalc->get_last_calculated_time($qubaids));
@@ -389,9 +388,9 @@ class quiz_report_statistics_from_steps_testcase extends mod_quiz_attempt_walkth
         }
         if (isset($csvdata['qstats'])) {
             $this->check_question_stats($csvdata['qstats'], $questionstats);
-            return array($questions, $quizstats, $questionstats, $qubaids);
+            return array($questions, $adaquizstats, $questionstats, $qubaids);
         }
-        return array($questions, $quizstats, $questionstats, $qubaids);
+        return array($questions, $adaquizstats, $questionstats, $qubaids);
     }
 
 }

@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Defines the form that limits student's access to attempt a quiz.
+ * Defines the form that limits student's access to attempt an adaptive quiz.
  *
- * @package   mod_quiz
- * @copyright 2011 The Open University
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,14 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir.'/formslib.php');
 
-
-/**
- * A form that limits student's access to attempt a quiz.
- *
- * @copyright  2011 The Open University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class mod_quiz_preflight_check_form extends moodleform {
+class mod_adaquiz_preflight_check_form extends moodleform {
 
     protected function definition() {
         $mform = $this->_form;

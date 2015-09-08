@@ -15,10 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Capability definitions for the quiz module.
- *
- * @package    mod_quiz
- * @copyright  2006 The Open University
+ * Capability definitions for the adaptive quiz module.
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -26,9 +25,9 @@ defined('MOODLE_INTERNAL') || die();
 
 $capabilities = array(
 
-    // Ability to see that the quiz exists, and the basic information
+    // Ability to see that the adaptive quiz exists, and the basic information
     // about it, for example the start date and time limit.
-    'mod/quiz:view' => array(
+    'mod/adaquiz:view' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(
@@ -40,8 +39,8 @@ $capabilities = array(
         )
     ),
 
-    // Ability to add a new quiz to the course.
-    'mod/quiz:addinstance' => array(
+    // Ability to add a new adaptive quiz to the course.
+    'mod/adaquiz:addinstance' => array(
         'riskbitmask' => RISK_XSS,
 
         'captype' => 'write',
@@ -53,8 +52,8 @@ $capabilities = array(
         'clonepermissionsfrom' => 'moodle/course:manageactivities'
     ),
 
-    // Ability to do the quiz as a 'student'.
-    'mod/quiz:attempt' => array(
+    // Ability to do the adaptive quiz as a 'student'.
+    'mod/adaquiz:attempt' => array(
         'riskbitmask' => RISK_SPAM,
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
@@ -64,8 +63,8 @@ $capabilities = array(
     ),
 
     // Ability for a 'Student' to review their previous attempts. Review by
-    // 'Teachers' is controlled by mod/quiz:viewreports.
-    'mod/quiz:reviewmyattempts' => array(
+    // 'Teachers' is controlled by mod/adaquiz:viewreports.
+    'mod/adaquiz:reviewmyattempts' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(
@@ -74,8 +73,8 @@ $capabilities = array(
         'clonepermissionsfrom' => 'moodle/quiz:attempt'
     ),
 
-    // Edit the quiz settings, add and remove questions.
-    'mod/quiz:manage' => array(
+    // Edit the adaptive quiz settings, add and remove questions.
+    'mod/adaquiz:manage' => array(
         'riskbitmask' => RISK_SPAM,
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
@@ -85,8 +84,8 @@ $capabilities = array(
         )
     ),
 
-    // Edit the quiz overrides.
-    'mod/quiz:manageoverrides' => array(
+    // Edit the adaptive quiz overrides.
+    'mod/adaquiz:manageoverrides' => array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(
@@ -95,8 +94,8 @@ $capabilities = array(
         )
     ),
 
-    // Preview the quiz.
-    'mod/quiz:preview' => array(
+    // Preview the adaptive quiz.
+    'mod/adaquiz:preview' => array(
         'captype' => 'write', // Only just a write.
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(
@@ -107,7 +106,7 @@ $capabilities = array(
     ),
 
     // Manually grade and comment on student attempts at a question.
-    'mod/quiz:grade' => array(
+    'mod/adaquiz:grade' => array(
         'riskbitmask' => RISK_SPAM | RISK_XSS,
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
@@ -118,8 +117,8 @@ $capabilities = array(
         )
     ),
 
-    // Regrade quizzes.
-    'mod/quiz:regrade' => array(
+    // Regrade adaptive quizzes.
+    'mod/adaquiz:regrade' => array(
         'riskbitmask' => RISK_SPAM,
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
@@ -128,11 +127,11 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         ),
-        'clonepermissionsfrom' =>  'mod/quiz:grade'
+        'clonepermissionsfrom' =>  'mod/adaquiz:grade'
     ),
 
-    // View the quiz reports.
-    'mod/quiz:viewreports' => array(
+    // View the adaptive quiz reports.
+    'mod/adaquiz:viewreports' => array(
         'riskbitmask' => RISK_PERSONAL,
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
@@ -144,7 +143,7 @@ $capabilities = array(
     ),
 
     // Delete attempts using the overview report.
-    'mod/quiz:deleteattempts' => array(
+    'mod/adaquiz:deleteattempts' => array(
         'riskbitmask' => RISK_DATALOSS,
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
@@ -155,28 +154,28 @@ $capabilities = array(
     ),
 
     // Do not have the time limit imposed. Used for accessibility legislation compliance.
-    'mod/quiz:ignoretimelimits' => array(
+    'mod/adaquiz:ignoretimelimits' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array()
     ),
 
-    // Receive a confirmation message of own quiz submission.
-    'mod/quiz:emailconfirmsubmission' => array(
+    // Receive a confirmation message of own adaptive quiz submission.
+    'mod/adaquiz:emailconfirmsubmission' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array()
     ),
 
-    // Receive a notification message of other peoples' quiz submissions.
-    'mod/quiz:emailnotifysubmission' => array(
+    // Receive a notification message of other peoples' adaptive quiz submissions.
+    'mod/adaquiz:emailnotifysubmission' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array()
     ),
 
-    // Receive a notification message when a quiz attempt becomes overdue.
-    'mod/quiz:emailwarnoverdue' => array(
+    // Receive a notification message when a adaptive quiz attempt becomes overdue.
+    'mod/adaquiz:emailwarnoverdue' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array()

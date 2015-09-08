@@ -15,10 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Post-install script for the quiz manual grading report.
- * @package   quiz_grading
- * @copyright 2013 Tim Hunt
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Post-install script for the adaptive quiz manual grading report.
+ *
+ * @package   adaquiz_grading
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
@@ -28,13 +29,13 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Post-install script
  */
-function xmldb_quiz_grading_install() {
+function xmldb_adaquiz_grading_install() {
     global $DB;
 
     $record = new stdClass();
     $record->name         = 'grading';
     $record->displayorder = '6000';
-    $record->capability   = 'mod/quiz:grade';
+    $record->capability   = 'mod/adaquiz:grade';
 
-    $DB->insert_record('quiz_reports', $record);
+    $DB->insert_record('adaquiz_reports', $record);
 }

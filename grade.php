@@ -15,37 +15,36 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This page is the entry page into the quiz UI. Displays information about the
- * quiz to students and teachers, and lets students see their previous attempts.
+ * This page is the entry page into the adaptive quiz UI. Displays information about the
+ * adaptive quiz to students and teachers, and lets students see their previous attempts.
  *
- * @package   mod_quiz
- * @category  grade
- * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 require_once(dirname(__FILE__) . '/../../config.php');
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-require_once($CFG->dirroot . '/mod/quiz/report/reportlib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/report/reportlib.php');
 
 
 $id = required_param('id', PARAM_INT);
 $userid = optional_param('userid', 0, PARAM_INT);
 
-$cm = get_coursemodule_from_id('quiz', $id, 0, false, MUST_EXIST);
+$cm = get_coursemodule_from_id('adaquiz', $id, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-$quiz = $DB->get_record('quiz', array('id' => $cm->instance), '*', MUST_EXIST);
+$adaquiz = $DB->get_record('adaquiz', array('id' => $cm->instance), '*', MUST_EXIST);
 require_login($course, false, $cm);
 
-$reportlist = quiz_report_list(context_module::instance($cm->id));
+$reportlist = adaquiz_report_list(context_module::instance($cm->id));
 if (empty($reportlist) || $userid == $USER->id) {
     // If the user cannot see reports, or can see reports but is looking
     // at their own grades, redirect them to the view.php page.
     // (The looking at their own grades case is unlikely, since users who
-    // appear in the gradebook are unlikely to be able to see quiz reports,
+    // appear in the gradebook are unlikely to be able to see adaptive quiz reports,
     // but it is possible.)
-    redirect(new moodle_url('/mod/quiz/view.php', array('id' => $cm->id)));
+    redirect(new moodle_url('/mod/adaquiz/view.php', array('id' => $cm->id)));
 }
 
 // Now we know the user is interested in reports. If they are interested in a
@@ -53,19 +52,19 @@ if (empty($reportlist) || $userid == $USER->id) {
 if ($userid) {
 
     // Work out which attempt is most significant from a grading point of view.
-    $attempts = quiz_get_user_attempts($quiz->id, $userid, 'finished');
+    $attempts = adaquiz_get_user_attempts($adaquiz->id, $userid, 'finished');
     $attempt = null;
-    switch ($quiz->grademethod) {
-        case QUIZ_ATTEMPTFIRST:
+    switch ($adaquiz->grademethod) {
+        case ADAQUIZ_ATTEMPTFIRST:
             $attempt = reset($attempts);
             break;
 
-        case QUIZ_ATTEMPTLAST:
-        case QUIZ_GRADEAVERAGE:
+        case ADAQUIZ_ATTEMPTLAST:
+        case ADAQUIZ_GRADEAVERAGE:
             $attempt = end($attempts);
             break;
 
-        case QUIZ_GRADEHIGHEST:
+        case ADAQUIZ_GRADEHIGHEST:
             $maxmark = 0;
             foreach ($attempts as $at) {
                 // Operator >=, since we want to most recent relevant attempt.
@@ -79,7 +78,7 @@ if ($userid) {
 
     // If the user can review the relevant attempt, redirect to it.
     if ($attempt) {
-        $attemptobj = new quiz_attempt($attempt, $quiz, $cm, $course, false);
+        $attemptobj = new adaquiz_attempt($attempt, $adaquiz, $cm, $course, false);
         if ($attemptobj->is_review_allowed()) {
             redirect($attemptobj->review_url());
         }
@@ -89,5 +88,5 @@ if ($userid) {
 }
 
 // Send the user to the first report they can see.
-redirect(new moodle_url('/mod/quiz/report.php', array(
+redirect(new moodle_url('/mod/adaquiz/report.php', array(
         'id' => $cm->id, 'mode' => reset($reportlist))));

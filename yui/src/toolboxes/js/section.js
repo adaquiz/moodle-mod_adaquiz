@@ -4,8 +4,8 @@
  * This class is responsible for managing AJAX interactions with activities and resources
  * when viewing a course in editing mode.
  *
- * @module moodle-mod_quiz-toolboxes
- * @namespace M.mod_quiz.toolboxes
+ * @module moodle-mod_adaquiz-toolboxes
+ * @namespace M.mod_adaquiz.toolboxes
  */
 
 /**
@@ -16,7 +16,7 @@
  *
  * @class section
  * @constructor
- * @extends M.mod_quiz.toolboxes.toolbox
+ * @extends M.mod_adaquiz.toolboxes.toolbox
  */
 var SECTIONTOOLBOX = function() {
     SECTIONTOOLBOX.superclass.constructor.apply(this, arguments);
@@ -32,7 +32,7 @@ Y.extend(SECTIONTOOLBOX, TOOLBOX, {
      * @protected
      */
     initializer : function() {
-        M.mod_quiz.quizbase.register_module(this);
+        M.mod_adaquiz.adaquizbase.register_module(this);
 
         // Section Highlighting.
         Y.delegate('click', this.toggle_highlight, SELECTOR.PAGECONTENT, SELECTOR.SECTIONLI + ' ' + SELECTOR.HIGHLIGHT, this);
@@ -46,7 +46,7 @@ Y.extend(SECTIONTOOLBOX, TOOLBOX, {
         e.preventDefault();
 
         // Get the section we're working on.
-        var section = e.target.ancestor(M.mod_quiz.format.get_section_selector(Y)),
+        var section = e.target.ancestor(M.mod_adaquiz.format.get_section_selector(Y)),
             button = e.target.ancestor('a', true),
             hideicon = button.one('img'),
 
@@ -80,7 +80,7 @@ Y.extend(SECTIONTOOLBOX, TOOLBOX, {
         var data = {
             'class' : 'section',
             'field' : 'visible',
-            'id'    : Y.Moodle.core_course.util.section.getId(section.ancestor(M.mod_quiz.edit.get_section_wrapper(Y), true)),
+            'id'    : Y.Moodle.core_course.util.section.getId(section.ancestor(M.mod_adaquiz.edit.get_section_wrapper(Y), true)),
             'value' : value
         };
 
@@ -96,12 +96,12 @@ Y.extend(SECTIONTOOLBOX, TOOLBOX, {
                 } else {
                     button = node.one(SELECTOR.HIDE);
                 }
-                var activityid = Y.Moodle.mod_quiz.util.slot.getId(node);
+                var activityid = Y.Moodle.mod_adaquiz.util.slot.getId(node);
 
                 // NOTE: resourcestotoggle is returned as a string instead
                 // of a Number so we must cast our activityid to a String.
                 if (Y.Array.indexOf(response.resourcestotoggle, "" + activityid) !== -1) {
-                    M.mod_quiz.resource_toolbox.handle_resource_dim(button, node, action);
+                    M.mod_adaquiz.resource_toolbox.handle_resource_dim(button, node, action);
                 }
             }, this);
         });
@@ -118,7 +118,7 @@ Y.extend(SECTIONTOOLBOX, TOOLBOX, {
         e.preventDefault();
 
         // Get the section we're working on.
-        var section = e.target.ancestor(M.mod_quiz.edit.get_section_selector(Y));
+        var section = e.target.ancestor(M.mod_adaquiz.edit.get_section_selector(Y));
         var button = e.target.ancestor('a', true);
         var buttonicon = button.one('img');
 
@@ -129,21 +129,21 @@ Y.extend(SECTIONTOOLBOX, TOOLBOX, {
         // Set the current highlighted item text.
         var old_string = M.util.get_string('markthistopic', 'moodle');
         Y.one(SELECTOR.PAGECONTENT)
-            .all(M.mod_quiz.edit.get_section_selector(Y) + '.current ' + SELECTOR.HIGHLIGHT)
+            .all(M.mod_adaquiz.edit.get_section_selector(Y) + '.current ' + SELECTOR.HIGHLIGHT)
             .set('title', old_string);
         Y.one(SELECTOR.PAGECONTENT)
-            .all(M.mod_quiz.edit.get_section_selector(Y) + '.current ' + SELECTOR.HIGHLIGHT + ' img')
+            .all(M.mod_adaquiz.edit.get_section_selector(Y) + '.current ' + SELECTOR.HIGHLIGHT + ' img')
             .set('alt', old_string)
             .set('src', M.util.image_url('i/marker'));
 
         // Remove the highlighting from all sections.
-        Y.one(SELECTOR.PAGECONTENT).all(M.mod_quiz.edit.get_section_selector(Y))
+        Y.one(SELECTOR.PAGECONTENT).all(M.mod_adaquiz.edit.get_section_selector(Y))
             .removeClass('current');
 
         // Then add it if required to the selected section.
         if (!togglestatus) {
             section.addClass('current');
-            value = Y.Moodle.core_course.util.section.getId(section.ancestor(M.mod_quiz.edit.get_section_wrapper(Y), true));
+            value = Y.Moodle.core_course.util.section.getId(section.ancestor(M.mod_adaquiz.edit.get_section_wrapper(Y), true));
             var new_string = M.util.get_string('markedthistopic', 'moodle');
             button
                 .set('title', new_string);
@@ -163,12 +163,12 @@ Y.extend(SECTIONTOOLBOX, TOOLBOX, {
         this.send_request(data, lightbox);
     }
 },  {
-    NAME : 'mod_quiz-section-toolbox',
+    NAME : 'mod_adaquiz-section-toolbox',
     ATTRS : {
         courseid : {
             'value' : 0
         },
-        quizid : {
+        adaquizid : {
             'value' : 0
         },
         format : {
@@ -177,6 +177,6 @@ Y.extend(SECTIONTOOLBOX, TOOLBOX, {
     }
 });
 
-M.mod_quiz.init_section_toolbox = function(config) {
+M.mod_adaquiz.init_section_toolbox = function(config) {
     return new SECTIONTOOLBOX(config);
 };

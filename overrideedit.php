@@ -15,18 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This page handles editing and creation of quiz overrides
+ * This page handles editing and creation of adaptive quiz overrides
  *
- * @package   mod_quiz
- * @copyright 2010 Matt Petro
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
 require_once(dirname(__FILE__) . '/../../config.php');
-require_once($CFG->dirroot.'/mod/quiz/lib.php');
-require_once($CFG->dirroot.'/mod/quiz/locallib.php');
-require_once($CFG->dirroot.'/mod/quiz/override_form.php');
+require_once($CFG->dirroot.'/mod/adaquiz/lib.php');
+require_once($CFG->dirroot.'/mod/adaquiz/locallib.php');
+require_once($CFG->dirroot.'/mod/adaquiz/override_form.php');
 
 
 $cmid = optional_param('cmid', 0, PARAM_INT);
@@ -37,24 +37,24 @@ $reset = optional_param('reset', false, PARAM_BOOL);
 $override = null;
 if ($overrideid) {
 
-    if (! $override = $DB->get_record('quiz_overrides', array('id' => $overrideid))) {
-        print_error('invalidoverrideid', 'quiz');
+    if (! $override = $DB->get_record('adaquiz_overrides', array('id' => $overrideid))) {
+        print_error('invalidoverrideid', 'adaquiz');
     }
-    if (! $quiz = $DB->get_record('quiz', array('id' => $override->quiz))) {
+    if (! $adaquiz = $DB->get_record('adaquiz', array('id' => $override->quiz))) {
         print_error('invalidcoursemodule');
     }
-    list($course, $cm) = get_course_and_cm_from_instance($quiz, 'quiz');
+    list($course, $cm) = get_course_and_cm_from_instance($adaquiz, 'adaquiz');
 
 } else if ($cmid) {
-    list($course, $cm) = get_course_and_cm_from_cmid($cmid, 'quiz');
-    $quiz = $DB->get_record('quiz', array('id' => $cm->instance), '*', MUST_EXIST);
+    list($course, $cm) = get_course_and_cm_from_cmid($cmid, 'adaquiz');
+    $adaquiz = $DB->get_record('adaquiz', array('id' => $cm->instance), '*', MUST_EXIST);
 
 } else {
     print_error('invalidcoursemodule');
 }
 $course = $DB->get_record('course', array('id'=>$cm->course), '*', MUST_EXIST);
 
-$url = new moodle_url('/mod/quiz/overrideedit.php');
+$url = new moodle_url('/mod/adaquiz/overrideedit.php');
 if ($action) {
     $url->param('action', $action);
 }
@@ -71,7 +71,7 @@ require_login($course, false, $cm);
 $context = context_module::instance($cm->id);
 
 // Add or edit an override.
-require_capability('mod/quiz:manageoverrides', $context);
+require_capability('mod/adaquiz:manageoverrides', $context);
 
 if ($overrideid) {
     // Editing an override.
@@ -81,11 +81,11 @@ if ($overrideid) {
     $data = new stdClass();
 }
 
-// Merge quiz defaults with data.
+// Merge adaptive quiz defaults with data.
 $keys = array('timeopen', 'timeclose', 'timelimit', 'attempts', 'password');
 foreach ($keys as $key) {
     if (!isset($data->{$key}) || $reset) {
-        $data->{$key} = $quiz->{$key};
+        $data->{$key} = $adaquiz->{$key};
     }
 }
 
@@ -100,13 +100,13 @@ if ($action === 'duplicate') {
 // True if group-based override.
 $groupmode = !empty($data->groupid) || ($action === 'addgroup' && empty($overrideid));
 
-$overridelisturl = new moodle_url('/mod/quiz/overrides.php', array('cmid'=>$cm->id));
+$overridelisturl = new moodle_url('/mod/adaquiz/overrides.php', array('cmid'=>$cm->id));
 if (!$groupmode) {
     $overridelisturl->param('mode', 'user');
 }
 
 // Setup the form.
-$mform = new quiz_override_form($url, $cm, $quiz, $context, $groupmode, $override);
+$mform = new adaquiz_override_form($url, $cm, $adaquiz, $context, $groupmode, $override);
 $mform->set_data($data);
 
 if ($mform->is_cancelled()) {
@@ -118,11 +118,11 @@ if ($mform->is_cancelled()) {
 
 } else if ($fromform = $mform->get_data()) {
     // Process the data.
-    $fromform->quiz = $quiz->id;
+    $fromform->adaquiz = $adaquiz->id;
 
     // Replace unchanged values with null.
     foreach ($keys as $key) {
-        if ($fromform->{$key} == $quiz->{$key}) {
+        if ($fromform->{$key} == $adaquiz->{$key}) {
             $fromform->{$key} = null;
         }
     }
@@ -139,10 +139,10 @@ if ($mform->is_cancelled()) {
 
     if ($userorgroupchanged) {
         $conditions = array(
-                'quiz' => $quiz->id,
+                'quiz' => $adaquiz->id,
                 'userid' => empty($fromform->userid)? null : $fromform->userid,
                 'groupid' => empty($fromform->groupid)? null : $fromform->groupid);
-        if ($oldoverride = $DB->get_record('quiz_overrides', $conditions)) {
+        if ($oldoverride = $DB->get_record('adaquiz_overrides', $conditions)) {
             // There is an old override, so we merge any new settings on top of
             // the older override.
             foreach ($keys as $key) {
@@ -150,9 +150,9 @@ if ($mform->is_cancelled()) {
                     $fromform->{$key} = $oldoverride->{$key};
                 }
             }
-            // Set the course module id before calling quiz_delete_override().
-            $quiz->cmid = $cm->id;
-            quiz_delete_override($quiz, $oldoverride->id);
+            // Set the course module id before calling adaquiz_delete_override().
+            $adaquiz->cmid = $cm->id;
+            adaquiz_delete_override($adaquiz, $oldoverride->id);
         }
     }
 
@@ -160,45 +160,45 @@ if ($mform->is_cancelled()) {
     $params = array(
         'context' => $context,
         'other' => array(
-            'quizid' => $quiz->id
+            'adaquizid' => $adaquiz->id
         )
     );
     if (!empty($override->id)) {
         $fromform->id = $override->id;
-        $DB->update_record('quiz_overrides', $fromform);
+        $DB->update_record('adaquiz_overrides', $fromform);
 
         // Determine which override updated event to fire.
         $params['objectid'] = $override->id;
         if (!$groupmode) {
             $params['relateduserid'] = $fromform->userid;
-            $event = \mod_quiz\event\user_override_updated::create($params);
+            $event = \mod_adaquiz\event\user_override_updated::create($params);
         } else {
             $params['other']['groupid'] = $fromform->groupid;
-            $event = \mod_quiz\event\group_override_updated::create($params);
+            $event = \mod_adaquiz\event\group_override_updated::create($params);
         }
 
         // Trigger the override updated event.
         $event->trigger();
     } else {
         unset($fromform->id);
-        $fromform->id = $DB->insert_record('quiz_overrides', $fromform);
+        $fromform->id = $DB->insert_record('adaquiz_overrides', $fromform);
 
         // Determine which override created event to fire.
         $params['objectid'] = $fromform->id;
         if (!$groupmode) {
             $params['relateduserid'] = $fromform->userid;
-            $event = \mod_quiz\event\user_override_created::create($params);
+            $event = \mod_adaquiz\event\user_override_created::create($params);
         } else {
             $params['other']['groupid'] = $fromform->groupid;
-            $event = \mod_quiz\event\group_override_created::create($params);
+            $event = \mod_adaquiz\event\group_override_created::create($params);
         }
 
         // Trigger the override created event.
         $event->trigger();
     }
 
-    quiz_update_open_attempts(array('quizid'=>$quiz->id));
-    quiz_update_events($quiz, $fromform);
+    adaquiz_update_open_attempts(array('adaquizid'=>$adaquiz->id));
+    adaquiz_update_events($adaquiz, $fromform);
 
     if (!empty($fromform->submitbutton)) {
         redirect($overridelisturl);
@@ -213,13 +213,13 @@ if ($mform->is_cancelled()) {
 }
 
 // Print the form.
-$pagetitle = get_string('editoverride', 'quiz');
+$pagetitle = get_string('editoverride', 'adaquiz');
 $PAGE->navbar->add($pagetitle);
 $PAGE->set_pagelayout('admin');
 $PAGE->set_title($pagetitle);
 $PAGE->set_heading($course->fullname);
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($quiz->name, true, array('context' => $context)));
+echo $OUTPUT->heading(format_string($adaquiz->name, true, array('context' => $context)));
 
 $mform->display();
 

@@ -15,26 +15,25 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Admin settings class for the quiz browser security option.
+ * Admin settings class for the adaptive quiz browser security option.
  *
- * @package   mod_quiz
- * @copyright 2008 Tim Hunt
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+*/
 
 defined('MOODLE_INTERNAL') || die();
 
 
 /**
- * Admin settings class for the quiz browser security option.
+ * Admin settings class for the adaptive quiz browser security option.
  *
  * Just so we can lazy-load the choices.
  *
  * @copyright  2011 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_quiz_admin_setting_browsersecurity extends admin_setting_configselect_with_advanced {
+class mod_adaquiz_admin_setting_browsersecurity extends admin_setting_configselect_with_advanced {
     public function load_choices() {
         global $CFG;
 
@@ -42,8 +41,8 @@ class mod_quiz_admin_setting_browsersecurity extends admin_setting_configselect_
             return true;
         }
 
-        require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-        $this->choices = quiz_access_manager::get_browser_security_choices();
+        require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
+        $this->choices = adaquiz_access_manager::get_browser_security_choices();
 
         return true;
     }

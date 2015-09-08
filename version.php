@@ -15,16 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Quiz activity version information.
+ * Version file for adaptive quiz module.
  *
- * @package   mod_quiz
- * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_adaquiz
+ * @copyright  2015 Maths for More S.L.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2014111001; // The current module version (Date: YYYYMMDDXX).
+$plugin->version   = 2015080801; // The current module version (Date: YYYYMMDDXX).
 $plugin->requires  = 2014110400; // Requires this Moodle version.
-$plugin->component = 'mod_quiz'; // Full name of the plugin (used for diagnostics).
+$plugin->component = 'mod_adaquiz'; // Full name of the plugin (used for diagnostics).
 $plugin->cron      = 60;

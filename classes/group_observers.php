@@ -17,22 +17,18 @@
 /**
  * Group observers.
  *
- * @package    mod_quiz
- * @copyright  2013 Frédéric Massart
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_adaquiz
+ * @copyright 2015 Maths for More S.L.
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_quiz;
+namespace mod_adaquiz;
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
 
 /**
  * Group observers class.
- *
- * @package    mod_quiz
- * @copyright  2013 Frédéric Massart
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class group_observers {
 
@@ -62,10 +58,10 @@ class group_observers {
     public static function course_reset_ended($event) {
         if (!empty(self::$resetinprogress)) {
             if (!empty($event->other['reset_options']['reset_groups_remove'])) {
-                quiz_process_group_deleted_in_course($event->courseid);
+                adaquiz_process_group_deleted_in_course($event->courseid);
             }
             if (!empty($event->other['reset_options']['reset_groups_members'])) {
-                quiz_update_open_attempts(array('courseid' => $event->courseid));
+                adaquiz_update_open_attempts(array('courseid' => $event->courseid));
             }
         }
 
@@ -83,7 +79,7 @@ class group_observers {
             // We will take care of that once the course reset ends.
             return;
         }
-        quiz_process_group_deleted_in_course($event->courseid);
+        adaquiz_process_group_deleted_in_course($event->courseid);
     }
 
     /**
@@ -93,7 +89,7 @@ class group_observers {
      * @return void
      */
     public static function group_member_added($event) {
-        quiz_update_open_attempts(array('userid' => $event->relateduserid, 'groupid' => $event->objectid));
+        adaquiz_update_open_attempts(array('userid' => $event->relateduserid, 'groupid' => $event->objectid));
     }
 
     /**
@@ -107,7 +103,7 @@ class group_observers {
             // We will take care of that once the course reset ends.
             return;
         }
-        quiz_update_open_attempts(array('userid' => $event->relateduserid, 'groupid' => $event->objectid));
+        adaquiz_update_open_attempts(array('userid' => $event->relateduserid, 'groupid' => $event->objectid));
     }
 
 }
