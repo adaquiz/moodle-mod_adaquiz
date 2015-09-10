@@ -143,6 +143,14 @@ class structure {
     }
 
     /**
+     * Get the adaptive object
+     * @return \stdClass the adaptive object.
+     */
+    public function get_adaptiveobject() {
+        return $this->adaquizobj->get_adaptiveobject();
+    }
+
+    /**
      * Whether the question in the adaptive quiz are shuffled for each attempt.
      * @return bool true if the questions are shuffled.
      */

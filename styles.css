@@ -931,3 +931,9 @@ table#categoryquestions {
 #page-mod-adaquiz-edit ul.slots li.section ul.section {
     list-style: none;
 }
+#page-mod-adaquiz-editnode .jumpcases th, #page-mod-adaquiz-editnode .jumpcases td { text-align: center; }
+#page-mod-adaquiz-editnode .jumpcases th.header, #page-mod-adaquiz-editnode .jumpcases td.header { width:17%; }
+#page-mod-adaquiz-editnode .jumpcases th.order  { width:20%; }
+#page-mod-adaquiz-editnode .jumpcases th.num   { width:5%; }
+#page-mod-adaquiz-editnode .newcase .fitemtitle { width: 65px; }
+#page-mod-adaquiz-editnode .newcase .felement { margin-left: 70px; }

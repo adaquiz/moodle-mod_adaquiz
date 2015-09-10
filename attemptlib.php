@@ -25,7 +25,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
+require_once($CFG->dirroot.'/mod/adaquiz/lib/adaquiz.php');
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -33,7 +33,7 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Class for adaptive quiz exceptions. Just saves a couple of arguments on the
  * constructor for a moodle_exception.
- * 
+ *
  */
 class moodle_adaquiz_exception extends moodle_exception {
     public function __construct($adaquizobj, $errorcode, $a = null, $link = '', $debuginfo = null) {
@@ -74,14 +74,18 @@ class adaquiz {
      * @param object $cm the course_module object for this adaptive quiz.
      * @param object $course the row from the course table for the course we belong to.
      * @param bool $getcontext intended for testing - stops the constructor getting the context.
+     * @param object $adaptiveobject object containg adaptive data: jumps and nodes.
      */
-    public function __construct($adaquiz, $cm, $course, $getcontext = true) {
+    public function __construct($adaquiz, $cm, $course, $getcontext = true,  $adaptiveobject=null) {
         $this->adaquiz = $adaquiz;
         $this->cm = $cm;
         $this->adaquiz->cmid = $this->cm->id;
         $this->course = $course;
         if ($getcontext && !empty($cm->id)) {
             $this->context = context_module::instance($cm->id);
+        }
+        if ($adaptiveobject) {
+                $this->adaptiveobject = $adaptiveobject;
         }
     }
 
@@ -104,7 +108,10 @@ class adaquiz {
             $adaquiz = adaquiz_update_effective_access($adaquiz, $userid);
         }
 
-        return new adaquiz($adaquiz, $cm, $course);
+        //Adaptive object containing all jump and node data.
+        $adaptiveobject = new adaptive_quiz($adaquizid);
+
+        return new adaquiz($adaquiz, $cm, $course, true, $adaptiveobject);
     }
 
     /**
@@ -177,6 +184,11 @@ class adaquiz {
     /** @return object the row of the adaptive quiz table. */
     public function get_adaquiz() {
         return $this->adaquiz;
+    }
+
+    /** @return object the adaptive object. */
+    public function get_adaptiveobject() {
+        return $this->adaptiveobject;
     }
 
     /** @return string the name of this adaptive quiz. */

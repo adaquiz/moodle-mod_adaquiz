@@ -49,6 +49,7 @@ require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
 require_once($CFG->dirroot . '/mod/adaquiz/addrandomform.php');
 require_once($CFG->dirroot . '/question/editlib.php');
 require_once($CFG->dirroot . '/question/category_class.php');
+require_once($CFG->dirroot.'/mod/adaquiz/lib/adaquiz.php');
 
 // These params are only passed from page request to request while we stay on
 // this page otherwise they would go in question_edit_setup.
@@ -66,7 +67,10 @@ $PAGE->set_url($thispageurl);
 
 // Get the course object and related bits.
 $course = $DB->get_record('course', array('id' => $adaquiz->course), '*', MUST_EXIST);
-$adaquizobj = new adaquiz($adaquiz, $cm, $course);
+
+//Adaptive object containing all jump and node data.
+$adaptiveobject = new adaptive_quiz($adaquiz->id);
+$adaquizobj = new adaquiz($adaquiz, $cm, $course, true, $adaptiveobject);
 $structure = $adaquizobj->get_structure();
 
 // You need mod/adaquiz:manage in addition to question capabilities to access this page.
@@ -113,6 +117,8 @@ if (($addquestion = optional_param('addquestion', 0, PARAM_INT)) && confirm_sess
     $structure->check_can_be_edited();
     adaquiz_require_question_use($addquestion);
     $addonpage = optional_param('addonpage', 0, PARAM_INT);
+    // Create initial node.
+    $adaptiveobject->addQuestion($addquestion);
     adaquiz_add_adaquiz_question($addquestion, $adaquiz, $addonpage);
     adaquiz_delete_previews($adaquiz);
     adaquiz_update_sumgrades($adaquiz);
@@ -128,6 +134,7 @@ if (optional_param('add', false, PARAM_BOOL) && confirm_sesskey()) {
     foreach ($rawdata as $key => $value) { // Parse input for question ids.
         if (preg_match('!^q([0-9]+)$!', $key, $matches)) {
             $key = $matches[1];
+            $adaptiveobject->addQuestion($key);
             adaquiz_require_question_use($key);
             adaquiz_add_adaquiz_question($key, $adaquiz, $addonpage);
         }

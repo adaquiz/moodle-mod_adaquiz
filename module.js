@@ -23,6 +23,25 @@
 
 M.mod_adaquiz = M.mod_adaquiz || {};
 
+// Conditional edit node form.
+M.mod_adaquiz.init = function(Y) {
+
+    var divs = Y.all('div.newcase');
+    divs.each(function(div){
+        div.setStyle('display', 'none');
+    });
+
+    var addtype = Y.one('#id_addtype');
+    addtype.on('change', function() {
+        var value = addtype.get('value');
+
+        divs.each(function(div){
+            var display = div.hasClass(value) ? 'block' : 'none';
+            div.setStyle('display', display);
+        });
+    });
+};
+
 M.mod_adaquiz.init_attempt_form = function(Y) {
     M.core_question_engine.init_form(Y, '#responseform');
     Y.on('submit', M.mod_adaquiz.timer.stop, '#responseform');

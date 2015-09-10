@@ -28,6 +28,9 @@ defined('MOODLE_INTERNAL') || die();
 use \mod_adaquiz\structure;
 use \html_writer;
 
+require_once($CFG->dirroot.'/mod/adaquiz/lib/adaquiz.php');
+require_once($CFG->dirroot.'/mod/adaquiz/lib/attempt.php');
+
 /**
  * Renderer outputting the adaptive quiz editing UI.
  *
@@ -588,7 +591,10 @@ class edit_renderer extends \plugin_renderer_base {
         $questionicons .= $this->question_preview_icon($structure->get_adaquiz(), $question);
         if ($structure->can_be_edited()) {
             $questionicons .= $this->question_remove_icon($question, $pageurl);
+            // Adaptive quiz edit jump icon
+            $questionicons .= $this->question_jump_icon($structure->get_adaquiz(), $structure->get_adaptiveobject(), $question);
         }
+
         $questionicons .= $this->marked_out_of_field($structure->get_adaquiz(), $question);
         $output .= html_writer::span($questionicons, 'actions'); // Required to add js spinner icon.
 
@@ -645,6 +651,39 @@ class edit_renderer extends \plugin_renderer_base {
         // Build the icon.
         $strpreviewquestion = get_string('previewquestion', 'adaquiz');
         $image = $this->pix_icon('t/preview', $strpreviewquestion);
+
+        $action = new \popup_action('click', $url, 'questionpreview',
+                                        question_preview_popup_params());
+
+        return $this->action_link($url, $image . $strpreviewlabel, $action,
+                array('title' => $strpreviewquestion, 'class' => 'preview'));
+    }
+
+    /**
+     * Render the edit jump icon.
+     *
+     * @param \stdClass $adaquiz the adaptive quiz settings from the database.
+     * @param \stdClass $question data from the question and adaquiz_slots tables.
+     * @param bool $label if true, show the preview question label after the icon
+     * @return string HTML to output.
+     */
+    public function question_jump_icon($adaquiz, $adaptiveobject, $question, $label = null) {
+        // $url = adaquiz_question_preview_url($adaquiz, $question);
+        global $CFG, $OUTPUT;
+        $nid = ($adaptiveobject->getNodesFromQuestions(array($question->id)));
+        $nid = array_shift($nid);
+
+        $url = $CFG->wwwroot . '/mod/adaquiz/editnode.php?nid=' . $nid->id . '&aq=' . $adaquiz->id;
+
+        // Do we want a label?
+        $strpreviewlabel = '';
+        if ($label) {
+            $strpreviewlabel = ' ' . get_string('preview', 'adaquiz');
+        }
+
+        // Build the icon.
+        $strpreviewquestion = get_string('previewquestion', 'adaquiz');
+        $image = $this->pix_icon('icon', $strpreviewquestion, 'mod_adaquiz');
 
         $action = new \popup_action('click', $url, 'questionpreview',
                                         question_preview_popup_params());
