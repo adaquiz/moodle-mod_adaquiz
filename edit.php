@@ -67,10 +67,8 @@ $PAGE->set_url($thispageurl);
 
 // Get the course object and related bits.
 $course = $DB->get_record('course', array('id' => $adaquiz->course), '*', MUST_EXIST);
-
-//Adaptive object containing all jump and node data.
-$adaptiveobject = new adaptive_quiz($adaquiz->id);
-$adaquizobj = new adaquiz($adaquiz, $cm, $course, true, $adaptiveobject);
+// AdaptiveQuiz.
+$adaquizobj = new \mod_adaquiz\wiris\adaquiz($adaquiz, $cm, $course, true);
 $structure = $adaquizobj->get_structure();
 
 // You need mod/adaquiz:manage in addition to question capabilities to access this page.
@@ -103,14 +101,17 @@ if ($scrollpos) {
     $afteractionurl->param('scrollpos', $scrollpos);
 }
 
-if (optional_param('repaginate', false, PARAM_BOOL) && confirm_sesskey()) {
-    // Re-paginate the adaptive quiz.
-    $structure->check_can_be_edited();
-    $questionsperpage = optional_param('questionsperpage', $adaquiz->questionsperpage, PARAM_INT);
-    adaquiz_repaginate_questions($adaquiz->id, $questionsperpage );
-    adaquiz_delete_previews($adaquiz);
-    redirect($afteractionurl);
-}
+// AdaptiveQuiz: Don't repaginate, one question one page.
+// if (optional_param('repaginate', false, PARAM_BOOL) && confirm_sesskey()) {
+//     // Re-paginate the adaptive quiz.
+//     $structure->check_can_be_edited();
+//     // AdaptiveQuiz only one question per page.
+//     // $questionsperpage = optional_param('questionsperpage', $adaquiz->questionsperpage, PARAM_INT);
+//     $questionsperpage = 1;
+//     adaquiz_repaginate_questions($adaquiz->id, $questionsperpage );
+//     adaquiz_delete_previews($adaquiz);
+//     redirect($afteractionurl);
+// }
 
 if (($addquestion = optional_param('addquestion', 0, PARAM_INT)) && confirm_sesskey()) {
     // Add a single question to the current adaptive quiz.
@@ -118,7 +119,8 @@ if (($addquestion = optional_param('addquestion', 0, PARAM_INT)) && confirm_sess
     adaquiz_require_question_use($addquestion);
     $addonpage = optional_param('addonpage', 0, PARAM_INT);
     // Create initial node.
-    $adaptiveobject->addQuestion($addquestion);
+    // AdaptiveQuiz
+    $adaquizobj->addQuestion($addquestion);
     adaquiz_add_adaquiz_question($addquestion, $adaquiz, $addonpage);
     adaquiz_delete_previews($adaquiz);
     adaquiz_update_sumgrades($adaquiz);
@@ -134,29 +136,30 @@ if (optional_param('add', false, PARAM_BOOL) && confirm_sesskey()) {
     foreach ($rawdata as $key => $value) { // Parse input for question ids.
         if (preg_match('!^q([0-9]+)$!', $key, $matches)) {
             $key = $matches[1];
-            $adaptiveobject->addQuestion($key);
-            adaquiz_require_question_use($key);
+            // adaquiz_require_question_use($key);
+            $adaquizobj->addQuestion($key);
             adaquiz_add_adaquiz_question($key, $adaquiz, $addonpage);
+            adaquiz_delete_previews($adaquiz);
+            adaquiz_update_sumgrades($adaquiz);
         }
     }
-    adaquiz_delete_previews($adaquiz);
-    adaquiz_update_sumgrades($adaquiz);
+
     redirect($afteractionurl);
 }
 
-if ((optional_param('addrandom', false, PARAM_BOOL)) && confirm_sesskey()) {
-    // Add random questions to the adaptive quiz.
-    $structure->check_can_be_edited();
-    $recurse = optional_param('recurse', 0, PARAM_BOOL);
-    $addonpage = optional_param('addonpage', 0, PARAM_INT);
-    $categoryid = required_param('categoryid', PARAM_INT);
-    $randomcount = required_param('randomcount', PARAM_INT);
-    adaquiz_add_random_questions($adaquiz, $addonpage, $categoryid, $randomcount, $recurse);
+// if ((optional_param('addrandom', false, PARAM_BOOL)) && confirm_sesskey()) {
+//     // Add random questions to the adaptive quiz.
+//     $structure->check_can_be_edited();
+//     $recurse = optional_param('recurse', 0, PARAM_BOOL);
+//     $addonpage = optional_param('addonpage', 0, PARAM_INT);
+//     $categoryid = required_param('categoryid', PARAM_INT);
+//     $randomcount = required_param('randomcount', PARAM_INT);
+//     adaquiz_add_random_questions($adaquiz, $addonpage, $categoryid, $randomcount, $recurse);
 
-    adaquiz_delete_previews($adaquiz);
-    adaquiz_update_sumgrades($adaquiz);
-    redirect($afteractionurl);
-}
+//     adaquiz_delete_previews($adaquiz);
+//     adaquiz_update_sumgrades($adaquiz);
+//     redirect($afteractionurl);
+// }
 
 if (optional_param('savechanges', false, PARAM_BOOL) && confirm_sesskey()) {
 
@@ -195,6 +198,7 @@ echo $OUTPUT->header();
 $adaquizeditconfig = new stdClass();
 $adaquizeditconfig->url = $thispageurl->out(true, array('qbanktool' => '0'));
 $adaquizeditconfig->dialoglisteners = array();
+
 $numberoflisteners = $DB->get_field_sql("
     SELECT COALESCE(MAX(page), 1)
       FROM {adaquiz_slots}

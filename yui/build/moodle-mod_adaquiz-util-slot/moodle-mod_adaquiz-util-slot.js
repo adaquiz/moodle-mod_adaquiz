@@ -3,8 +3,8 @@ YUI.add('moodle-mod_adaquiz-util-slot', function (Y, NAME) {
 /**
  * A collection of utility classes for use with slots.
  *
- * @module moodle-mod_adaquiz-util
- * @submodule moodle-mod_adaquiz-util-slot
+ * @module moodle-mod_quiz-util
+ * @submodule moodle-mod_quiz-util-slot
  */
 
 Y.namespace('Moodle.mod_adaquiz.util.slot');
@@ -12,7 +12,7 @@ Y.namespace('Moodle.mod_adaquiz.util.slot');
 /**
  * A collection of utility classes for use with slots.
  *
- * @class Moodle.mod_adaquiz.util.slot
+ * @class Moodle.mod_quiz.util.slot
  * @static
  */
 Y.Moodle.mod_adaquiz.util.slot = {

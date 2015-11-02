@@ -22,14 +22,18 @@
  */
 
 /**
- * adaptive_quiz . Main class of adaquiz module. It represents the whole quiz. Its the
+ * Adaquiz. Main class of adaquiz module. It represents the whole quiz. Its the
  * entry point for external interfaces such as ../lib.php.
  *
  * @author Maths for more s.l.
  */
+namespace mod_adaquiz\wiris;
+
 require_once($CFG->dirroot.'/lib/dmllib.php');
+require_once($CFG->dirroot. '/mod/adaquiz/attemptlib.php');
 require_once($CFG->dirroot.'/mod/adaquiz/lib/node.php');
 require_once($CFG->dirroot.'/mod/adaquiz/lib/attempt.php');
+require_once($CFG->dirroot . '/mod/adaquiz/lib/structure.php');
 
 //default configuration constants
 define('ADAQUIZ_REVIEWAFTERQUESTION_USERANSWER', true);
@@ -44,7 +48,7 @@ define('ADAQUIZ_REVIEWAFTERQUIZ_SCORE', true);
 define('ADAQUIZ_QUESTIONBEHAVIOUR', 'immediatefeedback');
 
 
-class adaptive_quiz {
+class Adaquiz extends \adaquiz {
 
     const TABLE = 'adaquiz';
 
@@ -71,7 +75,7 @@ class adaptive_quiz {
      *        then the object is loaded from database and overwritten with $data.
      *        If $data is an integer, it is supposed to be the id.
      * **/
-    public function adaptive_quiz($data = stdClass){
+    public function Adaquiz ($data = stdClass){
       if(is_numeric($data)){
         $id = $data;
         $data = new stdClass();
@@ -87,10 +91,27 @@ class adaptive_quiz {
         $this->loadAttributes($data);
         $this->loadFlatOptions($data);
       }
-
+      die;
       //set lazy loaded items to null:
       $this->nodes = null;
     }
+
+    public static function create($adaquizid, $userid = null) {
+        global $DB;
+
+        $adaquiz = \adaquiz_access_manager::load_adaquiz_and_settings($adaquizid);
+        $course = $DB->get_record('course', array('id' => $adaquiz->course), '*', MUST_EXIST);
+        $cm = get_coursemodule_from_instance('adaquiz', $adaquiz->id, $course->id, false, MUST_EXIST);
+
+        // Update adaptive quiz with override information.
+        if ($userid) {
+            // AdaptiveQuiz there is not override information for the user.
+            // $adaquiz = adaquiz_update_effective_access($adaquiz, $userid);
+        }
+
+        return new \mod_adaquiz\wiris\Adaquiz($adaquiz, $cm, $course, true);
+    }
+
 
     /**
      *
@@ -100,7 +121,8 @@ class adaptive_quiz {
     public function getNodesFromQuestions($qids){
         global $DB, $CFG;
         $qidsstr = implode(',', $qids);
-        $SQL = 'SELECT id FROM '.$CFG->prefix.Node::TABLE.' WHERE question IN ('.$qidsstr.') AND adaquiz = ' . $this->id;
+
+        $SQL = 'SELECT id FROM '.$CFG->prefix.Node::TABLE.' WHERE question IN ('.$qidsstr.') AND adaquiz = ' . $this->get_adaquizid();
         $records = $DB->get_records_sql($SQL);
         return $records;
     }
@@ -110,11 +132,11 @@ class adaptive_quiz {
      * **/
     private function load(){
       global $DB;
-      if(!$record = $DB->get_record(adaptive_quiz::TABLE, array('id' => $this->id))){
+      if(!$record = $DB->get_record(Adaquiz::TABLE, array('id' => $this->id))){
         return false;
       }
       $this->loadAttributes($record);
-      // $this->loadOptions($record);
+      $this->loadOptions($record);
       return true;
     }
     /**
@@ -218,8 +240,8 @@ class adaptive_quiz {
      * **/
     private function loadAllNodes(){
       if($this->nodes == null){
-        if($this->id){
-          $this->nodes = Node::getAllNodes($this->id);
+        if($id = $this->get_adaquizid()){
+          $this->nodes = Node::getAllNodes($id);
         }else{
           $this->nodes = array();
         }
@@ -237,7 +259,7 @@ class adaptive_quiz {
           return false;
         }
       }else{
-        return Node::getFirstNode($this->id);
+        return Node::getFirstNode($this->get_adaquizid());
       }
     }
     public function &getNode($nid){
@@ -341,7 +363,8 @@ class adaptive_quiz {
 
       //Create Node
       $n = Node::createDefaultNode();
-      $n->adaquiz = $this->id;
+
+      $n->adaquiz = $this->get_adaquizid();
       $n->position = count($this->nodes);
       $n->question = $qid;
       $n->grade = $n->getQuestion()->defaultmark;
@@ -460,7 +483,7 @@ class adaptive_quiz {
      * @return Attempt. Last attempt or a new one.
      * **/
     public function getCurrentAttempt($uid, $preview = 0){
-      return Attempt::getCurrentAttempt($this, $uid, $preview);
+      return Attempt::getCurrentAttempt($this->get_adaquiz(), $uid, $preview);
     }
     /**
      * @return integer The total number of attempts (not previews) for this adaquiz.
@@ -469,7 +492,7 @@ class adaptive_quiz {
       return Attempt::getNumAttempts($this);
     }
     public function getCMOptions(){
-      $cmoptions = new stdClass();
+      $cmoptions = new \stdClass();
       $cmoptions->id = $this->id;
       $cmoptions->timelimit = 0;
       $cmoptions->penaltyscheme = 0;
@@ -502,11 +525,12 @@ class adaptive_quiz {
 
     public function getAllAttempts($userid = null){
       if($userid!=null){
-        return Attempt::getAllAttempts($this, $userid);
+        return Attempt::getAllAttempts($this->get_adaquiz(), $userid);
       }else{
         if(!is_array($this->attempts)){
-          $this->attempts = Attempt::getAllAttempts($this);
-          Attempt::sortAttemptsByUserName($this->attempts);
+          $this->attempts = Attempt::getAllAttempts($this->get_adaquiz());
+          // AdaptiveQuiz: TODO fix that method.
+          // Attempt::sortAttemptsByUserName($this->attempts);
         }
         return $this->attempts;
       }
@@ -638,5 +662,38 @@ class adaptive_quiz {
         $users[$attempt->userid]->id = $attempt->userid;
       }
       return $users;
+    }
+
+    // Overriding functions
+    public function has_questions() {
+      return (bool)$this->getFirstNode();
+    }
+
+    /**
+     * Get an instance of the {@link \mod_adaquiz\structure} class for this adaptive quiz.
+     * @return \mod_adaquiz\wiris\structure describes the questions in the adaptive quiz.
+     */
+    public function get_structure() {
+        return \mod_adaquiz\wiris\structure::create_for_adaquiz($this);
+    }
+
+    /**
+     * @param int $attemptid the id of an attempt.
+     * @param int $page optional page number to go to in the attempt.
+     * @return string the URL of that attempt.
+     */
+    public function attempt_url($attemptid, $page = 0, $nextnode = null, $rewnode = null) {
+        global $CFG;
+        $url = $CFG->wwwroot . '/mod/adaquiz/attempt.php?attempt=' . $attemptid;
+        if ($page) {
+            $url .= '&page=' . $page;
+        }
+        if(!is_null($nextnode)){
+            $url .= '&node=' . $nextnode;
+        }
+        if(!is_null($rewnode)){
+            $url .= '&nav=' . $nextnode;
+        }
+        return $url;
     }
 }

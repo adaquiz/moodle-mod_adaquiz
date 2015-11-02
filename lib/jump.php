@@ -31,6 +31,7 @@
  *
  * @author Maths for more s.l.
  */
+namespace mod_adaquiz\wiris;
 
 require_once($CFG->dirroot.'/lib/dmllib.php');
 
@@ -193,7 +194,7 @@ class Jump {
     //$this->save();
   }
   public function addCase($options){
-    $case = new stdClass();
+    $case = new \stdClass();
     $case->type     = $options['type'];
     $case->nodefrom = $this->nodefrom;
     $case->nodeto   = $options['nodeto'];
@@ -307,7 +308,7 @@ class Jump {
      * nodeto and with default options.
      * **/
     static function getDefaultJumpCase($type){
-      $singlejump = new StdClass();
+      $singlejump = new \StdClass();
       $singlejump->name     = Jump::getDefaultName($type);
       $singlejump->type     = $type;
       $singlejump->position = 0;

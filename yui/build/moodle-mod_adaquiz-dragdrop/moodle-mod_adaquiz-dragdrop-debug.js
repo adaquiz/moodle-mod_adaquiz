@@ -440,12 +440,11 @@ Y.extend(DRAGRESOURCE, M.core.dragdrop, {
         params.field = 'move';
         params.id = Number(Y.Moodle.mod_adaquiz.util.slot.getId(dragnode));
         params.sectionId = Y.Moodle.core_course.util.section.getId(dropnode.ancestor(M.mod_adaquiz.edit.get_section_wrapper(Y), true));
-
-        var previousslot = dragnode.previous(SELECTOR.SLOT);
-        if (previousslot) {
-            params.previousid = Number(Y.Moodle.mod_adaquiz.util.slot.getId(previousslot));
-        }
-
+        // AdaptiveQuiz: One slot per page, so page and slots are equivalents values.
+        // var previousslot = dragnode.previous(SELECTOR.SLOT);
+        // if (previousslot) {
+        //     params.previousid = Number(Y.Moodle.mod_adaquiz.util.slot.getId(previousslot));
+        // }
         var previouspage = dragnode.previous(SELECTOR.PAGE);
         if (previouspage) {
             params.page = Number(Y.Moodle.mod_adaquiz.util.page.getId(previouspage));

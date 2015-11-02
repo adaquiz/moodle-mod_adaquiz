@@ -178,8 +178,8 @@ class adaquiz_overview_table extends adaquiz_attempts_report_table {
     }
 
     public function col_sumgrades($attempt) {
-        if ($attempt->state != adaquiz_attempt::FINISHED) {
-            return '-';
+        if ($attempt->state != \mod_adaquiz\wiris\Attempt::STATE_FINISHED) {
+            return '---';
         }
 
         $grade = adaquiz_rescale_grade($attempt->sumgrades, $this->adaquiz);

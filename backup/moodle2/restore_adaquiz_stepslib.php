@@ -43,11 +43,15 @@ class restore_adaquiz_activity_structure_step extends restore_questions_activity
 
         $paths[] = new restore_path_element('adaquiz_question_instance',
                 '/activity/adaquiz/question_instances/question_instance');
-        $paths[] = new restore_path_element('adaquiz_feedback', '/activity/adaquiz/feedbacks/feedback');
-        $paths[] = new restore_path_element('adaquiz_override', '/activity/adaquiz/overrides/override');
+        // AdaptiveQuiz.
+        // $paths[] = new restore_path_element('adaquiz_feedback', '/activity/adaquiz/feedbacks/feedback');
+        // $paths[] = new restore_path_element('adaquiz_override', '/activity/adaquiz/overrides/override');
+        $paths[] = new restore_path_element('adaquiz_node', '/activity/adaquiz/nodes/node');
+        $paths[] = new restore_path_element('adaquiz_jump', '/activity/adaquiz/jumps/nodeid/jump');
 
         if ($userinfo) {
-            $paths[] = new restore_path_element('adaquiz_grade', '/activity/adaquiz/grades/grade');
+            // AdaptiveQuiz.
+            // $paths[] = new restore_path_element('adaquiz_grade', '/activity/adaquiz/grades/grade');
 
             if ($this->task->get_old_moduleversion() > 2011010100) {
                 // Restoring from a version 2.1 dev or later.
@@ -55,7 +59,8 @@ class restore_adaquiz_activity_structure_step extends restore_questions_activity
                 $adaquizattempt = new restore_path_element('adaquiz_attempt',
                         '/activity/adaquiz/attempts/attempt');
                 $paths[] = $adaquizattempt;
-
+                $adaquiznodeattempt = new restore_path_element('adaquiz_node_attempt', '/activity/adaquiz/attempts/attempt/node_attempts/node_attempt');
+                $paths[] = $adaquiznodeattempt;
                 // Add states and sessions.
                 $this->add_question_usages($adaquizattempt, $paths);
 
@@ -96,131 +101,131 @@ class restore_adaquiz_activity_structure_step extends restore_questions_activity
 
         // The setting adaquiz->attempts can come both in data->attempts and
         // data->attempts_number, handle both. MDL-26229.
-        if (isset($data->attempts_number)) {
-            $data->attempts = $data->attempts_number;
-            unset($data->attempts_number);
-        }
+        // if (isset($data->attempts_number)) {
+        //     $data->attempts = $data->attempts_number;
+        //     unset($data->attempts_number);
+        // }
 
-        // The old optionflags and penaltyscheme from 2.0 need to be mapped to
-        // the new preferredbehaviour. See MDL-20636.
-        if (!isset($data->preferredbehaviour)) {
-            if (empty($data->optionflags)) {
-                $data->preferredbehaviour = 'deferredfeedback';
-            } else if (empty($data->penaltyscheme)) {
-                $data->preferredbehaviour = 'adaptivenopenalty';
-            } else {
-                $data->preferredbehaviour = 'adaptive';
-            }
-            unset($data->optionflags);
-            unset($data->penaltyscheme);
-        }
+        // // The old optionflags and penaltyscheme from 2.0 need to be mapped to
+        // // the new preferredbehaviour. See MDL-20636.
+        // if (!isset($data->preferredbehaviour)) {
+        //     if (empty($data->optionflags)) {
+        //         $data->preferredbehaviour = 'deferredfeedback';
+        //     } else if (empty($data->penaltyscheme)) {
+        //         $data->preferredbehaviour = 'adaptivenopenalty';
+        //     } else {
+        //         $data->preferredbehaviour = 'adaptive';
+        //     }
+        //     unset($data->optionflags);
+        //     unset($data->penaltyscheme);
+        // }
 
-        // The old review column from 2.0 need to be split into the seven new
-        // review columns. See MDL-20636.
-        if (isset($data->review)) {
-            require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
+        // // The old review column from 2.0 need to be split into the seven new
+        // // review columns. See MDL-20636.
+        // if (isset($data->review)) {
+        //     require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
 
-            if (!defined('ADAQUIZ_OLD_IMMEDIATELY')) {
-                define('ADAQUIZ_OLD_IMMEDIATELY', 0x3c003f);
-                define('ADAQUIZ_OLD_OPEN',        0x3c00fc0);
-                define('ADAQUIZ_OLD_CLOSED',      0x3c03f000);
+        //     if (!defined('ADAQUIZ_OLD_IMMEDIATELY')) {
+        //         define('ADAQUIZ_OLD_IMMEDIATELY', 0x3c003f);
+        //         define('ADAQUIZ_OLD_OPEN',        0x3c00fc0);
+        //         define('ADAQUIZ_OLD_CLOSED',      0x3c03f000);
 
-                define('ADAQUIZ_OLD_RESPONSES',        1*0x1041);
-                define('ADAQUIZ_OLD_SCORES',           2*0x1041);
-                define('ADAQUIZ_OLD_FEEDBACK',         4*0x1041);
-                define('ADAQUIZ_OLD_ANSWERS',          8*0x1041);
-                define('ADAQUIZ_OLD_SOLUTIONS',       16*0x1041);
-                define('ADAQUIZ_OLD_GENERALFEEDBACK', 32*0x1041);
-                define('ADAQUIZ_OLD_OVERALLFEEDBACK',  1*0x4440000);
-            }
+        //         define('ADAQUIZ_OLD_RESPONSES',        1*0x1041);
+        //         define('ADAQUIZ_OLD_SCORES',           2*0x1041);
+        //         define('ADAQUIZ_OLD_FEEDBACK',         4*0x1041);
+        //         define('ADAQUIZ_OLD_ANSWERS',          8*0x1041);
+        //         define('ADAQUIZ_OLD_SOLUTIONS',       16*0x1041);
+        //         define('ADAQUIZ_OLD_GENERALFEEDBACK', 32*0x1041);
+        //         define('ADAQUIZ_OLD_OVERALLFEEDBACK',  1*0x4440000);
+        //     }
 
-            $oldreview = $data->review;
+        //     $oldreview = $data->review;
 
-            $data->reviewattempt =
-                    mod_adaquiz_display_options::DURING |
-                    ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_RESPONSES ?
-                            mod_adaquiz_display_options::IMMEDIATELY_AFTER : 0) |
-                    ($oldreview & ADAQUIZ_OLD_OPEN & ADAQUIZ_OLD_RESPONSES ?
-                            mod_adaquiz_display_options::LATER_WHILE_OPEN : 0) |
-                    ($oldreview & ADAQUIZ_OLD_CLOSED & ADAQUIZ_OLD_RESPONSES ?
-                            mod_adaquiz_display_options::AFTER_CLOSE : 0);
+        //     $data->reviewattempt =
+        //             mod_adaquiz_display_options::DURING |
+        //             ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_RESPONSES ?
+        //                     mod_adaquiz_display_options::IMMEDIATELY_AFTER : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_OPEN & ADAQUIZ_OLD_RESPONSES ?
+        //                     mod_adaquiz_display_options::LATER_WHILE_OPEN : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_CLOSED & ADAQUIZ_OLD_RESPONSES ?
+        //                     mod_adaquiz_display_options::AFTER_CLOSE : 0);
 
-            $data->reviewcorrectness =
-                    mod_adaquiz_display_options::DURING |
-                    ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_SCORES ?
-                            mod_adaquiz_display_options::IMMEDIATELY_AFTER : 0) |
-                    ($oldreview & ADAQUIZ_OLD_OPEN & ADAQUIZ_OLD_SCORES ?
-                            mod_adaquiz_display_options::LATER_WHILE_OPEN : 0) |
-                    ($oldreview & ADAQUIZ_OLD_CLOSED & ADAQUIZ_OLD_SCORES ?
-                            mod_adaquiz_display_options::AFTER_CLOSE : 0);
+        //     $data->reviewcorrectness =
+        //             mod_adaquiz_display_options::DURING |
+        //             ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_SCORES ?
+        //                     mod_adaquiz_display_options::IMMEDIATELY_AFTER : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_OPEN & ADAQUIZ_OLD_SCORES ?
+        //                     mod_adaquiz_display_options::LATER_WHILE_OPEN : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_CLOSED & ADAQUIZ_OLD_SCORES ?
+        //                     mod_adaquiz_display_options::AFTER_CLOSE : 0);
 
-            $data->reviewmarks =
-                    mod_adaquiz_display_options::DURING |
-                    ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_SCORES ?
-                            mod_adaquiz_display_options::IMMEDIATELY_AFTER : 0) |
-                    ($oldreview & ADAQUIZ_OLD_OPEN & ADAQUIZ_OLD_SCORES ?
-                            mod_adaquiz_display_options::LATER_WHILE_OPEN : 0) |
-                    ($oldreview & ADAQUIZ_OLD_CLOSED & ADAQUIZ_OLD_SCORES ?
-                            mod_adaquiz_display_options::AFTER_CLOSE : 0);
+        //     $data->reviewmarks =
+        //             mod_adaquiz_display_options::DURING |
+        //             ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_SCORES ?
+        //                     mod_adaquiz_display_options::IMMEDIATELY_AFTER : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_OPEN & ADAQUIZ_OLD_SCORES ?
+        //                     mod_adaquiz_display_options::LATER_WHILE_OPEN : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_CLOSED & ADAQUIZ_OLD_SCORES ?
+        //                     mod_adaquiz_display_options::AFTER_CLOSE : 0);
 
-            $data->reviewspecificfeedback =
-                    ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_FEEDBACK ?
-                            mod_adaquiz_display_options::DURING : 0) |
-                    ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_FEEDBACK ?
-                            mod_adaquiz_display_options::IMMEDIATELY_AFTER : 0) |
-                    ($oldreview & ADAQUIZ_OLD_OPEN & ADAQUIZ_OLD_FEEDBACK ?
-                            mod_adaquiz_display_options::LATER_WHILE_OPEN : 0) |
-                    ($oldreview & ADAQUIZ_OLD_CLOSED & ADAQUIZ_OLD_FEEDBACK ?
-                            mod_adaquiz_display_options::AFTER_CLOSE : 0);
+        //     $data->reviewspecificfeedback =
+        //             ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_FEEDBACK ?
+        //                     mod_adaquiz_display_options::DURING : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_FEEDBACK ?
+        //                     mod_adaquiz_display_options::IMMEDIATELY_AFTER : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_OPEN & ADAQUIZ_OLD_FEEDBACK ?
+        //                     mod_adaquiz_display_options::LATER_WHILE_OPEN : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_CLOSED & ADAQUIZ_OLD_FEEDBACK ?
+        //                     mod_adaquiz_display_options::AFTER_CLOSE : 0);
 
-            $data->reviewgeneralfeedback =
-                    ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_GENERALFEEDBACK ?
-                            mod_adaquiz_display_options::DURING : 0) |
-                    ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_GENERALFEEDBACK ?
-                            mod_adaquiz_display_options::IMMEDIATELY_AFTER : 0) |
-                    ($oldreview & ADAQUIZ_OLD_OPEN & ADAQUIZ_OLD_GENERALFEEDBACK ?
-                            mod_adaquiz_display_options::LATER_WHILE_OPEN : 0) |
-                    ($oldreview & ADAQUIZ_OLD_CLOSED & ADAQUIZ_OLD_GENERALFEEDBACK ?
-                            mod_adaquiz_display_options::AFTER_CLOSE : 0);
+        //     $data->reviewgeneralfeedback =
+        //             ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_GENERALFEEDBACK ?
+        //                     mod_adaquiz_display_options::DURING : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_GENERALFEEDBACK ?
+        //                     mod_adaquiz_display_options::IMMEDIATELY_AFTER : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_OPEN & ADAQUIZ_OLD_GENERALFEEDBACK ?
+        //                     mod_adaquiz_display_options::LATER_WHILE_OPEN : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_CLOSED & ADAQUIZ_OLD_GENERALFEEDBACK ?
+        //                     mod_adaquiz_display_options::AFTER_CLOSE : 0);
 
-            $data->reviewrightanswer =
-                    ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_ANSWERS ?
-                            mod_adaquiz_display_options::DURING : 0) |
-                    ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_ANSWERS ?
-                            mod_adaquiz_display_options::IMMEDIATELY_AFTER : 0) |
-                    ($oldreview & ADAQUIZ_OLD_OPEN & ADAQUIZ_OLD_ANSWERS ?
-                            mod_adaquiz_display_options::LATER_WHILE_OPEN : 0) |
-                    ($oldreview & ADAQUIZ_OLD_CLOSED & ADAQUIZ_OLD_ANSWERS ?
-                            mod_adaquiz_display_options::AFTER_CLOSE : 0);
+        //     $data->reviewrightanswer =
+        //             ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_ANSWERS ?
+        //                     mod_adaquiz_display_options::DURING : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_ANSWERS ?
+        //                     mod_adaquiz_display_options::IMMEDIATELY_AFTER : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_OPEN & ADAQUIZ_OLD_ANSWERS ?
+        //                     mod_adaquiz_display_options::LATER_WHILE_OPEN : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_CLOSED & ADAQUIZ_OLD_ANSWERS ?
+        //                     mod_adaquiz_display_options::AFTER_CLOSE : 0);
 
-            $data->reviewoverallfeedback =
-                    0 |
-                    ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_OVERALLFEEDBACK ?
-                            mod_adaquiz_display_options::IMMEDIATELY_AFTER : 0) |
-                    ($oldreview & ADAQUIZ_OLD_OPEN & ADAQUIZ_OLD_OVERALLFEEDBACK ?
-                            mod_adaquiz_display_options::LATER_WHILE_OPEN : 0) |
-                    ($oldreview & ADAQUIZ_OLD_CLOSED & ADAQUIZ_OLD_OVERALLFEEDBACK ?
-                            mod_adaquiz_display_options::AFTER_CLOSE : 0);
-        }
+        //     $data->reviewoverallfeedback =
+        //             0 |
+        //             ($oldreview & ADAQUIZ_OLD_IMMEDIATELY & ADAQUIZ_OLD_OVERALLFEEDBACK ?
+        //                     mod_adaquiz_display_options::IMMEDIATELY_AFTER : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_OPEN & ADAQUIZ_OLD_OVERALLFEEDBACK ?
+        //                     mod_adaquiz_display_options::LATER_WHILE_OPEN : 0) |
+        //             ($oldreview & ADAQUIZ_OLD_CLOSED & ADAQUIZ_OLD_OVERALLFEEDBACK ?
+        //                     mod_adaquiz_display_options::AFTER_CLOSE : 0);
+        // }
 
-        // The old popup column from from <= 2.1 need to be mapped to
-        // the new browsersecurity. See MDL-29627.
-        if (!isset($data->browsersecurity)) {
-            if (empty($data->popup)) {
-                $data->browsersecurity = '-';
-            } else if ($data->popup == 1) {
-                $data->browsersecurity = 'securewindow';
-            } else if ($data->popup == 2) {
-                $data->browsersecurity = 'safebrowser';
-            } else {
-                $data->preferredbehaviour = '-';
-            }
-            unset($data->popup);
-        }
+        // // The old popup column from from <= 2.1 need to be mapped to
+        // // the new browsersecurity. See MDL-29627.
+        // if (!isset($data->browsersecurity)) {
+        //     if (empty($data->popup)) {
+        //         $data->browsersecurity = '-';
+        //     } else if ($data->popup == 1) {
+        //         $data->browsersecurity = 'securewindow';
+        //     } else if ($data->popup == 2) {
+        //         $data->browsersecurity = 'safebrowser';
+        //     } else {
+        //         $data->preferredbehaviour = '-';
+        //     }
+        //     unset($data->popup);
+        // }
 
-        if (!isset($data->overduehandling)) {
-            $data->overduehandling = get_config('adaquiz', 'overduehandling');
-        }
+        // if (!isset($data->overduehandling)) {
+        //     $data->overduehandling = get_config('adaquiz', 'overduehandling');
+        // }
 
         // Insert the adaptive quiz record.
         $newitemid = $DB->insert_record('adaquiz', $data);
@@ -273,72 +278,72 @@ class restore_adaquiz_activity_structure_step extends restore_questions_activity
         $DB->insert_record('adaquiz_slots', $data);
     }
 
-    protected function process_adaquiz_feedback($data) {
-        global $DB;
+    // protected function process_adaquiz_feedback($data) {
+    //     global $DB;
 
-        $data = (object)$data;
-        $oldid = $data->id;
+    //     $data = (object)$data;
+    //     $oldid = $data->id;
 
-        $data->adaquizid = $this->get_new_parentid('adaquiz');
+    //     $data->adaquizid = $this->get_new_parentid('adaquiz');
 
-        $newitemid = $DB->insert_record('adaquiz_feedback', $data);
-        $this->set_mapping('adaquiz_feedback', $oldid, $newitemid, true); // Has related files.
-    }
+    //     $newitemid = $DB->insert_record('adaquiz_feedback', $data);
+    //     $this->set_mapping('adaquiz_feedback', $oldid, $newitemid, true); // Has related files.
+    // }
 
-    protected function process_adaquiz_override($data) {
-        global $DB;
+    // protected function process_adaquiz_override($data) {
+    //     global $DB;
 
-        $data = (object)$data;
-        $oldid = $data->id;
+    //     $data = (object)$data;
+    //     $oldid = $data->id;
 
-        // Based on userinfo, we'll restore user overides or no.
-        $userinfo = $this->get_setting_value('userinfo');
+    //     // Based on userinfo, we'll restore user overides or no.
+    //     $userinfo = $this->get_setting_value('userinfo');
 
-        // Skip user overrides if we are not restoring userinfo.
-        if (!$userinfo && !is_null($data->userid)) {
-            return;
-        }
+    //     // Skip user overrides if we are not restoring userinfo.
+    //     if (!$userinfo && !is_null($data->userid)) {
+    //         return;
+    //     }
 
-        $data->adaquiz = $this->get_new_parentid('adaquiz');
+    //     $data->adaquiz = $this->get_new_parentid('adaquiz');
 
-        if ($data->userid !== null) {
-            $data->userid = $this->get_mappingid('user', $data->userid);
-        }
+    //     if ($data->userid !== null) {
+    //         $data->userid = $this->get_mappingid('user', $data->userid);
+    //     }
 
-        if ($data->groupid !== null) {
-            $data->groupid = $this->get_mappingid('group', $data->groupid);
-        }
+    //     if ($data->groupid !== null) {
+    //         $data->groupid = $this->get_mappingid('group', $data->groupid);
+    //     }
 
-        $data->timeopen = $this->apply_date_offset($data->timeopen);
-        $data->timeclose = $this->apply_date_offset($data->timeclose);
+    //     $data->timeopen = $this->apply_date_offset($data->timeopen);
+    //     $data->timeclose = $this->apply_date_offset($data->timeclose);
 
-        $newitemid = $DB->insert_record('adaquiz_overrides', $data);
+    //     $newitemid = $DB->insert_record('adaquiz_overrides', $data);
 
-        // Add mapping, restore of logs needs it.
-        $this->set_mapping('adaquiz_override', $oldid, $newitemid);
-    }
+    //     // Add mapping, restore of logs needs it.
+    //     $this->set_mapping('adaquiz_override', $oldid, $newitemid);
+    // }
 
-    protected function process_adaquiz_grade($data) {
-        global $DB;
+    // protected function process_adaquiz_grade($data) {
+    //     global $DB;
 
-        $data = (object)$data;
-        $oldid = $data->id;
+    //     $data = (object)$data;
+    //     $oldid = $data->id;
 
-        $data->adaquiz = $this->get_new_parentid('adaquiz');
+    //     $data->adaquiz = $this->get_new_parentid('adaquiz');
 
-        $data->userid = $this->get_mappingid('user', $data->userid);
-        $data->grade = $data->gradeval;
+    //     $data->userid = $this->get_mappingid('user', $data->userid);
+    //     $data->grade = $data->gradeval;
 
-        $data->timemodified = $this->apply_date_offset($data->timemodified);
+    //     $data->timemodified = $this->apply_date_offset($data->timemodified);
 
-        $DB->insert_record('adaquiz_grades', $data);
-    }
+    //     $DB->insert_record('adaquiz_grades', $data);
+    // }
 
     protected function process_adaquiz_attempt($data) {
         $data = (object)$data;
 
         $data->quiz = $this->get_new_parentid('adaquiz');
-        $data->attempt = $data->attemptnum;
+        // $data->attempt = $data->attemptnum;
 
         $data->userid = $this->get_mappingid('user', $data->userid);
 
@@ -364,6 +369,46 @@ class restore_adaquiz_activity_structure_step extends restore_questions_activity
         $this->currentquizattempt = clone($data);
     }
 
+    protected function process_adaquiz_node($data){
+        global $DB;
+        $data = (object)$data;
+        $oldid = $data->id;
+        $data->adaquiz = $this->get_new_parentid('adaquiz');
+
+        $data->question = $this->get_mappingid('question', $data->question);
+
+        $newitemid = $DB->insert_record('adaquiz_node', $data);
+        //Set the new id
+        $this->set_mapping('adaquiz_node', $oldid, $newitemid, true);
+    }
+
+    protected function process_adaquiz_jump($data){
+        global $DB;
+        $data = (object)$data;
+        $oldid = $data->id;
+        $test = $this->get_new_parentid('adaquiz_node');
+
+        $data->nodefrom = $this->get_mappingid('adaquiz_node', $data->nodefrom);
+        if ($data->nodeto != 0){
+            $data->nodeto = $this->get_mappingid('adaquiz_node', $data->nodeto);
+        }
+
+        $newitemid = $DB->insert_record('adaquiz_jump', $data);
+        $this->set_mapping('adaquiz_jump', $oldid, $newitemid, true);
+    }
+
+    protected function process_adaquiz_node_attempt($data){
+        $data = (object)$data;
+
+        $data->node = $this->get_mappingid('adaquiz_node', $data->node);
+        $data->timecreated = $this->apply_date_offset($data->timecreated);
+        $data->timemodified = $this->apply_date_offset($data->timemodified);
+        $data->jump = $this->get_mappingid('adaquiz_jump', $data->jump);
+
+        // The data is inserted into the database later in inform_new_usage_id.
+        $this->currentnodeattempt[] = clone($data);
+    }
+
     protected function process_adaquiz_attempt_legacy($data) {
         global $DB;
 
@@ -386,6 +431,13 @@ class restore_adaquiz_activity_structure_step extends restore_questions_activity
 
         // Save adaquiz_attempt->id mapping, because logs use it.
         $this->set_mapping('adaquiz_attempt', $oldid, $newitemid, false);
+
+        //Single Node attempts
+        foreach ($this->currentnodeattempt as $value){
+            $data = $value;
+            $data->attempt = $this->get_new_parentid('adaquiz_attempt');
+            $DB->insert_record('adaquiz_node_attempt', $data);
+        }
     }
 
     protected function after_execute() {
@@ -393,6 +445,6 @@ class restore_adaquiz_activity_structure_step extends restore_questions_activity
         // Add adaquiz related files, no need to match by itemname (just internally handled context).
         $this->add_related_files('mod_adaquiz', 'intro', null);
         // Add feedback related files, matching by itemname = 'adaquiz_feedback'.
-        $this->add_related_files('mod_adaquiz', 'feedback', 'adaquiz_feedback');
+        // $this->add_related_files('mod_adaquiz', 'feedback', 'adaquiz_feedback');
     }
 }

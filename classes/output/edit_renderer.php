@@ -73,7 +73,7 @@ class edit_renderer extends \plugin_renderer_base {
         $lastsection = end($sections);
         foreach ($sections as $section) {
             $output .= $this->start_section($section);
-            $output .= $this->questions_in_section($structure, $section, $contexts, $pagevars, $pageurl);
+            $output .= $this->questions_in_section($adaquizobj, $structure, $section, $contexts, $pagevars, $pageurl);
             if ($section === $lastsection) {
                 $output .= \html_writer::start_div('last-add-menu');
                 $output .= html_writer::tag('span', $this->add_menu_actions($structure, 0,
@@ -341,12 +341,12 @@ class edit_renderer extends \plugin_renderer_base {
      * @param \moodle_url $pageurl the canonical URL of this page.
      * @return string HTML to output.
      */
-    public function questions_in_section(structure $structure, $section,
+    public function questions_in_section(\adaquiz $adaquizobj, structure $structure, $section,
             $contexts, $pagevars, $pageurl) {
 
         $output = '';
         foreach ($structure->get_questions_in_section($section->id) as $question) {
-            $output .= $this->question_row($structure, $question, $contexts, $pagevars, $pageurl);
+            $output .= $this->question_row($adaquizobj, $structure, $question, $contexts, $pagevars, $pageurl);
         }
 
         return html_writer::tag('ul', $output, array('class' => 'section img-text'));
@@ -362,20 +362,21 @@ class edit_renderer extends \plugin_renderer_base {
      * @param \moodle_url $pageurl the canonical URL of this page.
      * @return string HTML to output.
      */
-    public function question_row(structure $structure, $question, $contexts, $pagevars, $pageurl) {
+    public function question_row(\adaquiz $adaquizobj, structure $structure, $question, $contexts, $pagevars, $pageurl) {
         $output = '';
 
         $output .= $this->page_row($structure, $question, $contexts, $pagevars, $pageurl);
 
         // Page split/join icon.
         $joinhtml = '';
-        if ($structure->can_be_edited() && !$structure->is_last_slot_in_adaquiz($question->slot)) {
-            $joinhtml = $this->page_split_join_button($structure->get_adaquiz(),
-                    $question, !$structure->is_last_slot_on_page($question->slot));
-        }
+        // AdaptiveQuiz: don't show split button (one page per question).
+        // if ($structure->can_be_edited() && !$structure->is_last_slot_in_adaquiz($question->slot)) {
+        //     $joinhtml = $this->page_split_join_button($structure->get_adaquiz(),
+        //             $question, !$structure->is_last_slot_on_page($question->slot));
+        // }
 
         // Question HTML.
-        $questionhtml = $this->question($structure, $question, $pageurl);
+        $questionhtml = $this->question($adaquizobj, $structure, $question, $pageurl);
         $questionclasses = 'activity ' . $question->qtype . ' qtype_' . $question->qtype . ' slot';
 
         $output .= html_writer::tag('li', $questionhtml . $joinhtml,
@@ -505,18 +506,19 @@ class edit_renderer extends \plugin_renderer_base {
         $actions['questionbank'] = new \action_menu_link_secondary($pageurl, $icon, $str->questionbank, $attributes);
 
         // Add a random question.
-        $returnurl = new \moodle_url('/mod/adaquiz/edit.php', array('cmid' => $structure->get_cmid(), 'data-addonpage' => $page));
-        $params = array('returnurl' => $returnurl, 'cmid' => $structure->get_cmid(), 'appendqnumstring' => 'addarandomquestion');
-        $url = new \moodle_url('/mod/adaquiz/addrandom.php', $params);
-        $icon = new \pix_icon('t/add', $str->addarandomquestion, 'moodle', array('class' => 'iconsmall', 'title' => ''));
-        $attributes = array('class' => 'cm-edit-action addarandomquestion', 'data-action' => 'addarandomquestion');
-        if ($page) {
-            $title = get_string('addrandomquestiontopage', 'adaquiz', $page);
-        } else {
-            $title = get_string('addrandomquestionatend', 'adaquiz');
-        }
-        $attributes = array_merge(array('data-header' => $title, 'data-addonpage' => $page), $attributes);
-        $actions['addarandomquestion'] = new \action_menu_link_secondary($url, $icon, $str->addarandomquestion, $attributes);
+        // AdaptiveQuiz: random question not allowed.
+        // $returnurl = new \moodle_url('/mod/adaquiz/edit.php', array('cmid' => $structure->get_cmid(), 'data-addonpage' => $page));
+        // $params = array('returnurl' => $returnurl, 'cmid' => $structure->get_cmid(), 'appendqnumstring' => 'addarandomquestion');
+        // $url = new \moodle_url('/mod/adaquiz/addrandom.php', $params);
+        // $icon = new \pix_icon('t/add', $str->addarandomquestion, 'moodle', array('class' => 'iconsmall', 'title' => ''));
+        // $attributes = array('class' => 'cm-edit-action addarandomquestion', 'data-action' => 'addarandomquestion');
+        // if ($page) {
+        //     $title = get_string('addrandomquestiontopage', 'adaquiz', $page);
+        // } else {
+        //     $title = get_string('addrandomquestionatend', 'adaquiz');
+        // }
+        // $attributes = array_merge(array('data-header' => $title, 'data-addonpage' => $page), $attributes);
+        // $actions['addarandomquestion'] = new \action_menu_link_secondary($url, $icon, $str->addarandomquestion, $attributes);
 
         return $actions;
     }
@@ -557,7 +559,7 @@ class edit_renderer extends \plugin_renderer_base {
      * @param \moodle_url $pageurl the canonical URL of this page.
      * @return string HTML to output.
      */
-    public function question(structure $structure, $question, \moodle_url $pageurl) {
+    public function question(\adaquiz $adaquizobj, structure $structure, $question, \moodle_url $pageurl) {
         $output = '';
 
         $output .= html_writer::start_tag('div');
@@ -592,7 +594,7 @@ class edit_renderer extends \plugin_renderer_base {
         if ($structure->can_be_edited()) {
             $questionicons .= $this->question_remove_icon($question, $pageurl);
             // Adaptive quiz edit jump icon
-            $questionicons .= $this->question_jump_icon($structure->get_adaquiz(), $structure->get_adaptiveobject(), $question);
+            $questionicons .= $this->question_jump_icon($adaquizobj, $question);
         }
 
         $questionicons .= $this->marked_out_of_field($structure->get_adaquiz(), $question);
@@ -667,13 +669,13 @@ class edit_renderer extends \plugin_renderer_base {
      * @param bool $label if true, show the preview question label after the icon
      * @return string HTML to output.
      */
-    public function question_jump_icon($adaquiz, $adaptiveobject, $question, $label = null) {
+    public function question_jump_icon(\adaquiz $adaquizobj, $question, $label = null) {
         // $url = adaquiz_question_preview_url($adaquiz, $question);
         global $CFG, $OUTPUT;
-        $nid = ($adaptiveobject->getNodesFromQuestions(array($question->id)));
+        $nid = ($adaquizobj->getNodesFromQuestions(array($question->id)));
         $nid = array_shift($nid);
 
-        $url = $CFG->wwwroot . '/mod/adaquiz/editnode.php?nid=' . $nid->id . '&aq=' . $adaquiz->id;
+        $url = $CFG->wwwroot . '/mod/adaquiz/editnode.php?nid=' . $nid->id . '&aq=' . $adaquizobj->get_adaquizid();
 
         // Do we want a label?
         $strpreviewlabel = '';

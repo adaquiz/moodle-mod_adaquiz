@@ -1,5 +1,7 @@
 YUI.add('moodle-mod_adaquiz-repaginate', function (Y, NAME) {
 
+YUI.add('moodle-mod_adaquiz-repaginate', function (Y, NAME) {
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -81,6 +83,9 @@ M.mod_adaquiz.repaginate = M.mod_adaquiz.repaginate || {};
 M.mod_adaquiz.repaginate.init = function() {
     return new POPUP();
 };
+
+
+}, '@VERSION@');
 
 
 }, '@VERSION@', {"requires": ["base", "event", "node", "io", "moodle-core-notification-dialogue"]});

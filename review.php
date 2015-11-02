@@ -25,6 +25,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace mod_adaquiz\wiris;
 
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
@@ -34,7 +35,7 @@ $attemptid = required_param('attempt', PARAM_INT);
 $page      = optional_param('page', 0, PARAM_INT);
 $showall   = optional_param('showall', null, PARAM_BOOL);
 
-$url = new moodle_url('/mod/adaquiz/review.php', array('attempt'=>$attemptid));
+$url = new \moodle_url('/mod/adaquiz/review.php', array('attempt'=>$attemptid));
 if ($page !== 0) {
     $url->param('page', $page);
 } else if ($showall) {
@@ -42,7 +43,7 @@ if ($page !== 0) {
 }
 $PAGE->set_url($url);
 
-$attemptobj = adaquiz_attempt::create($attemptid);
+$attemptobj = Attempt::create($attemptid);
 $page = $attemptobj->force_page_number_into_range($page);
 
 // Now we can validate the params better, re-genrate the page URL.
@@ -83,7 +84,7 @@ if ($showall) {
 }
 
 // Save the flag states, if they are being changed.
-if ($options->flags == question_display_options::EDITABLE && optional_param('savingflags', false,
+if ($options->flags == \question_display_options::EDITABLE && optional_param('savingflags', false,
         PARAM_BOOL)) {
     require_sesskey();
     $attemptobj->save_question_flags();
@@ -93,10 +94,12 @@ if ($options->flags == question_display_options::EDITABLE && optional_param('sav
 // Work out appropriate title and whether blocks should be shown.
 if ($attemptobj->is_preview_user() && $attemptobj->is_own_attempt()) {
     $strreviewtitle = get_string('reviewofpreview', 'adaquiz');
-    navigation_node::override_active_url($attemptobj->start_attempt_url());
+    \navigation_node::override_active_url($attemptobj->start_attempt_url());
 
 } else {
-    $strreviewtitle = get_string('reviewofattempt', 'adaquiz', $attemptobj->get_attempt_number());
+    // AdaptiveQuiz: not attempt number.
+    // $strreviewtitle = get_string('reviewofattempt', 'adaquiz', $attemptobj->get_attempt_number());
+    $strreviewtitle = get_string('reviewofattempt', 'adaquiz', '');    //
     if (empty($attemptobj->get_adaquiz()->showblocks) && !$attemptobj->is_preview_user()) {
         $PAGE->blocks->show_only_fake_blocks();
     }
@@ -111,10 +114,13 @@ $PAGE->set_heading($attemptobj->get_course()->fullname);
 
 // Work out some time-related things.
 $attempt = $attemptobj->get_attempt();
+// AdaptiveQuiz: TODO decimal points shouldn't be harcoded.
+$attempt->decimalpoints = 2;
+
 $adaquiz = $attemptobj->get_adaquiz();
 $overtime = 0;
 
-if ($attempt->state == adaquiz_attempt::FINISHED) {
+if ($attempt->state == Attempt::STATE_FINISHED) {
     if ($timetaken = ($attempt->timefinish - $attempt->timestart)) {
         if ($adaquiz->timelimit && $timetaken > ($adaquiz->timelimit + 60)) {
             $overtime = $timetaken - $adaquiz->timelimit;
@@ -133,11 +139,11 @@ $summarydata = array();
 if (!$attemptobj->get_adaquiz()->showuserpicture && $attemptobj->get_userid() != $USER->id) {
     // If showuserpicture is true, the picture is shown elsewhere, so don't repeat it.
     $student = $DB->get_record('user', array('id' => $attemptobj->get_userid()));
-    $usrepicture = new user_picture($student);
+    $usrepicture = new \user_picture($student);
     $usrepicture->courseid = $attemptobj->get_courseid();
     $summarydata['user'] = array(
         'title'   => $usrepicture,
-        'content' => new action_link(new moodle_url('/user/view.php', array(
+        'content' => new \action_link(new \moodle_url('/user/view.php', array(
                                 'id' => $student->id, 'course' => $attemptobj->get_courseid())),
                           fullname($student, true)),
     );
@@ -162,10 +168,10 @@ $summarydata['startedon'] = array(
 
 $summarydata['state'] = array(
     'title'   => get_string('attemptstate', 'adaquiz'),
-    'content' => adaquiz_attempt::state_name($attempt->state),
+    'content' => Attempt::state_name($attempt->state),
 );
 
-if ($attempt->state == adaquiz_attempt::FINISHED) {
+if ($attempt->state == Attempt::FINISHED) {
     $summarydata['completedon'] = array(
         'title'   => get_string('completedon', 'adaquiz'),
         'content' => userdate($attempt->timefinish),
@@ -183,11 +189,18 @@ if (!empty($overtime)) {
     );
 }
 
+// AdaptiveQuiz: To know the real questions the user attempted
+$route = adaquiz_get_full_route($attemptobj->get_attemptid());
+$route[] = -1;
+
+// AdaptiveQuiz: Recalculate the quiz->sumgrades
+$adaquiz->sumgrades = adaquiz_get_real_sumgrades($attemptobj->get_attemptid(), $attemptobj->get_adaquizid(), $route);
+
 // Show marks (if the user is allowed to see marks at the moment).
 $grade = adaquiz_rescale_grade($attempt->sumgrades, $adaquiz, false);
-if ($options->marks >= question_display_options::MARK_AND_MAX && adaquiz_has_grades($adaquiz)) {
+if ($options->marks >= \question_display_options::MARK_AND_MAX && adaquiz_has_grades($adaquiz)) {
 
-    if ($attempt->state != adaquiz_attempt::FINISHED) {
+    if ($attempt->state != Attempt::FINISHED) {
         // Cannot display grade.
 
     } else if (is_null($grade)) {
@@ -230,13 +243,14 @@ if ($options->marks >= question_display_options::MARK_AND_MAX && adaquiz_has_gra
 $summarydata = array_merge($summarydata, $attemptobj->get_additional_summary_data($options));
 
 // Feedback if there is any, and the user is allowed to see it now.
-$feedback = $attemptobj->get_overall_feedback($grade);
-if ($options->overallfeedback && $feedback) {
-    $summarydata['feedback'] = array(
-        'title'   => get_string('feedback', 'adaquiz'),
-        'content' => $feedback,
-    );
-}
+// AdaptiveQuiz: No feedback.
+// $feedback = $attemptobj->get_overall_feedback($grade);
+// if ($options->overallfeedback && $feedback) {
+//     $summarydata['feedback'] = array(
+//         'title'   => get_string('feedback', 'adaquiz'),
+//         'content' => $feedback,
+//     );
+// }
 
 // Summary table end. ==============================================================================
 
@@ -245,7 +259,14 @@ if ($showall) {
     $lastpage = true;
 } else {
     $slots = $attemptobj->get_slots($page);
-    $lastpage = $attemptobj->is_last_page($page);
+
+    $key = array_search($slots[0], $route) + 1;
+
+    if ($route[$key] == -1){
+        $lastpage = true;
+    }else{
+        $lastpage = false;
+    }
 }
 
 $output = $PAGE->get_renderer('mod_adaquiz');
@@ -262,7 +283,7 @@ $params = array(
     'objectid' => $attemptobj->get_attemptid(),
     'relateduserid' => $attemptobj->get_userid(),
     'courseid' => $attemptobj->get_courseid(),
-    'context' => context_module::instance($attemptobj->get_cmid()),
+    'context' => \context_module::instance($attemptobj->get_cmid()),
     'other' => array(
         'adaquizid' => $attemptobj->get_adaquizid()
     )

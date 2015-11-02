@@ -21,6 +21,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace mod_adaquiz\wiris;
+
 /**
  * Description of node
  */
@@ -209,9 +211,12 @@ class Node {
         $nodeid = $record->id;
         //delete all jumps associated to this node:
         $ok = Jump::delete($nodeid) && $ok;
+        $ok = $DB->delete_records(NodeAttempt::TABLE, array('node' => $nodeid)) && $ok;
       }
       //delete all nodes.
+
       $ok = $DB->delete_records(Node::TABLE, array('adaquiz' => $adaquizid)) && $ok;
+
     }
     return $ok;
   }

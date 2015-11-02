@@ -143,14 +143,6 @@ class structure {
     }
 
     /**
-     * Get the adaptive object
-     * @return \stdClass the adaptive object.
-     */
-    public function get_adaptiveobject() {
-        return $this->adaquizobj->get_adaptiveobject();
-    }
-
-    /**
      * Whether the question in the adaptive quiz are shuffled for each attempt.
      * @return bool true if the questions are shuffled.
      */
@@ -164,6 +156,9 @@ class structure {
      * @return bool whether this adaptive quiz can be repaginated.
      */
     public function can_be_repaginated() {
+        // Adaptive Quiz. On this early version, there's one page per question. Repaginate
+        // don't have any sense.
+        return false;
         return !$this->is_shuffled() && $this->can_be_edited()
                 && $this->get_question_count() >= 2;
     }
@@ -546,6 +541,30 @@ class structure {
                        AND page > ?
                     ", array($this->get_adaquizid(), $page));
         }
+
+        $trans->allow_commit();
+    }
+
+    /**
+     * Flip slot with id $idmove with slot on page $page.
+     * @param  int $idmove id of the origin slot.
+     * @param  int $page   destination page.
+     */
+    public function flip_slots($idmove, $page) {
+        global $DB;
+
+        $trans = $DB->start_delegated_transaction();
+        $slotmove = $DB->get_record('adaquiz_slots', array('id' => $idmove));
+        // AdaptiveQuiz: One slot per page, so page is ok to retrieve an unique record.
+        $slotbefore = $DB->get_record('adaquiz_slots', array('page' => $page));
+        $slotbefore->slot = $slotmove->slot;
+        $slotmove->page = $slotbefore->page;
+        $slotbefore->page = $slotbefore->slot;
+        $slotmove->slot = 0;
+
+        $DB->update_record('adaquiz_slots', $slotmove);
+        $DB->update_record('adaquiz_slots' ,$slotbefore);
+        $DB->set_field('adaquiz_slots', 'slot', $slotmove->page, array('id' => $slotmove->id));
 
         $trans->allow_commit();
     }

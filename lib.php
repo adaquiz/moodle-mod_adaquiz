@@ -30,6 +30,9 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/eventslib.php');
 require_once($CFG->dirroot . '/calendar/lib.php');
+// AdaptiveQuiz requires
+require_once($CFG->dirroot.'/mod/adaquiz/lib/adaquiz.php');
+require_once($CFG->dirroot.'/mod/adaquiz/lib/attempt.php');
 
 
 /**#@+
@@ -132,20 +135,22 @@ function adaquiz_update_instance($adaquiz, $mform) {
         adaquiz_update_grades($adaquiz);
     }
 
-    $adaquizdateschanged = $oldadaquiz->timelimit   != $adaquiz->timelimit
-                     || $oldadaquiz->timeclose   != $adaquiz->timeclose
-                     || $oldadaquiz->graceperiod != $adaquiz->graceperiod;
-    if ($adaquizdateschanged) {
-        adaquiz_update_open_attempts(array('adaquizid' => $adaquiz->id));
-    }
+    // AdaptiveQuiz: TODO Timelimit.
+    // $adaquizdateschanged = $oldadaquiz->timelimit   != $adaquiz->timelimit
+    //                  || $oldadaquiz->timeclose   != $adaquiz->timeclose
+    //                  || $oldadaquiz->graceperiod != $adaquiz->graceperiod;
+    // if ($adaquizdateschanged) {
+    //     adaquiz_update_open_attempts(array('adaquizid' => $adaquiz->id));
+    // }
 
     // Delete any previous preview attempts.
     adaquiz_delete_previews($adaquiz);
 
     // Repaginate, if asked to.
-    if (!$adaquiz->shufflequestions && !empty($adaquiz->repaginatenow)) {
-        adaquiz_repaginate_questions($adaquiz->id, $adaquiz->questionsperpage);
-    }
+    // AdaptiveQuiz: Only one question per page. Not repaginate.
+    // if (!$adaquiz->shufflequestions && !empty($adaquiz->repaginatenow)) {
+    //     adaquiz_repaginate_questions($adaquiz->id, $adaquiz->questionsperpage);
+    // }
 
     return true;
 }
@@ -164,7 +169,7 @@ function adaquiz_delete_instance($id) {
     $adaquiz = $DB->get_record('adaquiz', array('id' => $id), '*', MUST_EXIST);
 
     adaquiz_delete_all_attempts($adaquiz);
-    adaquiz_delete_all_overrides($adaquiz);
+    // adaquiz_delete_all_overrides($adaquiz);
 
     // Look for random questions that may no longer be used when this adaptive quiz is gone.
     $sql = "SELECT q.id
@@ -180,7 +185,8 @@ function adaquiz_delete_instance($id) {
         question_delete_question($questionid);
     }
 
-    $DB->delete_records('adaquiz_feedback', array('adaquizid' => $adaquiz->id));
+    // AdaptiveQuiz not feedback.
+    // $DB->delete_records('adaquiz_feedback', array('adaquizid' => $adaquiz->id));
 
     adaquiz_access_manager::delete_settings($adaquiz);
 
@@ -381,8 +387,11 @@ function adaquiz_delete_all_attempts($adaquiz) {
     global $CFG, $DB;
     require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
     question_engine::delete_questions_usage_by_activities(new qubaids_for_adaquiz($adaquiz->id));
+    // Deleting all nodes, jumps and node attempts asociated with this adaptive quiz.
+    \mod_adaquiz\wiris\Node::deleteAllNodes($adaquiz->id);
     $DB->delete_records('adaquiz_attempts', array('quiz' => $adaquiz->id));
-    $DB->delete_records('adaquiz_grades', array('quiz' => $adaquiz->id));
+    // AdaptiveQuiz: no grades.
+    // $DB->delete_records('adaquiz_grades', array('quiz' => $adaquiz->id));
 }
 
 /**
@@ -547,9 +556,8 @@ function adaquiz_cron() {
  *      array if there are none.
  */
 function adaquiz_get_user_attempts($adaquizid, $userid, $status = 'finished', $includepreviews = false) {
-    global $DB, $CFG;
-
-    require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
+    // AdaptiveQuiz: Use adaptive proper states (defined on Attempt class) to get user attempts.
+    global $DB;
 
     $params = array();
     switch ($status) {
@@ -559,14 +567,13 @@ function adaquiz_get_user_attempts($adaquizid, $userid, $status = 'finished', $i
 
         case 'finished':
             $statuscondition = ' AND state IN (:state1, :state2)';
-            $params['state1'] = adaquiz_attempt::FINISHED;
-            $params['state2'] = adaquiz_attempt::ABANDONED;
+            $params['state1'] = \mod_adaquiz\wiris\Attempt::STATE_FINISHED;
+            $params['state2'] = \mod_adaquiz\wiris\Attempt::STATE_REVIEWING;
             break;
 
         case 'unfinished':
-            $statuscondition = ' AND state IN (:state1, :state2)';
-            $params['state1'] = adaquiz_attempt::IN_PROGRESS;
-            $params['state2'] = adaquiz_attempt::OVERDUE;
+            $statuscondition = ' AND state IN (:state1)';
+            $params['state1'] = \mod_adaquiz\wiris\Attempt::STATE_ANSWERING;
             break;
     }
 
@@ -577,9 +584,9 @@ function adaquiz_get_user_attempts($adaquizid, $userid, $status = 'finished', $i
 
     $params['adaquizid'] = $adaquizid;
     $params['userid'] = $userid;
-    return $DB->get_records_select('adaquiz_attempts',
-            'quiz = :adaquizid AND userid = :userid' . $previewclause . $statuscondition,
-            $params, 'attempt ASC');
+
+    return $DB->get_records_select('adaquiz_attempts', 'quiz = :adaquizid AND userid = :userid'
+            . $previewclause . $statuscondition, $params, 'timestart ASC');
 }
 
 /**
@@ -707,14 +714,16 @@ function adaquiz_grade_item_update($adaquiz, $grades = null) {
         $params = array('itemname' => $adaquiz->name);
     }
 
-    if ($adaquiz->grade > 0) {
-        $params['gradetype'] = GRADE_TYPE_VALUE;
-        $params['grademax']  = $adaquiz->grade;
-        $params['grademin']  = 0;
+    // AdaptiveQuiz: Not grading options. TODO Grading options.
+    // if ($adaquiz->grade > 0) {
+    //     $params['gradetype'] = GRADE_TYPE_VALUE;
+    //     $params['grademax']  = $adaquiz->grade;
+    //     $params['grademin']  = 0;
 
-    } else {
-        $params['gradetype'] = GRADE_TYPE_NONE;
-    }
+    // } else {
+    //     $params['gradetype'] = GRADE_TYPE_NONE;
+    // }
+    $params['gradetype'] = GRADE_TYPE_NONE;
 
     // What this is trying to do:
     // 1. If the adaptive quiz is set to not show grades while theadaptive  quiz is still open,
@@ -998,7 +1007,9 @@ function adaquiz_process_options($adaquiz) {
 
     // Password field - different in form to stop browsers that remember passwords
     // getting confused.
-    $adaquiz->password = $adaquiz->adaquizpassword;
+    // AdaptiveQuiz: TODO Password access manager plugin.
+    $adaquiz->password = '';
+    // $adaquiz->password = $adaquiz->adaquizpassword;
     unset($adaquiz->adaquizpassword);
 
     // Adaptive quiz feedback.
@@ -1112,23 +1123,24 @@ function adaquiz_after_add_or_update($adaquiz) {
     $context = context_module::instance($cmid);
 
     // Save the feedback.
-    $DB->delete_records('adaquiz_feedback', array('adaquizid' => $adaquiz->id));
+    // AdaptiveQuiz: feedback not implemented.
+    // $DB->delete_records('adaquiz_feedback', array('adaquizid' => $adaquiz->id));
 
-    for ($i = 0; $i <= $adaquiz->feedbackboundarycount; $i++) {
-        $feedback = new stdClass();
-        $feedback->adaquizid = $adaquiz->id;
-        $feedback->feedbacktext = $adaquiz->feedbacktext[$i]['text'];
-        $feedback->feedbacktextformat = $adaquiz->feedbacktext[$i]['format'];
-        $feedback->mingrade = $adaquiz->feedbackboundaries[$i];
-        $feedback->maxgrade = $adaquiz->feedbackboundaries[$i - 1];
-        $feedback->id = $DB->insert_record('adaquiz_feedback', $feedback);
-        $feedbacktext = file_save_draft_area_files((int)$adaquiz->feedbacktext[$i]['itemid'],
-                $context->id, 'mod_adaquiz', 'feedback', $feedback->id,
-                array('subdirs' => false, 'maxfiles' => -1, 'maxbytes' => 0),
-                $adaquiz->feedbacktext[$i]['text']);
-        $DB->set_field('adaquiz_feedback', 'feedbacktext', $feedbacktext,
-                array('id' => $feedback->id));
-    }
+    // for ($i = 0; $i <= $adaquiz->feedbackboundarycount; $i++) {
+    //     $feedback = new stdClass();
+    //     $feedback->adaquizid = $adaquiz->id;
+    //     $feedback->feedbacktext = $adaquiz->feedbacktext[$i]['text'];
+    //     $feedback->feedbacktextformat = $adaquiz->feedbacktext[$i]['format'];
+    //     $feedback->mingrade = $adaquiz->feedbackboundaries[$i];
+    //     $feedback->maxgrade = $adaquiz->feedbackboundaries[$i - 1];
+    //     $feedback->id = $DB->insert_record('adaquiz_feedback', $feedback);
+    //     $feedbacktext = file_save_draft_area_files((int)$adaquiz->feedbacktext[$i]['itemid'],
+    //             $context->id, 'mod_adaquiz', 'feedback', $feedback->id,
+    //             array('subdirs' => false, 'maxfiles' => -1, 'maxbytes' => 0),
+    //             $adaquiz->feedbacktext[$i]['text']);
+    //     $DB->set_field('adaquiz_feedback', 'feedbacktext', $feedbacktext,
+    //             array('id' => $feedback->id));
+    // }
 
     // Store any settings belonging to the access rules.
     adaquiz_access_manager::save_settings($adaquiz);
@@ -1163,101 +1175,102 @@ function adaquiz_update_events($adaquiz, $override = null) {
     $oldevents = $DB->get_records('event', $conds);
 
     // Now make a todo list of all that needs to be updated.
-    if (empty($override)) {
-        // We are updating the primary settings for the adaptive quiz, so we
-        // need to add all the overrides.
-        $overrides = $DB->get_records('adaquiz_overrides', array('quiz' => $adaquiz->id));
-        // As well as the original adaptive quiz (empty override).
-        $overrides[] = new stdClass();
-    } else {
-        // Just do the one override.
-        $overrides = array($override);
-    }
+    // AdaptiveQuiz: adaquiz_overrides table doesn't exists.
+    // if (empty($override)) {
+    //     // We are updating the primary settings for the adaptive quiz, so we
+    //     // need to add all the overrides.
+    //     $overrides = $DB->get_records('adaquiz_overrides', array('quiz' => $adaquiz->id));
+    //     // As well as the original adaptive quiz (empty override).
+    //     $overrides[] = new stdClass();
+    // } else {
+    //     // Just do the one override.
+    //     $overrides = array($override);
+    // }
 
-    foreach ($overrides as $current) {
-        $groupid   = isset($current->groupid)?  $current->groupid : 0;
-        $userid    = isset($current->userid)? $current->userid : 0;
-        $timeopen  = isset($current->timeopen)?  $current->timeopen : $adaquiz->timeopen;
-        $timeclose = isset($current->timeclose)? $current->timeclose : $adaquiz->timeclose;
+    // foreach ($overrides as $current) {
+    //     $groupid   = isset($current->groupid)?  $current->groupid : 0;
+    //     $userid    = isset($current->userid)? $current->userid : 0;
+    //     $timeopen  = isset($current->timeopen)?  $current->timeopen : $adaquiz->timeopen;
+    //     $timeclose = isset($current->timeclose)? $current->timeclose : $adaquiz->timeclose;
 
-        // Only add open/close events for an override if they differ from the adaptive quiz default.
-        $addopen  = empty($current->id) || !empty($current->timeopen);
-        $addclose = empty($current->id) || !empty($current->timeclose);
+    //     // Only add open/close events for an override if they differ from the adaptive quiz default.
+    //     $addopen  = empty($current->id) || !empty($current->timeopen);
+    //     $addclose = empty($current->id) || !empty($current->timeclose);
 
-        if (!empty($adaquiz->coursemodule)) {
-            $cmid = $adaquiz->coursemodule;
-        } else {
-            $cmid = get_coursemodule_from_instance('adaquiz', $adaquiz->id, $adaquiz->course)->id;
-        }
+    //     if (!empty($adaquiz->coursemodule)) {
+    //         $cmid = $adaquiz->coursemodule;
+    //     } else {
+    //         $cmid = get_coursemodule_from_instance('adaquiz', $adaquiz->id, $adaquiz->course)->id;
+    //     }
 
-        $event = new stdClass();
-        $event->description = format_module_intro('adaquiz', $adaquiz, $cmid);
-        // Events module won't show user events when the courseid is nonzero.
-        $event->courseid    = ($userid) ? 0 : $adaquiz->course;
-        $event->groupid     = $groupid;
-        $event->userid      = $userid;
-        $event->modulename  = 'adaquiz';
-        $event->instance    = $adaquiz->id;
-        $event->timestart   = $timeopen;
-        $event->timeduration = max($timeclose - $timeopen, 0);
-        $event->visible     = instance_is_visible('adaquiz', $adaquiz);
-        $event->eventtype   = 'open';
+    //     $event = new stdClass();
+    //     $event->description = format_module_intro('adaquiz', $adaquiz, $cmid);
+    //     // Events module won't show user events when the courseid is nonzero.
+    //     $event->courseid    = ($userid) ? 0 : $adaquiz->course;
+    //     $event->groupid     = $groupid;
+    //     $event->userid      = $userid;
+    //     $event->modulename  = 'adaquiz';
+    //     $event->instance    = $adaquiz->id;
+    //     $event->timestart   = $timeopen;
+    //     $event->timeduration = max($timeclose - $timeopen, 0);
+    //     $event->visible     = instance_is_visible('adaquiz', $adaquiz);
+    //     $event->eventtype   = 'open';
 
-        // Determine the event name.
-        if ($groupid) {
-            $params = new stdClass();
-            $params->adaquiz = $adaquiz->name;
-            $params->group = groups_get_group_name($groupid);
-            if ($params->group === false) {
-                // Group doesn't exist, just skip it.
-                continue;
-            }
-            $eventname = get_string('overridegroupeventname', 'adaquiz', $params);
-        } else if ($userid) {
-            $params = new stdClass();
-            $params->adaquiz = $adaquiz->name;
-            $eventname = get_string('overrideusereventname', 'adaquiz', $params);
-        } else {
-            $eventname = $adaquiz->name;
-        }
-        if ($addopen or $addclose) {
-            if ($timeclose and $timeopen and $event->timeduration <= ADAQUIZ_MAX_EVENT_LENGTH) {
-                // Single event for the whole adaptive quiz.
-                if ($oldevent = array_shift($oldevents)) {
-                    $event->id = $oldevent->id;
-                } else {
-                    unset($event->id);
-                }
-                $event->name = $eventname;
-                // The method calendar_event::create will reuse a db record if the id field is set.
-                calendar_event::create($event);
-            } else {
-                // Separate start and end events.
-                $event->timeduration  = 0;
-                if ($timeopen && $addopen) {
-                    if ($oldevent = array_shift($oldevents)) {
-                        $event->id = $oldevent->id;
-                    } else {
-                        unset($event->id);
-                    }
-                    $event->name = $eventname.' ('.get_string('quizopens', 'adaquiz').')';
-                    // The method calendar_event::create will reuse a db record if the id field is set.
-                    calendar_event::create($event);
-                }
-                if ($timeclose && $addclose) {
-                    if ($oldevent = array_shift($oldevents)) {
-                        $event->id = $oldevent->id;
-                    } else {
-                        unset($event->id);
-                    }
-                    $event->name      = $eventname.' ('.get_string('quizcloses', 'adaquiz').')';
-                    $event->timestart = $timeclose;
-                    $event->eventtype = 'close';
-                    calendar_event::create($event);
-                }
-            }
-        }
-    }
+    //     // Determine the event name.
+    //     if ($groupid) {
+    //         $params = new stdClass();
+    //         $params->adaquiz = $adaquiz->name;
+    //         $params->group = groups_get_group_name($groupid);
+    //         if ($params->group === false) {
+    //             // Group doesn't exist, just skip it.
+    //             continue;
+    //         }
+    //         $eventname = get_string('overridegroupeventname', 'adaquiz', $params);
+    //     } else if ($userid) {
+    //         $params = new stdClass();
+    //         $params->adaquiz = $adaquiz->name;
+    //         $eventname = get_string('overrideusereventname', 'adaquiz', $params);
+    //     } else {
+    //         $eventname = $adaquiz->name;
+    //     }
+    //     if ($addopen or $addclose) {
+    //         if ($timeclose and $timeopen and $event->timeduration <= ADAQUIZ_MAX_EVENT_LENGTH) {
+    //             // Single event for the whole adaptive quiz.
+    //             if ($oldevent = array_shift($oldevents)) {
+    //                 $event->id = $oldevent->id;
+    //             } else {
+    //                 unset($event->id);
+    //             }
+    //             $event->name = $eventname;
+    //             // The method calendar_event::create will reuse a db record if the id field is set.
+    //             calendar_event::create($event);
+    //         } else {
+    //             // Separate start and end events.
+    //             $event->timeduration  = 0;
+    //             if ($timeopen && $addopen) {
+    //                 if ($oldevent = array_shift($oldevents)) {
+    //                     $event->id = $oldevent->id;
+    //                 } else {
+    //                     unset($event->id);
+    //                 }
+    //                 $event->name = $eventname.' ('.get_string('quizopens', 'adaquiz').')';
+    //                 // The method calendar_event::create will reuse a db record if the id field is set.
+    //                 calendar_event::create($event);
+    //             }
+    //             if ($timeclose && $addclose) {
+    //                 if ($oldevent = array_shift($oldevents)) {
+    //                     $event->id = $oldevent->id;
+    //                 } else {
+    //                     unset($event->id);
+    //                 }
+    //                 $event->name      = $eventname.' ('.get_string('quizcloses', 'adaquiz').')';
+    //                 $event->timestart = $timeclose;
+    //                 $event->eventtype = 'close';
+    //                 calendar_event::create($event);
+    //             }
+    //         }
+    //     }
+    // }
 
     // Delete any leftover events.
     foreach ($oldevents as $badevent) {

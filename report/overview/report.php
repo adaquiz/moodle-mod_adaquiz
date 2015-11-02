@@ -117,8 +117,8 @@ class adaquiz_overview_report extends adaquiz_attempts_report {
         $hasstudents = $students && (!$currentgroup || $groupstudents);
         if ($hasquestions && ($hasstudents || $options->attempts == self::ALL_WITH)) {
             // Construct the SQL.
-            $fields = $DB->sql_concat('u.id', "'#'", 'COALESCE(quiza.attempt, 0)') .
-                    ' AS uniqueid, ';
+            // $fields = $DB->sql_concat('u.id', "'#'", 'COALESCE(quiza.attempt, 0)') .
+            //         ' AS uniqueid, ';
 
             list($fields, $from, $where, $params) = $table->base_sql($allowed);
 
@@ -243,12 +243,13 @@ class adaquiz_overview_report extends adaquiz_attempts_report {
                 }
             }
 
-            if ($DB->record_exists('adaquiz_grades', array('quiz'=> $adaquiz->id))) {
-                $imageurl = new moodle_url('/mod/adaquiz/report/overview/overviewgraph.php',
-                        array('id' => $adaquiz->id));
-                $graphname = get_string('overviewreportgraph', 'adaquiz_overview');
-                echo $output->graph($imageurl, $graphname);
-            }
+            // AdaptiveQuiz: Not adaquiz_grades
+            // if ($DB->record_exists('adaquiz_grades', array('quiz'=> $adaquiz->id))) {
+            //     $imageurl = new moodle_url('/mod/adaquiz/report/overview/overviewgraph.php',
+            //             array('id' => $adaquiz->id));
+            //     $graphname = get_string('overviewreportgraph', 'adaquiz_overview');
+            //     echo $output->graph($imageurl, $graphname);
+            // }
         }
         return true;
     }

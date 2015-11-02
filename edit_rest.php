@@ -54,7 +54,7 @@ $cm = get_coursemodule_from_instance('adaquiz', $adaquiz->id, $adaquiz->course);
 $course = $DB->get_record('course', array('id' => $adaquiz->course), '*', MUST_EXIST);
 require_login($course, false, $cm);
 
-$adaquizobj = new adaquiz($adaquiz, $cm, $course);
+$adaquizobj = new \mod_adaquiz\wiris\adaquiz($adaquiz, $cm, $course);
 $structure = $adaquizobj->get_structure();
 $modcontext = context_module::instance($cm->id);
 
@@ -80,7 +80,9 @@ switch($requestmethod) {
                 switch ($field) {
                     case 'move':
                         require_capability('mod/adaquiz:manage', $modcontext);
-                        $structure->move_slot($id, $previousid, $page);
+                        // AdaptiveQuiz: one slot per page so move is flip.
+                        // $structure->move_slot($id, $previousid, $page);
+                        $structure->flip_slots($id, $page);
                         adaquiz_delete_previews($adaquiz);
                         echo json_encode(array('visible' => true));
                         break;

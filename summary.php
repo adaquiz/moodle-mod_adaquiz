@@ -22,6 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace mod_adaquiz\wiris;
 
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
@@ -30,7 +31,7 @@ $attemptid = required_param('attempt', PARAM_INT); // The attempt to summarise.
 
 $PAGE->set_url('/mod/adaquiz/summary.php', array('attempt' => $attemptid));
 
-$attemptobj = adaquiz_attempt::create($attemptid);
+$attemptobj = Attempt::create($attemptid);
 
 // Check login.
 require_login($attemptobj->get_course(), false, $attemptobj->get_cm());
@@ -40,7 +41,7 @@ if ($attemptobj->get_userid() != $USER->id) {
     if ($attemptobj->has_capability('mod/adaquiz:viewreports')) {
         redirect($attemptobj->review_url(null));
     } else {
-        throw new moodle_adaquiz_exception($attemptobj->get_adaquizobj(), 'notyourattempt');
+        throw new \moodle_adaquiz_exception($attemptobj->get_adaquizobj(), 'notyourattempt');
     }
 }
 
@@ -50,7 +51,7 @@ if (!$attemptobj->is_preview_user()) {
 }
 
 if ($attemptobj->is_preview_user()) {
-    navigation_node::override_active_url($attemptobj->start_attempt_url());
+    \navigation_node::override_active_url($attemptobj->start_attempt_url());
 }
 
 // Check access.
@@ -69,7 +70,8 @@ if ($accessmanager->is_preflight_check_required($attemptobj->get_attemptid())) {
 $displayoptions = $attemptobj->get_display_options(false);
 
 // If the attempt is now overdue, or abandoned, deal with that.
-$attemptobj->handle_if_time_expired(time(), true);
+// AdaptiveQuiz: TODO.
+// $attemptobj->handle_if_time_expired(time(), true);
 
 // If the attempt is already closed, redirect them to the review page.
 if ($attemptobj->is_finished()) {
@@ -90,14 +92,22 @@ $PAGE->set_title($attemptobj->get_adaquiz_name());
 $PAGE->set_heading($attemptobj->get_course()->fullname);
 
 // Display the page.
-echo $output->summary_page($attemptobj, $displayoptions);
+if (empty($attemptobj->get_adaquiz()->showblocks)) {
+    $PAGE->blocks->show_only_fake_blocks();
+}
+
+// AdaptiveQuiz: Get Adaptive quiz full route.
+// TODO: Use get_slot method inside render instead of route.
+$route = adaquiz_get_full_route($attemptobj->get_attemptid());
+
+echo $output->summary_page($attemptobj, $displayoptions, $route);
 
 // Log this page view.
 $params = array(
     'objectid' => $attemptobj->get_attemptid(),
     'relateduserid' => $attemptobj->get_userid(),
     'courseid' => $attemptobj->get_courseid(),
-    'context' => context_module::instance($attemptobj->get_cmid()),
+    'context' => \context_module::instance($attemptobj->get_cmid()),
     'other' => array(
         'adaquizid' => $attemptobj->get_adaquizid()
     )

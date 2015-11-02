@@ -22,6 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace mod_adaquiz\wiris;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -412,12 +413,12 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
      * @param int $id The ID of an attempt
      * @param int $nextpage The number of the next page
      */
-     public function attempt_page($attempt, $page, $slots, $id,
-            $nextpage, $qnum = -1, $nextnode = null) {
+    public function attempt_page($attemptobj, $page, $accessmanager, $messages, $slots, $id,
+            $nextpage) {
         $output = '';
         $output .= $this->header();
-        // $output .= $this->adaquiz_notices($messages);
-        $output .= $this->attempt_form($attempt, $page, $slots, $id, $nextpage, $qnum, $nextnode);
+        $output .= $this->adaquiz_notices($messages);
+        $output .= $this->attempt_form($attemptobj, $page, $slots, $id, $nextpage);
         $output .= $this->footer();
         return $output;
     }
@@ -438,22 +439,14 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
     /**
      * Ouputs the form for making an attempt
      *
-     * @param quiz_attempt $attemptobj
+     * @param adaquiz_attempt $attemptobj
      * @param int $page Current page number
      * @param array $slots Array of integers relating to questions
      * @param int $id ID of the attempt
      * @param int $nextpage Next page number
      */
-    public function attempt_form($attemptobj, $page, $slots, $id, $nextpage, $qnum = -1, $nextnode = null) {
-        global $slot;
-
-        if (isset($attemptobj->actualnode)){
-            $actualnode = $attemptobj->actualnode;
-        }
-        $adaquizobj = $attemptobj->adaquizobj;
+    public function attempt_form($attemptobj, $page, $slots, $id, $nextpage) {
         $output = '';
-
-        $nslots = $attemptobj->get_num_pages();
 
         // Start the form.
         $output .= html_writer::start_tag('form',
@@ -464,54 +457,13 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
 
         // Print all the questions.
         foreach ($slots as $slot) {
-            $output .= $attemptobj->render_question($slot, false, $attemptobj->attempt_url($slot, $page), $qnum);
+            $output .= $attemptobj->render_question($slot, false,
+                    $attemptobj->attempt_url($slot, $page));
         }
 
         $output .= html_writer::start_tag('div', array('class' => 'submitbtns'));
-        if (!is_null($nextnode)){
-            if ($actualnode->options[\mod_adaquiz\wiris\Node::OPTION_LETSTUDENTJUMP] == 1){
-                $jumps = $actualnode->getJump();
-                foreach($jumps->singlejumps as $key => $j){
-                    $nextnode = -1;
-                    $output .= html_writer::empty_tag('input', array('type' => 'submit', 'name' => 'fn'.$j->id,
-                            'value' => $j->name));
-                    foreach($adaquizobj->getNodes() as $key => $n){
-                        if ($n->id == $j->nodeto){
-                            $nextnode = $n->position;
-                        }
-                    }
-                    $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'nextpage_fn'.$j->id,
-                            'value' => $nextnode));
-                }
-            }else{
-                if ($nextnode == -1){
-                    $output .= html_writer::empty_tag('input', array('type' => 'submit', 'name' => 'summary',
-                            'value' => get_string('next')));
-                }else{
-                    $output .= html_writer::empty_tag('input', array('type' => 'submit', 'name' => 'next',
-                            'value' => get_string('next')));
-                }
-                $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'nextpage',
-                'value' => $nextnode));
-            }
-            $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'nav',
-                    'value' => 0));
-            $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'remid',
-                    'value' => 1));
-        }
-
-        if ($nextpage){
-            if ($slot<$nslots){
-                $output .= html_writer::start_tag('a', array('href' => $attemptobj->attempt_url($slot+1, $page, null, null, 1)));
-                $output .= 'Next';
-                $output .= html_writer::end_tag('a');
-            }else if ($slot == $nslots){
-                $output .= html_writer::start_tag('a', array('href' => $attemptobj->summary_url($attemptobj->get_cmid())));
-                $output .= 'Finish';
-                $output .= html_writer::end_tag('a');
-            }
-        }
-
+        $output .= html_writer::empty_tag('input', array('type' => 'submit', 'name' => 'next',
+                'value' => get_string('next')));
         $output .= html_writer::end_tag('div');
 
         // Some hidden fields to trach what is going on.
@@ -519,20 +471,15 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
                 'value' => $attemptobj->get_attemptid()));
         $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'thispage',
                 'value' => $page, 'id' => 'followingpage'));
+        $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'nextpage',
+                'value' => $nextpage));
         $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'timeup',
                 'value' => '0', 'id' => 'timeup'));
         $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'sesskey',
                 'value' => sesskey()));
         $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'scrollpos',
                 'value' => '', 'id' => 'scrollpos'));
-        $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'cmid',
-                'value' => $attemptobj->get_cm()->id));
-        $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'slot',
-                'value' => implode(',', $slots)));
-        if ($qnum != -1){
-            $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'qnum',
-                    'value' => $qnum+1));
-        }
+
         // Add a hidden field with questionids. Do this at the end of the form, so
         // if you navigate before the form has finished loading, it does not wipe all
         // the student's answers.
@@ -542,6 +489,8 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
         // Finish the form.
         $output .= html_writer::end_tag('div');
         $output .= html_writer::end_tag('form');
+
+        $output .= $this->connection_warning();
 
         return $output;
     }
@@ -607,14 +556,13 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
      *
      * @param adaquiz_attempt $attemptobj
      * @param mod_adaquiz_display_options $displayoptions
-     * @param  route adaptive quiz route.
      */
-    public function summary_page($attemptobj, $displayoptions, $route = -1) {
+    public function summary_page($attemptobj, $displayoptions) {
         $output = '';
         $output .= $this->header();
         $output .= $this->heading(format_string($attemptobj->get_adaquiz_name()));
         $output .= $this->heading(get_string('summaryofattempt', 'adaquiz'), 3);
-        $output .= $this->summary_table($attemptobj, $displayoptions, $route);
+        $output .= $this->summary_table($attemptobj, $displayoptions);
         $output .= $this->summary_page_controls($attemptobj);
         $output .= $this->footer();
         return $output;
@@ -625,9 +573,8 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
      *
      * @param adaquiz_attempt $attemptobj
      * @param mod_adaquiz_display_options $displayoptions
-     * @param route adaptive quiz route
      */
-    public function summary_table($attemptobj, $displayoptions, $route = -1) {
+    public function summary_table($attemptobj, $displayoptions) {
         // Prepare the summary table header.
         $table = new html_table();
         $table->attributes['class'] = 'generaltable adaquizsummaryofattempt boxaligncenter';
@@ -643,10 +590,8 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
         $table->data = array();
 
         // Get the summary info for each question.
-        // AdaptiveQuiz use route not slots.
-        $questionNumber = 1;
-        // $slots = $attemptobj->get_slots();
-        foreach ($route as $slot) {
+        $slots = $attemptobj->get_slots();
+        foreach ($slots as $slot) {
             if (!$attemptobj->is_real_question($slot)) {
                 continue;
             }
@@ -669,7 +614,6 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
             $table->data[] = $row;
             $table->rowclasses[] = 'adaquizsummary' . $slot . ' ' . $attemptobj->get_question_state_class(
                     $slot, $displayoptions->correctness);
-            $questionNumber++;
         }
 
         // Print the summary table.
@@ -770,8 +714,7 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
             $output .= $this->no_questions_message($viewobj->canedit, $viewobj->editurl);
         }
 
-        // AdaptiveQuiz: No messages.
-        // $output .= $this->access_messages($viewobj->preventmessages);
+        $output .= $this->access_messages($viewobj->preventmessages);
 
         if ($viewobj->buttontext) {
             $output .= $this->start_attempt_button($viewobj->buttontext,
@@ -992,20 +935,8 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
             $table->size[] = '';
         }
 
-        if ($viewobj->attemptcolumn) {
-            $attemptNumber = array();
-            $count = 1;
-            foreach ($viewobj->attempts as $attemptobj) {
-                if ($attemptobj->preview == 0){
-                    $attemptNumber[$attemptobj->get_attemptid()] = $count;
-                    $count++;
-                }
-            }
-        }
-
         // One row for each attempt.
-        foreach ($viewobj->attempts as $attemptobj) {
-
+        foreach ($viewobj->attemptobjs as $attemptobj) {
             $attemptoptions = $attemptobj->get_display_options(true);
             $row = array();
 
@@ -1014,8 +945,7 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
                 if ($attemptobj->is_preview()) {
                     $row[] = get_string('preview', 'adaquiz');
                 } else {
-                    // $row[] = $attemptobj->get_attempt_number();
-                    $row[] = $attemptNumber[$attemptobj->get_attemptid()];
+                    $row[] = $attemptobj->get_attempt_number();
                 }
             }
 
@@ -1040,7 +970,7 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
                     // Highlight the highest grade if appropriate.
                     if ($viewobj->overallstats && !$attemptobj->is_preview()
                             && $viewobj->numattempts > 1 && !is_null($viewobj->mygrade)
-                            && $attemptobj->get_state() == \mod_adaquiz\wiris\Attempt::FINISHED
+                            && $attemptobj->get_state() == adaquiz_attempt::FINISHED
                             && $attemptgrade == $viewobj->mygrade
                             && $adaquiz->grademethod == ADAQUIZ_GRADEHIGHEST) {
                         $table->rowclasses[$attemptobj->get_attempt_number()] = 'bestrow';
@@ -1052,7 +982,6 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
                 }
             }
 
-            // AdaptiveQuiz: TODO: Accessmanager
             if ($viewobj->canreviewmine) {
                 $row[] = $viewobj->accessmanager->make_review_link($attemptobj->get_attempt(),
                         $attemptoptions, $this);
@@ -1069,7 +998,7 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
             if ($attemptobj->is_preview()) {
                 $table->data['preview'] = $row;
             } else {
-                $table->data[$attemptNumber[$attemptobj->get_attemptid()]] = $row;
+                $table->data[$attemptobj->get_attempt_number()] = $row;
             }
         } // End of loop over attempts.
 
@@ -1087,15 +1016,23 @@ class mod_adaquiz_renderer extends plugin_renderer_base {
      */
     public function attempt_state($attemptobj) {
         switch ($attemptobj->get_state()) {
-            case \mod_adaquiz\wiris\Attempt::STATE_ANSWERING:
+            case adaquiz_attempt::IN_PROGRESS:
                 return get_string('stateinprogress', 'adaquiz');
 
-            case \mod_adaquiz\wiris\Attempt::STATE_FINISHED:
-                return get_string('statefinished', 'adaquiz') . html_writer::tag('span',
-                        get_string('statefinisheddetails', 'adaquiz', userdate($attemptobj->timemodified)), array('class' => 'statedetails'));
+            case adaquiz_attempt::OVERDUE:
+                return get_string('stateoverdue', 'adaquiz') . html_writer::tag('span',
+                        get_string('stateoverduedetails', 'adaquiz',
+                                userdate($attemptobj->get_due_date())),
+                        array('class' => 'statedetails'));
 
-            /*case Attempt::STATE_REVIEWING:
-                return 'Reviewing';*/
+            case adaquiz_attempt::FINISHED:
+                return get_string('statefinished', 'adaquiz') . html_writer::tag('span',
+                        get_string('statefinisheddetails', 'adaquiz',
+                                userdate($attemptobj->get_submitted_date())),
+                        array('class' => 'statedetails'));
+
+            case adaquiz_attempt::ABANDONED:
+                return get_string('stateabandoned', 'adaquiz');
         }
     }
 

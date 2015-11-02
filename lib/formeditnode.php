@@ -21,6 +21,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace mod_adaquiz\wiris;
+
 require_once($CFG->libdir.'/weblib.php');
 require_once ($CFG->libdir.'/formslib.php');
 
@@ -30,14 +32,16 @@ define('RANDOM', 'random');
  * This class extends moodleform only for using its helper functions on creating
  * elements, but the full workflow of moodle forms is not used.
  * **/
-class FormEditNode extends moodleform{
+class FormEditNode extends \moodleform{
   var $adaquiz;
+  var $adaquizid;
   var $node;
   var $nodeslist;
   var $messages;
-  function FormEditNode($action=null, $customdata=null) {
+  function __construct($action=null, $customdata=null) {
     $this->adaquiz = $customdata['adaquiz'];
     $this->node = $customdata['node'];
+    $this->adaquizid = $this->adaquiz->get_adaquizid();
     $this->messages = array();
     parent::moodleform($action, $customdata);
   }
@@ -45,7 +49,7 @@ class FormEditNode extends moodleform{
     $mform = $this->_form;
     $mform->addElement('hidden', 'nid', $this->node->id, 'id="nid"');
     $mform->setType('nid', PARAM_INT);
-    $mform->addElement('hidden', 'aq', $this->adaquiz->id);
+    $mform->addElement('hidden', 'aq', $this->adaquizid);
     $mform->setType('aq', PARAM_INT);
     $mform->addElement('html', '<input type="hidden" id="id_jump_string" value="'.$this->adaquiz->getJumpString($this->node->id).'" />');
     $this->defineMessages();
@@ -60,7 +64,7 @@ class FormEditNode extends moodleform{
   public function explicitDefinition(){
     // $mform = &$this->_form;
     // $mform->addElement('hidden', 'nid', $this->node->id, 'id="nid"');
-    // $mform->addElement('hidden', 'aq', $this->adaquiz->id);
+    // $mform->addElement('hidden', 'aq', $this->adaquizid);
     // $mform->addElement('html', '<input type="hidden" id="id_jump_string" value="'.$this->adaquiz->getJumpString($this->node->id).'" />');
     // $this->defineMessages();
     // $this->defineTitle();
@@ -244,14 +248,14 @@ class FormEditNode extends moodleform{
       $html .= '<tr>';
       $html .= '<td>';
       if ($position != 0) {
-        $html .= '<a title="'.get_string('moveup').'" href="editnode.php?nid='.$this->node->id.'&aq='.$this->adaquiz->id.'&moveup='.$position.'">' .
+        $html .= '<a title="'.get_string('moveup').'" href="editnode.php?nid='.$this->node->id.'&aq='.$this->adaquizid.'&moveup='.$position.'">' .
             //<img src="'.$CFG->pixpath.'/t/up.gif" class="iconsmall" alt="'.get_string('moveup').'" /></a>';
             $OUTPUT->pix_icon('/t/up', get_string('moveup'));
       }
       $html .= '</td>';
       $html .= '<td>';
       if ($position < count($cases)-1) {
-        $html .= '<a title="'.get_string("movedown").'" href="editnode.php?nid='.$this->node->id.'&aq='.$this->adaquiz->id.'&movedown='.$position.'">' .
+        $html .= '<a title="'.get_string("movedown").'" href="editnode.php?nid='.$this->node->id.'&aq='.$this->adaquizid.'&movedown='.$position.'">' .
             $OUTPUT->pix_icon('/t/down', get_string('movedown'));
             //<img src="'.$CFG->pixpath.'/t/down.gif" class="iconsmall" alt="'.get_string('movedown').'" /></a>';
       }
@@ -262,9 +266,9 @@ class FormEditNode extends moodleform{
       $html .= '<td>'.$case['condition'].'</td>';
       $html .= '<td>'.$case['nodeto'].'</td>';
       $html .= '<td>';
-      $html .= '<a title="'.get_string('edit').'" href="editnode.php?nid='.$this->node->id.'&aq='.$this->adaquiz->id.'&edit='.$position.'"\>'.
+      $html .= '<a title="'.get_string('edit').'" href="editnode.php?nid='.$this->node->id.'&aq='.$this->adaquizid.'&edit='.$position.'"\>'.
                 $OUTPUT->pix_icon('/t/edit', get_string('edit'));
-      $html .= '<a title="'.get_string('remove', 'adaquiz').'" href="editnode.php?nid='.$this->node->id.'&aq='.$this->adaquiz->id.'&delete='.$position.'"\>'.
+      $html .= '<a title="'.get_string('remove', 'adaquiz').'" href="editnode.php?nid='.$this->node->id.'&aq='.$this->adaquizid.'&delete='.$position.'"\>'.
                 $OUTPUT->pix_icon('/t/delete', get_string('remove', 'adaquiz'));
       $html .= '</td>';
       $html .= '</tr>';
@@ -377,7 +381,7 @@ class FormEditNode extends moodleform{
   }
 
   public function getUpdatedCase(){
-    $case = new stdClass();
+    $case = new \stdClass();
     $case->id       = optional_param('update_id', 0, PARAM_INT);
     $case->type     = optional_param('update_type','',PARAM_TEXT);
     $case->position = optional_param('update_position', -1, PARAM_INT);

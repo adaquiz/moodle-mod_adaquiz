@@ -153,6 +153,7 @@ function adaquiz_report_qm_filter_select($adaquiz, $adaquizattemptsalias = 'quiz
  * @return string sql to test if this is an attempt that will contribute towards the graded of the user
  */
 function adaquiz_report_grade_method_sql($grademethod, $adaquizattemptsalias = 'quiza') {
+    return '';
     switch ($grademethod) {
         case ADAQUIZ_GRADEHIGHEST :
             return "($adaquizattemptsalias.state = 'finished' AND NOT EXISTS (
@@ -267,6 +268,8 @@ function adaquiz_report_highlighting_grading_method($adaquiz, $qmsubselect, $qmf
  * @return string the comment that corresponds to this grade (empty string if there is not one.
  */
 function adaquiz_report_feedback_for_grade($grade, $adaquizid, $context) {
+    // AdaptiveQuiz: not feedback.
+    return '';
     global $DB;
 
     static $feedbackcache = array();

@@ -59,25 +59,26 @@ if ($ADMIN->fulltree) {
     // Introductory explanation that all the settings are defaults for the add adaptive quiz form.
     $adaquizsettings->add(new admin_setting_heading('adaquizintro', '', get_string('configintro', 'adaquiz')));
 
-    // Time limit.
-    $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/timelimit',
-            get_string('timelimitsec', 'adaquiz'), get_string('configtimelimitsec', 'adaquiz'),
-            array('value' => '0', 'adv' => false), PARAM_INT));
+    // // Time limit.
+    // $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/timelimit',
+    //         get_string('timelimitsec', 'adaquiz'), get_string('configtimelimitsec', 'adaquiz'),
+    //         array('value' => '0', 'adv' => false), PARAM_INT));
 
-    // What to do with overdue attempts.
-    $adaquizsettings->add(new mod_adaquiz_admin_setting_overduehandling('adaquiz/overduehandling',
-            get_string('overduehandling', 'adaquiz'), get_string('overduehandling_desc', 'adaquiz'),
-            array('value' => 'autosubmit', 'adv' => false), null));
+    // // What to do with overdue attempts.
+    // $adaquizsettings->add(new mod_adaquiz_admin_setting_overduehandling('adaquiz/overduehandling',
+    //         get_string('overduehandling', 'adaquiz'), get_string('overduehandling_desc', 'adaquiz'),
+    //         array('value' => 'autosubmit', 'adv' => false), null));
 
-    // Grace period time.
-    $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/graceperiod',
-            get_string('graceperiod', 'adaquiz'), get_string('graceperiod_desc', 'adaquiz'),
-            array('value' => '86400', 'adv' => false), PARAM_INT));
+    // // Grace period time.
+    // $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/graceperiod',
+    //         get_string('graceperiod', 'adaquiz'), get_string('graceperiod_desc', 'adaquiz'),
+    //         array('value' => '86400', 'adv' => false), PARAM_INT));
 
-    // Minimum grace period used behind the scenes.
-    $adaquizsettings->add(new admin_setting_configtext('adaquiz/graceperiodmin',
-            get_string('graceperiodmin', 'adaquiz'), get_string('graceperiodmin_desc', 'adaquiz'),
-            60, PARAM_INT));
+    // // Minimum grace period used behind the scenes.
+    // $adaquizsettings->add(new admin_setting_configtext('adaquiz/graceperiodmin',
+    //         get_string('graceperiodmin', 'adaquiz'), get_string('graceperiodmin_desc', 'adaquiz'),
+    //         60, PARAM_INT));
+
 
     // Number of attempts.
     $options = array(get_string('unlimited'));
@@ -89,34 +90,34 @@ if ($ADMIN->fulltree) {
             array('value' => 0, 'adv' => false), $options));
 
     // Grading method.
-    $adaquizsettings->add(new mod_adaquiz_admin_setting_grademethod('adaquiz/grademethod',
-            get_string('grademethod', 'adaquiz'), get_string('configgrademethod', 'adaquiz'),
-            array('value' => ADAQUIZ_GRADEHIGHEST, 'adv' => false), null));
+    // $adaquizsettings->add(new mod_adaquiz_admin_setting_grademethod('adaquiz/grademethod',
+    //         get_string('grademethod', 'adaquiz'), get_string('configgrademethod', 'adaquiz'),
+    //         array('value' => ADAQUIZ_GRADEHIGHEST, 'adv' => false), null));
 
     // Maximum grade.
     $adaquizsettings->add(new admin_setting_configtext('adaquiz/maximumgrade',
             get_string('maximumgrade'), get_string('configmaximumgrade', 'adaquiz'), 10, PARAM_INT));
 
     // Shuffle questions.
-    $adaquizsettings->add(new admin_setting_configcheckbox_with_advanced('adaquiz/shufflequestions',
-            get_string('shufflequestions', 'adaquiz'), get_string('configshufflequestions', 'adaquiz'),
-            array('value' => 0, 'adv' => false)));
+    // $adaquizsettings->add(new admin_setting_configcheckbox_with_advanced('adaquiz/shufflequestions',
+    //         get_string('shufflequestions', 'adaquiz'), get_string('configshufflequestions', 'adaquiz'),
+    //         array('value' => 0, 'adv' => false)));
 
     // Questions per page.
-    $perpage = array();
-    $perpage[0] = get_string('never');
-    $perpage[1] = get_string('aftereachquestion', 'adaquiz');
-    for ($i = 2; $i <= ADAQUIZ_MAX_QPP_OPTION; ++$i) {
-        $perpage[$i] = get_string('afternquestions', 'adaquiz', $i);
-    }
-    $adaquizsettings->add(new admin_setting_configselect_with_advanced('adaquiz/questionsperpage',
-            get_string('newpageevery', 'adaquiz'), get_string('confignewpageevery', 'adaquiz'),
-            array('value' => 1, 'adv' => false), $perpage));
+    // $perpage = array();
+    // $perpage[0] = get_string('never');
+    // $perpage[1] = get_string('aftereachquestion', 'adaquiz');
+    // for ($i = 2; $i <= ADAQUIZ_MAX_QPP_OPTION; ++$i) {
+    //     $perpage[$i] = get_string('afternquestions', 'adaquiz', $i);
+    // }
+    // $adaquizsettings->add(new admin_setting_configselect_with_advanced('adaquiz/questionsperpage',
+    //         get_string('newpageevery', 'adaquiz'), get_string('confignewpageevery', 'adaquiz'),
+    //         array('value' => 1, 'adv' => false), $perpage));
 
     // Navigation method.
-    $adaquizsettings->add(new admin_setting_configselect_with_advanced('adaquiz/navmethod',
-            get_string('navmethod', 'adaquiz'), get_string('confignavmethod', 'adaquiz'),
-            array('value' => ADAQUIZ_NAVMETHOD_FREE, 'adv' => true), adaquiz_get_navigation_options()));
+    // $adaquizsettings->add(new admin_setting_configselect_with_advanced('adaquiz/navmethod',
+    //         get_string('navmethod', 'adaquiz'), get_string('confignavmethod', 'adaquiz'),
+    //         array('value' => ADAQUIZ_NAVMETHOD_FREE, 'adv' => true), adaquiz_get_navigation_options()));
 
     // Shuffle within questions.
     $adaquizsettings->add(new admin_setting_configcheckbox_with_advanced('adaquiz/shuffleanswers',
@@ -124,15 +125,27 @@ if ($ADMIN->fulltree) {
             array('value' => 1, 'adv' => false)));
 
     // Preferred behaviour.
-    $adaquizsettings->add(new admin_setting_question_behaviour('adaquiz/preferredbehaviour',
+    // AdaptiveQuiz only Immediate Feedback and Immediate Feedback with multiple tries.
+    $behaviours = question_engine::get_behaviour_options('');
+        // AdaptiveQuiz: Leave only two behaviours: immediatefeedback and interactive
+    $notsupportedbehaviours = array('adaptive', 'adaptivenopenalty', 'deferredfeedback', 'deferredcbm', 'immediatecbm');
+    foreach($notsupportedbehaviours as $key) {
+        unset($behaviours[$key]);
+    }
+    $adaquizsettings->add(new admin_setting_configselect('adaquiz/preferredbehaviour',
             get_string('howquestionsbehave', 'question'), get_string('howquestionsbehave_desc', 'adaquiz'),
-            'deferredfeedback'));
+            'deferredfeedback', $behaviours));
+    // $adaquizsettings->add(new admin_setting_question_behaviour('adaquiz/preferredbehaviour',
+    //         get_string('howquestionsbehave', 'question'), get_string('howquestionsbehave_desc', 'adaquiz'),
+    //         'deferredfeedback'));
+
+
 
     // Each attempt builds on last.
-    $adaquizsettings->add(new admin_setting_configcheckbox_with_advanced('adaquiz/attemptonlast',
-            get_string('eachattemptbuildsonthelast', 'adaquiz'),
-            get_string('configeachattemptbuildsonthelast', 'adaquiz'),
-            array('value' => 0, 'adv' => true)));
+    // $adaquizsettings->add(new admin_setting_configcheckbox_with_advanced('adaquiz/attemptonlast',
+    //         get_string('eachattemptbuildsonthelast', 'adaquiz'),
+    //         get_string('configeachattemptbuildsonthelast', 'adaquiz'),
+    //         array('value' => 0, 'adv' => true)));
 
     // Review options.
     $adaquizsettings->add(new admin_setting_heading('reviewheading',
@@ -180,44 +193,44 @@ if ($ADMIN->fulltree) {
             array('value' => 0, 'adv' => true)));
 
     // Password.
-    $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/password',
-            get_string('requirepassword', 'adaquiz'), get_string('configrequirepassword', 'adaquiz'),
-            array('value' => '', 'adv' => true), PARAM_TEXT));
+    // $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/password',
+    //         get_string('requirepassword', 'adaquiz'), get_string('configrequirepassword', 'adaquiz'),
+    //         array('value' => '', 'adv' => true), PARAM_TEXT));
 
-    // IP restrictions.
-    $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/subnet',
-            get_string('requiresubnet', 'adaquiz'), get_string('configrequiresubnet', 'adaquiz'),
-            array('value' => '', 'adv' => true), PARAM_TEXT));
+    // // IP restrictions.
+    // $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/subnet',
+    //         get_string('requiresubnet', 'adaquiz'), get_string('configrequiresubnet', 'adaquiz'),
+    //         array('value' => '', 'adv' => true), PARAM_TEXT));
 
-    // Enforced delay between attempts.
-    $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/delay1',
-            get_string('delay1st2nd', 'adaquiz'), get_string('configdelay1st2nd', 'adaquiz'),
-            array('value' => 0, 'adv' => true), PARAM_INT));
-    $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/delay2',
-            get_string('delaylater', 'adaquiz'), get_string('configdelaylater', 'adaquiz'),
-            array('value' => 0, 'adv' => true), PARAM_INT));
+    // // Enforced delay between attempts.
+    // $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/delay1',
+    //         get_string('delay1st2nd', 'adaquiz'), get_string('configdelay1st2nd', 'adaquiz'),
+    //         array('value' => 0, 'adv' => true), PARAM_INT));
+    // $adaquizsettings->add(new admin_setting_configtext_with_advanced('adaquiz/delay2',
+    //         get_string('delaylater', 'adaquiz'), get_string('configdelaylater', 'adaquiz'),
+    //         array('value' => 0, 'adv' => true), PARAM_INT));
 
-    // Browser security.
-    $adaquizsettings->add(new mod_adaquiz_admin_setting_browsersecurity('adaquiz/browsersecurity',
-            get_string('showinsecurepopup', 'adaquiz'), get_string('configpopup', 'adaquiz'),
-            array('value' => '-', 'adv' => true), null));
+    // // Browser security.
+    // $adaquizsettings->add(new mod_adaquiz_admin_setting_browsersecurity('adaquiz/browsersecurity',
+    //         get_string('showinsecurepopup', 'adaquiz'), get_string('configpopup', 'adaquiz'),
+    //         array('value' => '-', 'adv' => true), null));
 
-    // Allow user to specify if setting outcomes is an advanced setting.
-    if (!empty($CFG->enableoutcomes)) {
-        $adaquizsettings->add(new admin_setting_configcheckbox('adaquiz/outcomes_adv',
-            get_string('outcomesadvanced', 'adaquiz'), get_string('configoutcomesadvanced', 'adaquiz'),
-            '0'));
-    }
+    // // Allow user to specify if setting outcomes is an advanced setting.
+    // if (!empty($CFG->enableoutcomes)) {
+    //     $adaquizsettings->add(new admin_setting_configcheckbox('adaquiz/outcomes_adv',
+    //         get_string('outcomesadvanced', 'adaquiz'), get_string('configoutcomesadvanced', 'adaquiz'),
+    //         '0'));
+    // }
 
-    // Autosave frequency.
-    $options = array(
-          0 => get_string('donotuseautosave', 'adaquiz'),
-         60 => get_string('oneminute', 'adaquiz'),
-        120 => get_string('numminutes', 'moodle', 2),
-        300 => get_string('numminutes', 'moodle', 5),
-    );
-    $adaquizsettings->add(new admin_setting_configselect('adaquiz/autosaveperiod',
-            get_string('autosaveperiod', 'adaquiz'), get_string('autosaveperiod_desc', 'adaquiz'), 120, $options));
+    // // Autosave frequency.
+    // $options = array(
+    //       0 => get_string('donotuseautosave', 'adaquiz'),
+    //      60 => get_string('oneminute', 'adaquiz'),
+    //     120 => get_string('numminutes', 'moodle', 2),
+    //     300 => get_string('numminutes', 'moodle', 5),
+    // );
+    // $adaquizsettings->add(new admin_setting_configselect('adaquiz/autosaveperiod',
+    //         get_string('autosaveperiod', 'adaquiz'), get_string('autosaveperiod_desc', 'adaquiz'), 120, $options));
 }
 
 // Now, depending on whether any reports have their own settings page, add

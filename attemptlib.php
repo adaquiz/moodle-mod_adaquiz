@@ -76,16 +76,13 @@ class adaquiz {
      * @param bool $getcontext intended for testing - stops the constructor getting the context.
      * @param object $adaptiveobject object containg adaptive data: jumps and nodes.
      */
-    public function __construct($adaquiz, $cm, $course, $getcontext = true,  $adaptiveobject=null) {
+    public function __construct($adaquiz, $cm, $course, $getcontext = true) {
         $this->adaquiz = $adaquiz;
         $this->cm = $cm;
         $this->adaquiz->cmid = $this->cm->id;
         $this->course = $course;
         if ($getcontext && !empty($cm->id)) {
             $this->context = context_module::instance($cm->id);
-        }
-        if ($adaptiveobject) {
-                $this->adaptiveobject = $adaptiveobject;
         }
     }
 
@@ -105,13 +102,11 @@ class adaquiz {
 
         // Update adaptive quiz with override information.
         if ($userid) {
-            $adaquiz = adaquiz_update_effective_access($adaquiz, $userid);
+            // AdaptiveQuiz there is not override information for the user.
+            // $adaquiz = adaquiz_update_effective_access($adaquiz, $userid);
         }
 
-        //Adaptive object containing all jump and node data.
-        $adaptiveobject = new adaptive_quiz($adaquizid);
-
-        return new adaquiz($adaquiz, $cm, $course, true, $adaptiveobject);
+        return new adaquiz($adaquiz, $cm, $course, true);
     }
 
     /**
@@ -184,11 +179,6 @@ class adaquiz {
     /** @return object the row of the adaptive quiz table. */
     public function get_adaquiz() {
         return $this->adaquiz;
-    }
-
-    /** @return object the adaptive object. */
-    public function get_adaptiveobject() {
-        return $this->adaptiveobject;
     }
 
     /** @return string the name of this adaptive quiz. */
@@ -509,7 +499,8 @@ class adaquiz_attempt {
         $cm = get_coursemodule_from_instance('adaquiz', $adaquiz->id, $course->id, false, MUST_EXIST);
 
         // Update adaptive quiz with override information.
-        $adaquiz = adaquiz_update_effective_access($adaquiz, $attempt->userid);
+        // AdaptiveQuiz there is not override information for the user.
+        // $adaquiz = adaquiz_update_effective_access($adaquiz, $attempt->userid);
 
         return new adaquiz_attempt($attempt, $adaquiz, $cm, $course);
     }
@@ -1501,18 +1492,18 @@ class adaquiz_attempt {
         $this->attempt->timemodified = $timestamp;
         $this->attempt->timefinish = $timestamp;
         $this->attempt->sumgrades = $this->quba->get_total_mark();
-        $this->attempt->state = self::FINISHED;
+        $this->attempt->state = \mod_adaquiz\wiris\Attempt::STATE_FINISHED;
         $this->attempt->timecheckstate = null;
         $DB->update_record('adaquiz_attempts', $this->attempt);
-
         if (!$this->is_preview()) {
-            adaquiz_save_best_grade($this->get_adaquiz(), $this->attempt->userid);
+            // $this->adaquizobj->updateGrades($this->userid);
+            // adaquiz_save_best_grade($this->get_adaquiz(), $this->attempt->userid);
 
             // Trigger event.
             $this->fire_state_transition_event('\mod_adaquiz\event\attempt_submitted', $timestamp);
 
             // Tell any access rules that care that the attempt is over.
-            $this->get_access_manager($timestamp)->current_attempt_finished();
+            // $this->get_access_manager($timestamp)->current_attempt_finished();
         }
 
         $transaction->allow_commit();
@@ -1633,51 +1624,31 @@ class adaquiz_attempt {
      *      page will just be a fragment #q123. -1 to disable this.
      * @return The requested URL.
      */
-    protected function page_and_question_url($script, $slot, $page, $showall, $thispage) {
+    protected function page_and_question_url($script, $slot, $page, $showall, $thispage, $nextnode = null, $rewnode = null) {
 
-        $defaultshowall = $this->get_default_show_all($script);
-        if ($showall === null && ($page == 0 || $page == -1)) {
-            $showall = $defaultshowall;
-        }
-
-        // Fix up $page.
-        if ($page == -1) {
-            if ($slot !== null && !$showall) {
-                $page = $this->get_question_page($slot);
-            } else {
-                $page = 0;
-            }
-        }
-
+        $url = new moodle_url('/mod/adaquiz/' . $script . '.php',
+                array('attempt' => $this->attempt->id));
         if ($showall) {
-            $page = 0;
+            $url->param('showall', 1);
+        } else if ($page > 0) {
+            $url->param('page', $page);
         }
-
-        // Add a fragment to scroll down to the question.
-        $fragment = '';
-        if ($slot !== null) {
-            if ($slot == reset($this->pagelayout[$page])) {
-                // First question on page, go to top.
-                $fragment = '#';
-            } else {
-                $fragment = '#q' . $slot;
-            }
+        if ($this->get_attemptid()){
+            $url->param('attempt', $this->get_attemptid());
         }
-
-        // Work out the correct start to the URL.
-        if ($thispage == $page) {
-            return new moodle_url($fragment);
-
-        } else {
-            $url = new moodle_url('/mod/adaquiz/' . $script . '.php' . $fragment,
-                    array('attempt' => $this->attempt->id));
-            if ($page == 0 && $showall != $defaultshowall) {
-                $url->param('showall', (int) $showall);
-            } else if ($page > 0) {
-                $url->param('page', $page);
-            }
-            return $url;
+        if ($this->get_cmid()){
+            $url->param('cmid', $this->get_cmid());
         }
+        if ($slot){
+            $url->param('page', $slot-1);
+        }
+        if (!is_null($nextnode)){
+            $url->param('node', $nextnode);
+        }
+        if (!is_null($rewnode)){
+            $url->param('nav', $rewnode);
+        }
+        return $url;
     }
 }
 

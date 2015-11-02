@@ -30,13 +30,14 @@ require_once($CFG->dirroot.'/mod/adaquiz/locallib.php');
 $nid = required_param('nid', PARAM_INT);
 $aq  = required_param('aq', PARAM_INT);
 
-$ada  = new adaptive_quiz($aq);
 
-if (! $course = $DB->get_record('course', array('id' => $ada->course))) {
-    error('Course is misconfigured');
+$ada  = \mod_adaquiz\wiris\adaquiz::create($aq, $USER->id);
+
+if (! $course = $DB->get_record('course', array('id' => $ada->get_courseid()))) {
+    print_error('Course is misconfigured');
 }
 
-if(! $cm = get_coursemodule_from_instance('adaquiz', $ada->id, $course->id)){
+if(! $cm = get_coursemodule_from_instance('adaquiz', $ada->get_adaquizid(), $course->id)){
       error('There is no coursemodule with instance id '.$aq);
 }
 require_login($course->id, false, $cm);
@@ -47,14 +48,16 @@ $PAGE->set_url($url);
 $PAGE->set_pagelayout('popup');
 
 $node = $ada->getNode($nid);
+
 $jump = $node->getJump();
-$mform = new FormEditNode(null, array('adaquiz'=>$ada, 'node'=>$node));
+
+$mform = new mod_adaquiz\wiris\FormEditNode(null, array('adaquiz'=>$ada, 'node'=>$node));
+
 if($mform->is_cancelled()){
     close_window();
     exit();
 }
 $savejump = false;
-
 
 if($mform->is_submitted()){
 	$options = $mform->getNodeOptions();
@@ -103,5 +106,4 @@ $PAGE->set_title($title);
 
 echo $OUTPUT->header();
 $mform->display();
-
 echo $OUTPUT->footer();

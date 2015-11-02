@@ -55,8 +55,9 @@ class restore_adaquiz_activity_task extends restore_activity_task {
         $contents = array();
 
         $contents[] = new restore_decode_content('adaquiz', array('intro'), 'adaquiz');
-        $contents[] = new restore_decode_content('adaquiz_feedback',
-                array('feedbacktext'), 'adaquiz_feedback');
+        // AdaptiveQuiz: Not feedback.
+        // $contents[] = new restore_decode_content('adaquiz_feedback',
+        //         array('feedbacktext'), 'adaquiz_feedback');
 
         return $contents;
     }

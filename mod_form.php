@@ -81,45 +81,44 @@ class mod_adaquiz_mod_form extends moodleform_mod {
         $this->add_intro_editor(false, get_string('introduction', 'adaquiz'));
 
         // -------------------------------------------------------------------------------
-        $mform->addElement('header', 'timing', get_string('timing', 'adaquiz'));
+        // $mform->addElement('header', 'timing', get_string('timing', 'adaquiz'));
 
-        // Open and close dates.
-        $mform->addElement('date_time_selector', 'timeopen', get_string('quizopen', 'adaquiz'),
-                self::$datefieldoptions);
-        $mform->addHelpButton('timeopen', 'quizopenclose', 'adaquiz');
+        // // Open and close dates.
+        // $mform->addElement('date_time_selector', 'timeopen', get_string('quizopen', 'adaquiz'),
+        //         self::$datefieldoptions);
+        // $mform->addHelpButton('timeopen', 'quizopenclose', 'adaquiz');
 
-        $mform->addElement('date_time_selector', 'timeclose', get_string('quizclose', 'adaquiz'),
-                self::$datefieldoptions);
+        // $mform->addElement('date_time_selector', 'timeclose', get_string('quizclose', 'adaquiz'),
+        //         self::$datefieldoptions);
 
-        // Time limit.
-        $mform->addElement('duration', 'timelimit', get_string('timelimit', 'adaquiz'),
-                array('optional' => true));
-        $mform->addHelpButton('timelimit', 'timelimit', 'adaquiz');
-        $mform->setAdvanced('timelimit', $adaquizconfig->timelimit_adv);
-        $mform->setDefault('timelimit', $adaquizconfig->timelimit);
+        // // Time limit.
+        // $mform->addElement('duration', 'timelimit', get_string('timelimit', 'adaquiz'),
+        //         array('optional' => true));
+        // $mform->addHelpButton('timelimit', 'timelimit', 'adaquiz');
+        // $mform->setAdvanced('timelimit', $adaquizconfig->timelimit_adv);
+        // $mform->setDefault('timelimit', $adaquizconfig->timelimit);
 
-        // What to do with overdue attempts.
-        $mform->addElement('select', 'overduehandling', get_string('overduehandling', 'adaquiz'),
-                adaquiz_get_overdue_handling_options());
-        $mform->addHelpButton('overduehandling', 'overduehandling', 'adaquiz');
-        $mform->setAdvanced('overduehandling', $adaquizconfig->overduehandling_adv);
-        $mform->setDefault('overduehandling', $adaquizconfig->overduehandling);
-        // TODO Formslib does OR logic on disableif, and we need AND logic here.
-        // $mform->disabledIf('overduehandling', 'timelimit', 'eq', 0);
-        // $mform->disabledIf('overduehandling', 'timeclose', 'eq', 0);
+        // // What to do with overdue attempts.
+        // $mform->addElement('select', 'overduehandling', get_string('overduehandling', 'adaquiz'),
+        //         adaquiz_get_overdue_handling_options());
+        // $mform->addHelpButton('overduehandling', 'overduehandling', 'adaquiz');
+        // $mform->setAdvanced('overduehandling', $adaquizconfig->overduehandling_adv);
+        // $mform->setDefault('overduehandling', $adaquizconfig->overduehandling);
+        // // TODO Formslib does OR logic on disableif, and we need AND logic here.
+        // // $mform->disabledIf('overduehandling', 'timelimit', 'eq', 0);
+        // // $mform->disabledIf('overduehandling', 'timeclose', 'eq', 0);
 
-        // Grace period time.
-        $mform->addElement('duration', 'graceperiod', get_string('graceperiod', 'adaquiz'),
-                array('optional' => true));
-        $mform->addHelpButton('graceperiod', 'graceperiod', 'adaquiz');
-        $mform->setAdvanced('graceperiod', $adaquizconfig->graceperiod_adv);
-        $mform->setDefault('graceperiod', $adaquizconfig->graceperiod);
-        $mform->disabledIf('graceperiod', 'overduehandling', 'neq', 'graceperiod');
+        // // Grace period time.
+        // $mform->addElement('duration', 'graceperiod', get_string('graceperiod', 'adaquiz'),
+        //         array('optional' => true));
+        // $mform->addHelpButton('graceperiod', 'graceperiod', 'adaquiz');
+        // $mform->setAdvanced('graceperiod', $adaquizconfig->graceperiod_adv);
+        // $mform->setDefault('graceperiod', $adaquizconfig->graceperiod);
+        // $mform->disabledIf('graceperiod', 'overduehandling', 'neq', 'graceperiod');
 
         // -------------------------------------------------------------------------------
         // Grade settings.
         $this->standard_grading_coursemodule_elements();
-
         $mform->removeElement('grade');
         if (property_exists($this->current, 'grade')) {
             $currentgrade = $this->current->grade;
@@ -129,61 +128,68 @@ class mod_adaquiz_mod_form extends moodleform_mod {
         $mform->addElement('hidden', 'grade', $currentgrade);
         $mform->setType('grade', PARAM_FLOAT);
 
-        // Number of attempts.
-        $attemptoptions = array('0' => get_string('unlimited'));
-        for ($i = 1; $i <= ADAQUIZ_MAX_ATTEMPT_OPTION; $i++) {
-            $attemptoptions[$i] = $i;
-        }
-        $mform->addElement('select', 'attempts', get_string('attemptsallowed', 'adaquiz'),
-                $attemptoptions);
-        $mform->setAdvanced('attempts', $adaquizconfig->attempts_adv);
-        $mform->setDefault('attempts', $adaquizconfig->attempts);
+        // AdaptiveQuiz: One attempt, maximum grade method.
+        // // Number of attempts.
+        // $attemptoptions = array('0' => get_string('unlimited'));
+        // for ($i = 1; $i <= ADAQUIZ_MAX_ATTEMPT_OPTION; $i++) {
+        //     $attemptoptions[$i] = $i;
+        // }
+        // $mform->addElement('select', 'attempts', get_string('attemptsallowed', 'adaquiz'),
+        //         $attemptoptions);
+        // $mform->setAdvanced('attempts', $adaquizconfig->attempts_adv);
+        // $mform->setDefault('attempts', $adaquizconfig->attempts);
 
-        // Grading method.
-        $mform->addElement('select', 'grademethod', get_string('grademethod', 'adaquiz'),
-                adaquiz_get_grading_options());
-        $mform->addHelpButton('grademethod', 'grademethod', 'adaquiz');
-        $mform->setAdvanced('grademethod', $adaquizconfig->grademethod_adv);
-        $mform->setDefault('grademethod', $adaquizconfig->grademethod);
-        if ($this->get_max_attempts_for_any_override() < 2) {
-            $mform->disabledIf('grademethod', 'attempts', 'eq', 1);
-        }
+        // // Grading method.
+        // $mform->addElement('select', 'grademethod', get_string('grademethod', 'adaquiz'),
+        //         adaquiz_get_grading_options());
+        // $mform->addHelpButton('grademethod', 'grademethod', 'adaquiz');
+        // $mform->setAdvanced('grademethod', $adaquizconfig->grademethod_adv);
+        // $mform->setDefault('grademethod', $adaquizconfig->grademethod);
+        $mform->addElement('hidden', 'grademethod', ADAQUIZ_GRADEHIGHEST);
+        $mform->setType('grademethod', PARAM_INT);
+        // AdaptiveQuiz: Not Overrides.
+        // if ($this->get_max_attempts_for_any_override() < 2) {
+        //     $mform->disabledIf('grademethod', 'attempts', 'eq', 1);
+        // }
 
         // -------------------------------------------------------------------------------
-        $mform->addElement('header', 'layouthdr', get_string('layout', 'adaquiz'));
+        // AdaptiveQuiz: Layout 1 question per page. TODO: Customize questions per page.
+        // questionperpage = 1 by default on DB definition.
 
-        // Shuffle questions.
-        $shuffleoptions = array(
-            0 => get_string('asshownoneditscreen', 'adaquiz'),
-            1 => get_string('shuffledrandomly', 'adaquiz')
-        );
-        $mform->addElement('select', 'shufflequestions', get_string('questionorder', 'adaquiz'),
-                $shuffleoptions, array('id' => 'id_shufflequestions'));
-        $mform->setAdvanced('shufflequestions', $adaquizconfig->shufflequestions_adv);
-        $mform->setDefault('shufflequestions', $adaquizconfig->shufflequestions);
+        // $mform->addElement('header', 'layouthdr', get_string('layout', 'adaquiz'));
 
-        $pagegroup = array();
-        $pagegroup[] = $mform->createElement('select', 'questionsperpage',
-                get_string('newpage', 'adaquiz'), adaquiz_questions_per_page_options(), array('id' => 'id_questionsperpage'));
-        $mform->setDefault('questionsperpage', $adaquizconfig->questionsperpage);
+        // // Shuffle questions.
+        // $shuffleoptions = array(
+        //     0 => get_string('asshownoneditscreen', 'adaquiz'),
+        //     1 => get_string('shuffledrandomly', 'adaquiz')
+        // );
+        // $mform->addElement('select', 'shufflequestions', get_string('questionorder', 'adaquiz'),
+        //         $shuffleoptions, array('id' => 'id_shufflequestions'));
+        // $mform->setAdvanced('shufflequestions', $adaquizconfig->shufflequestions_adv);
+        // $mform->setDefault('shufflequestions', $adaquizconfig->shufflequestions);
 
-        if (!empty($this->_cm)) {
-            $pagegroup[] = $mform->createElement('checkbox', 'repaginatenow', '',
-                    get_string('repaginatenow', 'adaquiz'), array('id' => 'id_repaginatenow'));
-            $mform->disabledIf('repaginatenow', 'shufflequestions', 'eq', 1);
-        }
+        // $pagegroup = array();
+        // $pagegroup[] = $mform->createElement('select', 'questionsperpage',
+        //         get_string('newpage', 'adaquiz'), adaquiz_questions_per_page_options(), array('id' => 'id_questionsperpage'));
+        // $mform->setDefault('questionsperpage', $adaquizconfig->questionsperpage);
 
-        $mform->addGroup($pagegroup, 'questionsperpagegrp',
-                get_string('newpage', 'adaquiz'), null, false);
-        $mform->addHelpButton('questionsperpagegrp', 'newpage', 'adaquiz');
-        $mform->setAdvanced('questionsperpagegrp', $adaquizconfig->questionsperpage_adv);
+        // if (!empty($this->_cm)) {
+        //     $pagegroup[] = $mform->createElement('checkbox', 'repaginatenow', '',
+        //             get_string('repaginatenow', 'adaquiz'), array('id' => 'id_repaginatenow'));
+        //     $mform->disabledIf('repaginatenow', 'shufflequestions', 'eq', 1);
+        // }
 
-        // Navigation method.
-        $mform->addElement('select', 'navmethod', get_string('navmethod', 'adaquiz'),
-                adaquiz_get_navigation_options());
-        $mform->addHelpButton('navmethod', 'navmethod', 'adaquiz');
-        $mform->setAdvanced('navmethod', $adaquizconfig->navmethod_adv);
-        $mform->setDefault('navmethod', $adaquizconfig->navmethod);
+        // $mform->addGroup($pagegroup, 'questionsperpagegrp',
+        //         get_string('newpage', 'adaquiz'), null, false);
+        // $mform->addHelpButton('questionsperpagegrp', 'newpage', 'adaquiz');
+        // $mform->setAdvanced('questionsperpagegrp', $adaquizconfig->questionsperpage_adv);
+
+        // // Navigation method.
+        // $mform->addElement('select', 'navmethod', get_string('navmethod', 'adaquiz'),
+        //         adaquiz_get_navigation_options());
+        // $mform->addHelpButton('navmethod', 'navmethod', 'adaquiz');
+        // $mform->setAdvanced('navmethod', $adaquizconfig->navmethod_adv);
+        // $mform->setDefault('navmethod', $adaquizconfig->navmethod);
 
         // -------------------------------------------------------------------------------
         $mform->addElement('header', 'interactionhdr', get_string('questionbehaviour', 'adaquiz'));
@@ -193,7 +199,6 @@ class mod_adaquiz_mod_form extends moodleform_mod {
         $mform->addHelpButton('shuffleanswers', 'shufflewithin', 'adaquiz');
         $mform->setAdvanced('shuffleanswers', $adaquizconfig->shuffleanswers_adv);
         $mform->setDefault('shuffleanswers', $adaquizconfig->shuffleanswers);
-
         // How questions behave (question behaviour).
         if (!empty($this->current->preferredbehaviour)) {
             $currentbehaviour = $this->current->preferredbehaviour;
@@ -201,20 +206,27 @@ class mod_adaquiz_mod_form extends moodleform_mod {
             $currentbehaviour = '';
         }
         $behaviours = question_engine::get_behaviour_options($currentbehaviour);
+        // AdaptiveQuiz: Leave only two behaviours: immediatefeedback and interactive
+        $notsupportedbehaviours = array('adaptive', 'adaptivenopenalty', 'deferredfeedback', 'deferredcbm', 'immediatecbm');
+        foreach($notsupportedbehaviours as $key) {
+            unset($behaviours[$key]);
+        }
         $mform->addElement('select', 'preferredbehaviour',
                 get_string('howquestionsbehave', 'question'), $behaviours);
         $mform->addHelpButton('preferredbehaviour', 'howquestionsbehave', 'question');
         $mform->setDefault('preferredbehaviour', $adaquizconfig->preferredbehaviour);
 
         // Each attempt builds on last.
-        $mform->addElement('selectyesno', 'attemptonlast',
-                get_string('eachattemptbuildsonthelast', 'adaquiz'));
-        $mform->addHelpButton('attemptonlast', 'eachattemptbuildsonthelast', 'adaquiz');
-        $mform->setAdvanced('attemptonlast', $adaquizconfig->attemptonlast_adv);
-        $mform->setDefault('attemptonlast', $adaquizconfig->attemptonlast);
-        if ($this->get_max_attempts_for_any_override() < 2) {
-            $mform->disabledIf('attemptonlast', 'attempts', 'eq', 1);
-        }
+        // AdaptiveQuiz: TODO
+        // $mform->addElement('selectyesno', 'attemptonlast',
+        //         get_string('eachattemptbuildsonthelast', 'adaquiz'));
+        // $mform->addHelpButton('attemptonlast', 'eachattemptbuildsonthelast', 'adaquiz');
+        // $mform->setAdvanced('attemptonlast', $adaquizconfig->attemptonlast_adv);
+        // $mform->setDefault('attemptonlast', $adaquizconfig->attemptonlast);
+        // AdaptiveQuiz: Not overrides.
+        // if ($this->get_max_attempts_for_any_override() < 2) {
+        //     $mform->disabledIf('attemptonlast', 'attempts', 'eq', 1);
+        // }
 
         // -------------------------------------------------------------------------------
         $mform->addElement('header', 'reviewoptionshdr',
@@ -282,107 +294,112 @@ class mod_adaquiz_mod_form extends moodleform_mod {
         $mform->setDefault('showblocks', $adaquizconfig->showblocks);
 
         // -------------------------------------------------------------------------------
-        $mform->addElement('header', 'security', get_string('extraattemptrestrictions', 'adaquiz'));
+        // AdaptiveQuiz: TODO Access manager plugins.
+        // $mform->addElement('header', 'security', get_string('extraattemptrestrictions', 'adaquiz'));
 
-        // Require password to begin adaptive quiz attempt.
-        $mform->addElement('passwordunmask', 'adaquizpassword', get_string('requirepassword', 'adaquiz'));
-        $mform->setType('adaquizpassword', PARAM_TEXT);
-        $mform->addHelpButton('adaquizpassword', 'requirepassword', 'adaquiz');
-        $mform->setAdvanced('adaquizpassword', $adaquizconfig->password_adv);
-        $mform->setDefault('adaquizpassword', $adaquizconfig->password);
+        // // Require password to begin adaptive quiz attempt.
+        // $mform->addElement('passwordunmask', 'adaquizpassword', get_string('requirepassword', 'adaquiz'));
+        // $mform->setType('adaquizpassword', PARAM_TEXT);
+        // $mform->addHelpButton('adaquizpassword', 'requirepassword', 'adaquiz');
+        // $mform->setAdvanced('adaquizpassword', $adaquizconfig->password_adv);
+        // $mform->setDefault('adaquizpassword', $adaquizconfig->password);
 
-        // IP address.
-        $mform->addElement('text', 'subnet', get_string('requiresubnet', 'adaquiz'));
-        $mform->setType('subnet', PARAM_TEXT);
-        $mform->addHelpButton('subnet', 'requiresubnet', 'adaquiz');
-        $mform->setAdvanced('subnet', $adaquizconfig->subnet_adv);
-        $mform->setDefault('subnet', $adaquizconfig->subnet);
+        // // IP address.
+        // $mform->addElement('text', 'subnet', get_string('requiresubnet', 'adaquiz'));
+        // $mform->setType('subnet', PARAM_TEXT);
+        // $mform->addHelpButton('subnet', 'requiresubnet', 'adaquiz');
+        // $mform->setAdvanced('subnet', $adaquizconfig->subnet_adv);
+        // $mform->setDefault('subnet', $adaquizconfig->subnet);
 
-        // Enforced time delay between adaptive quiz attempts.
-        $mform->addElement('duration', 'delay1', get_string('delay1st2nd', 'adaquiz'),
-                array('optional' => true));
-        $mform->addHelpButton('delay1', 'delay1st2nd', 'adaquiz');
-        $mform->setAdvanced('delay1', $adaquizconfig->delay1_adv);
-        $mform->setDefault('delay1', $adaquizconfig->delay1);
-        if ($this->get_max_attempts_for_any_override() < 2) {
-            $mform->disabledIf('delay1', 'attempts', 'eq', 1);
-        }
+        // // Enforced time delay between adaptive quiz attempts.
+        // $mform->addElement('duration', 'delay1', get_string('delay1st2nd', 'adaquiz'),
+        //         array('optional' => true));
+        // $mform->addHelpButton('delay1', 'delay1st2nd', 'adaquiz');
+        // $mform->setAdvanced('delay1', $adaquizconfig->delay1_adv);
+        // $mform->setDefault('delay1', $adaquizconfig->delay1);
+        // // AdaptiveQuiz: Not overrides
+        // // if ($this->get_max_attempts_for_any_override() < 2) {
+        // //     $mform->disabledIf('delay1', 'attempts', 'eq', 1);
+        // // }
 
-        $mform->addElement('duration', 'delay2', get_string('delaylater', 'adaquiz'),
-                array('optional' => true));
-        $mform->addHelpButton('delay2', 'delaylater', 'adaquiz');
-        $mform->setAdvanced('delay2', $adaquizconfig->delay2_adv);
-        $mform->setDefault('delay2', $adaquizconfig->delay2);
-        if ($this->get_max_attempts_for_any_override() < 3) {
-            $mform->disabledIf('delay2', 'attempts', 'eq', 1);
-            $mform->disabledIf('delay2', 'attempts', 'eq', 2);
-        }
+        // $mform->addElement('duration', 'delay2', get_string('delaylater', 'adaquiz'),
+        //         array('optional' => true));
+        // $mform->addHelpButton('delay2', 'delaylater', 'adaquiz');
+        // $mform->setAdvanced('delay2', $adaquizconfig->delay2_adv);
+        // $mform->setDefault('delay2', $adaquizconfig->delay2);
+        // // AdaptiveQuiz: Not overrides.
+        // // if ($this->get_max_attempts_for_any_override() < 3) {
+        // //     $mform->disabledIf('delay2', 'attempts', 'eq', 1);
+        // //     $mform->disabledIf('delay2', 'attempts', 'eq', 2);
+        // // }
 
-        // Browser security choices.
-        $mform->addElement('select', 'browsersecurity', get_string('browsersecurity', 'adaquiz'),
-                adaquiz_access_manager::get_browser_security_choices());
-        $mform->addHelpButton('browsersecurity', 'browsersecurity', 'adaquiz');
-        $mform->setAdvanced('browsersecurity', $adaquizconfig->browsersecurity_adv);
-        $mform->setDefault('browsersecurity', $adaquizconfig->browsersecurity);
+        // // Browser security choices.
+        // $mform->addElement('select', 'browsersecurity', get_string('browsersecurity', 'adaquiz'),
+        //         adaquiz_access_manager::get_browser_security_choices());
+        // $mform->addHelpButton('browsersecurity', 'browsersecurity', 'adaquiz');
+        // $mform->setAdvanced('browsersecurity', $adaquizconfig->browsersecurity_adv);
+        // $mform->setDefault('browsersecurity', $adaquizconfig->browsersecurity);
 
-        // Any other rule plugins.
-        adaquiz_access_manager::add_settings_form_fields($this, $mform);
+        // // Any other rule plugins.
+        // adaquiz_access_manager::add_settings_form_fields($this, $mform);
 
         // -------------------------------------------------------------------------------
-        $mform->addElement('header', 'overallfeedbackhdr', get_string('overallfeedback', 'adaquiz'));
-        $mform->addHelpButton('overallfeedbackhdr', 'overallfeedback', 'adaquiz');
+        // AdaptiveQuiz: TODO Overall feedback.
+        // $mform->addElement('header', 'overallfeedbackhdr', get_string('overallfeedback', 'adaquiz'));
+        // $mform->addHelpButton('overallfeedbackhdr', 'overallfeedback', 'adaquiz');
 
-        if (isset($this->current->grade)) {
-            $needwarning = $this->current->grade === 0;
-        } else {
-            $needwarning = $adaquizconfig->maximumgrade == 0;
-        }
-        if ($needwarning) {
-            $mform->addElement('static', 'nogradewarning', '',
-                    get_string('nogradewarning', 'adaquiz'));
-        }
+        // if (isset($this->current->grade)) {
+        //     $needwarning = $this->current->grade === 0;
+        // } else {
+        //     $needwarning = $adaquizconfig->maximumgrade == 0;
+        // }
+        // if ($needwarning) {
+        //     $mform->addElement('static', 'nogradewarning', '',
+        //             get_string('nogradewarning', 'adaquiz'));
+        // }
 
-        $mform->addElement('static', 'gradeboundarystatic1',
-                get_string('gradeboundary', 'adaquiz'), '100%');
+        // $mform->addElement('static', 'gradeboundarystatic1',
+        //         get_string('gradeboundary', 'adaquiz'), '100%');
 
-        $repeatarray = array();
-        $repeatedoptions = array();
-        $repeatarray[] = $mform->createElement('editor', 'feedbacktext',
-                get_string('feedback', 'adaquiz'), array('rows' => 3), array('maxfiles' => EDITOR_UNLIMITED_FILES,
-                        'noclean' => true, 'context' => $this->context));
-        $repeatarray[] = $mform->createElement('text', 'feedbackboundaries',
-                get_string('gradeboundary', 'adaquiz'), array('size' => 10));
-        $repeatedoptions['feedbacktext']['type'] = PARAM_RAW;
-        $repeatedoptions['feedbackboundaries']['type'] = PARAM_RAW;
+        // Adaptive Quiz: Not feedback.
+        // $repeatarray = array();
+        // $repeatedoptions = array();
+        // $repeatarray[] = $mform->createElement('editor', 'feedbacktext',
+        //         get_string('feedback', 'adaquiz'), array('rows' => 3), array('maxfiles' => EDITOR_UNLIMITED_FILES,
+        //                 'noclean' => true, 'context' => $this->context));
+        // $repeatarray[] = $mform->createElement('text', 'feedbackboundaries',
+        //         get_string('gradeboundary', 'adaquiz'), array('size' => 10));
+        // $repeatedoptions['feedbacktext']['type'] = PARAM_RAW;
+        // $repeatedoptions['feedbackboundaries']['type'] = PARAM_RAW;
 
-        if (!empty($this->_instance)) {
-            $this->_feedbacks = $DB->get_records('adaquiz_feedback',
-                    array('adaquizid' => $this->_instance), 'mingrade DESC');
-        } else {
-            $this->_feedbacks = array();
-        }
-        $numfeedbacks = max(count($this->_feedbacks) * 1.5, 5);
+        // if (!empty($this->_instance)) {
+        //     $this->_feedbacks = $DB->get_records('adaquiz_feedback',
+        //             array('adaquizid' => $this->_instance), 'mingrade DESC');
+        // } else {
+        //     $this->_feedbacks = array();
+        // }
+        // $numfeedbacks = max(count($this->_feedbacks) * 1.5, 5);
 
-        $nextel = $this->repeat_elements($repeatarray, $numfeedbacks - 1,
-                $repeatedoptions, 'boundary_repeats', 'boundary_add_fields', 3,
-                get_string('addmoreoverallfeedbacks', 'adaquiz'), true);
+        // $nextel = $this->repeat_elements($repeatarray, $numfeedbacks - 1,
+        //         $repeatedoptions, 'boundary_repeats', 'boundary_add_fields', 3,
+        //         get_string('addmoreoverallfeedbacks', 'adaquiz'), true);
 
-        // Put some extra elements in before the button.
-        $mform->insertElementBefore($mform->createElement('editor',
-                "feedbacktext[$nextel]", get_string('feedback', 'adaquiz'), array('rows' => 3),
-                array('maxfiles' => EDITOR_UNLIMITED_FILES, 'noclean' => true,
-                      'context' => $this->context)),
-                'boundary_add_fields');
-        $mform->insertElementBefore($mform->createElement('static',
-                'gradeboundarystatic2', get_string('gradeboundary', 'adaquiz'), '0%'),
-                'boundary_add_fields');
+        // // Put some extra elements in before the button.
+        // $mform->insertElementBefore($mform->createElement('editor',
+        //         "feedbacktext[$nextel]", get_string('feedback', 'adaquiz'), array('rows' => 3),
+        //         array('maxfiles' => EDITOR_UNLIMITED_FILES, 'noclean' => true,
+        //               'context' => $this->context)),
+        //         'boundary_add_fields');
+        // $mform->insertElementBefore($mform->createElement('static',
+        //         'gradeboundarystatic2', get_string('gradeboundary', 'adaquiz'), '0%'),
+        //         'boundary_add_fields');
 
-        // Add the disabledif rules. We cannot do this using the $repeatoptions parameter to
-        // repeat_elements because we don't want to dissable the first feedbacktext.
-        for ($i = 0; $i < $nextel; $i++) {
-            $mform->disabledIf('feedbackboundaries[' . $i . ']', 'grade', 'eq', 0);
-            $mform->disabledIf('feedbacktext[' . ($i + 1) . ']', 'grade', 'eq', 0);
-        }
+        // // Add the disabledif rules. We cannot do this using the $repeatoptions parameter to
+        // // repeat_elements because we don't want to dissable the first feedbacktext.
+        // for ($i = 0; $i < $nextel; $i++) {
+        //     $mform->disabledIf('feedbackboundaries[' . $i . ']', 'grade', 'eq', 0);
+        //     $mform->disabledIf('feedbacktext[' . ($i + 1) . ']', 'grade', 'eq', 0);
+        // }
 
         // -------------------------------------------------------------------------------
         $this->standard_coursemodule_elements();
@@ -518,18 +535,20 @@ class mod_adaquiz_mod_form extends moodleform_mod {
         $errors = parent::validation($data, $files);
 
         // Check open and close times are consistent.
-        if ($data['timeopen'] != 0 && $data['timeclose'] != 0 &&
-                $data['timeclose'] < $data['timeopen']) {
-            $errors['timeclose'] = get_string('closebeforeopen', 'adaquiz');
-        }
+        // Adaptivequiz: TODO Timing
+        // if ($data['timeopen'] != 0 && $data['timeclose'] != 0 &&
+        //         $data['timeclose'] < $data['timeopen']) {
+        //     $errors['timeclose'] = get_string('closebeforeopen', 'adaquiz');
+        // }
 
+        // Adaptivequiz: TODO Timing
         // Check that the grace period is not too short.
-        if ($data['overduehandling'] == 'graceperiod') {
-            $graceperiodmin = get_config('adaquiz', 'graceperiodmin');
-            if ($data['graceperiod'] <= $graceperiodmin) {
-                $errors['graceperiod'] = get_string('graceperiodtoosmall', 'adaquiz', format_time($graceperiodmin));
-            }
-        }
+        // if ($data['overduehandling'] == 'graceperiod') {
+        //     $graceperiodmin = get_config('adaquiz', 'graceperiodmin');
+        //     if ($data['graceperiod'] <= $graceperiodmin) {
+        //         $errors['graceperiod'] = get_string('graceperiodtoosmall', 'adaquiz', format_time($graceperiodmin));
+        //     }
+        // }
 
         // Check the boundary value is a number or a percentage, and in range.
         $i = 0;
@@ -564,22 +583,23 @@ class mod_adaquiz_mod_form extends moodleform_mod {
         $numboundaries = $i;
 
         // Check there is nothing in the remaining unused fields.
-        if (!empty($data['feedbackboundaries'])) {
-            for ($i = $numboundaries; $i < count($data['feedbackboundaries']); $i += 1) {
-                if (!empty($data['feedbackboundaries'][$i] ) &&
-                        trim($data['feedbackboundaries'][$i] ) != '') {
-                    $errors["feedbackboundaries[$i]"] =
-                            get_string('feedbackerrorjunkinboundary', 'adaquiz', $i + 1);
-                }
-            }
-        }
-        for ($i = $numboundaries + 1; $i < count($data['feedbacktext']); $i += 1) {
-            if (!empty($data['feedbacktext'][$i]['text']) &&
-                    trim($data['feedbacktext'][$i]['text'] ) != '') {
-                $errors["feedbacktext[$i]"] =
-                        get_string('feedbackerrorjunkinfeedback', 'adaquiz', $i + 1);
-            }
-        }
+        // AdaptiveQuiz: No feedback.
+        // if (!empty($data['feedbackboundaries'])) {
+        //     for ($i = $numboundaries; $i < count($data['feedbackboundaries']); $i += 1) {
+        //         if (!empty($data['feedbackboundaries'][$i] ) &&
+        //                 trim($data['feedbackboundaries'][$i] ) != '') {
+        //             $errors["feedbackboundaries[$i]"] =
+        //                     get_string('feedbackerrorjunkinboundary', 'adaquiz', $i + 1);
+        //         }
+        //     }
+        // }
+        // for ($i = $numboundaries + 1; $i < count($data['feedbacktext']); $i += 1) {
+        //     if (!empty($data['feedbacktext'][$i]['text']) &&
+        //             trim($data['feedbacktext'][$i]['text'] ) != '') {
+        //         $errors["feedbacktext[$i]"] =
+        //                 get_string('feedbackerrorjunkinfeedback', 'adaquiz', $i + 1);
+        //     }
+        // }
 
         // Any other rule plugins.
         $errors = adaquiz_access_manager::validate_settings_form_fields($errors, $data, $files, $this);

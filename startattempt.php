@@ -26,6 +26,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace mod_adaquiz\wiris;
+
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot . '/mod/adaquiz/locallib.php');
 
@@ -75,8 +77,8 @@ if (!$adaquizobj->is_preview_user()) {
 if ($adaquizobj->is_preview_user() && $forcenew) {
     // To force the creation of a new preview, we mark the current attempt (if any)
     // as finished. It will then automatically be deleted below.
-    $DB->set_field('adaquiz_attempts', 'state', adaquiz_attempt::FINISHED,
-            array('adaquiz' => $adaquizobj->get_adaquizid(), 'userid' => $USER->id));
+    $DB->set_field('adaquiz_attempts', 'state', Attempt::STATE_FINISHED,
+            array('quiz' => $adaquizobj->get_adaquizid(), 'userid' => $USER->id));
 }
 
 // Look for an existing attempt.
@@ -84,46 +86,41 @@ $attempts = adaquiz_get_user_attempts($adaquizobj->get_adaquizid(), $USER->id, '
 $lastattempt = end($attempts);
 
 // If an in-progress attempt exists, check password then redirect to it.
-if ($lastattempt && ($lastattempt->state == adaquiz_attempt::IN_PROGRESS ||
-        $lastattempt->state == adaquiz_attempt::OVERDUE)) {
+// AdaptiveQuiz: overriding quiz logic. In-progress state is only STATE_ANSWERING.
+if ($lastattempt && $forcenew){
+    $lastattempt = null;
+}
+
+if ($lastattempt && ($lastattempt->state == Attempt::STATE_ANSWERING)) {
     $currentattemptid = $lastattempt->id;
+    $pagedata = adaquiz_get_last_attempted_page_data($currentattemptid);
+    $page = $pagedata[0];
+    $nextnode = $pagedata[1];
+
     $messages = $accessmanager->prevent_access();
 
-    // If the attempt is now overdue, deal with that.
-    $adaquizobj->create_attempt_object($lastattempt)->handle_if_time_expired($timenow, true);
-
-    // And, if the attempt is now no longer in progress, redirect to the appropriate place.
-    if ($lastattempt->state == adaquiz_attempt::ABANDONED || $lastattempt->state == adaquiz_attempt::FINISHED) {
-        redirect($adaquizobj->review_url($lastattempt->id));
-    }
-
-    // If the page number was not explicitly in the URL, go to the current page.
-    if ($page == -1) {
-        $page = $lastattempt->currentpage;
-    }
-
 } else {
-    while ($lastattempt && $lastattempt->preview) {
-        $lastattempt = array_pop($attempts);
-    }
-
     // Get number for the next or unfinished attempt.
-    if ($lastattempt) {
-        $attemptnumber = $lastattempt->attempt + 1;
+    if ($lastattempt && !$lastattempt->preview && !$adaquizobj->is_preview_user()) {
+        $attemptnumber = count($attempts);
     } else {
         $lastattempt = false;
         $attemptnumber = 1;
     }
     $currentattemptid = null;
+    if ($page == -1) {
+        $page = 0;
+    }
+    $nextnode = null;
 
     $messages = $accessmanager->prevent_access() +
             $accessmanager->prevent_new_attempt(count($attempts), $lastattempt);
 
-    if ($page == -1) {
-        $page = 0;
-    }
 }
 
+if ($currentattemptid) {
+    redirect($adaquizobj->attempt_url($currentattemptid, $page, $nextnode));
+}
 // Check access.
 $output = $PAGE->get_renderer('mod_adaquiz');
 if (!$adaquizobj->is_preview_user() && $messages) {
@@ -157,25 +154,28 @@ if ($accessmanager->is_preflight_check_required($currentattemptid)) {
     $accessmanager->notify_preflight_check_passed($currentattemptid);
 }
 if ($currentattemptid) {
-    if ($lastattempt->state == adaquiz_attempt::OVERDUE) {
-        redirect($adaquizobj->summary_url($lastattempt->id));
-    } else {
-        redirect($adaquizobj->attempt_url($currentattemptid, $page));
-    }
+    // AdaptiveQuiz: OVERDUE attempt statep doesn't exists.
+    // if ($lastattempt->state == adaquiz_attempt::OVERDUE) {
+    //     redirect($adaquizobj->summary_url($lastattempt->id));
+    // } else {
+    //     redirect($adaquizobj->attempt_url($currentattemptid, $page));
+    // }
+    redirect($adaquizobj->attempt_url($currentattemptid, $page, $nextnode));
 }
 
 // Delete any previous preview attempts belonging to this user.
 adaquiz_delete_previews($adaquizobj->get_adaquiz(), $USER->id);
 
-$quba = question_engine::make_questions_usage_by_activity('mod_adaquiz', $adaquizobj->get_context());
+$quba = \question_engine::make_questions_usage_by_activity('mod_adaquiz', $adaquizobj->get_context());
 $quba->set_preferred_behaviour($adaquizobj->get_adaquiz()->preferredbehaviour);
 
 // Create the new attempt and initialize the question sessions
 $timenow = time(); // Update time now, in case the server is running really slowly.
 $attempt = adaquiz_create_attempt($adaquizobj, $attemptnumber, $lastattempt, $timenow, $adaquizobj->is_preview_user());
 
+$firstnode = $adaquizobj->getFirstNode();
 if (!($adaquizobj->get_adaquiz()->attemptonlast && $lastattempt)) {
-    $attempt = adaquiz_start_new_attempt($adaquizobj, $quba, $attempt, $attemptnumber, $timenow);
+    $attempt = adaquiz_start_new_attempt($adaquizobj, $quba, $attempt, $attemptnumber, $timenow, array(), array(), $firstnode);
 } else {
     $attempt = adaquiz_start_attempt_built_on_last($quba, $attempt, $lastattempt);
 }
@@ -184,7 +184,12 @@ $transaction = $DB->start_delegated_transaction();
 
 $attempt = adaquiz_attempt_save_started($adaquizobj, $quba, $attempt);
 
-$transaction->allow_commit();
+$position= 0;
+$na = NodeAttempt::createNodeAttempt($attempt->id, $firstnode->id, $position);
+$na->save();
 
+$transaction->allow_commit();
+$pagedata = adaquiz_get_last_attempted_page_data($attempt->id);
+$nextnode = $pagedata[1];
 // Redirect to the attempt page.
-redirect($adaquizobj->attempt_url($attempt->id, $page));
+redirect($adaquizobj->attempt_url($attempt->id, $page, $nextnode));

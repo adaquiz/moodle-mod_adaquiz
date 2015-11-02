@@ -387,7 +387,7 @@ abstract class adaquiz_attempts_report_table extends table_sql {
     public function base_sql($reportstudents) {
         global $DB;
 
-        $fields = $DB->sql_concat('u.id', "'#'", 'COALESCE(quiza.attempt, 0)') . ' AS uniqueid,';
+        $fields = $DB->sql_concat('u.id', "'#'", 'COALESCE(quiza.uniqueid, 0)') . ' AS uniqueid,';
 
         if ($this->qmsubselect) {
             $fields .= "\n(CASE WHEN $this->qmsubselect THEN 1 ELSE 0 END) AS gradedattempt,";

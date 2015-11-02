@@ -40,7 +40,6 @@ require_once($CFG->libdir  . '/eventslib.php');
 require_once($CFG->libdir . '/filelib.php');
 require_once($CFG->libdir . '/questionlib.php');
 
-
 /**
  * @var int We show the countdown timer if there is less than this amount of time left before the
  * the adaptive quiz close date. (1 hour)
@@ -108,8 +107,9 @@ function adaquiz_create_attempt(adaquiz $adaquizobj, $attemptnumber, $lastattemp
         $attempt = new stdClass();
         $attempt->quiz = $adaquiz->id;
         $attempt->userid = $userid;
+        // AdaptiveQuiz: Not preview and layour DB fields.
         $attempt->preview = 0;
-        $attempt->layout = '';
+        // $attempt->layout = '';
     } else {
         // Build on last attempt.
         if (empty($lastattempt)) {
@@ -122,7 +122,10 @@ function adaquiz_create_attempt(adaquiz $adaquizobj, $attemptnumber, $lastattemp
     $attempt->timestart = $timenow;
     $attempt->timefinish = 0;
     $attempt->timemodified = $timenow;
-    $attempt->state = adaquiz_attempt::IN_PROGRESS;
+    // AdaptiveQuiz: Not original quiz states
+    // $attempt->state = adaquiz_attempt::IN_PROGRESS;
+    $attempt->seed = mt_rand(1,99991);
+    $attempt->state = \mod_adaquiz\wiris\Attempt::STATE_ANSWERING;
     $attempt->currentpage = 0;
     $attempt->sumgrades = null;
 
@@ -141,7 +144,8 @@ function adaquiz_create_attempt(adaquiz $adaquizobj, $attemptnumber, $lastattemp
     return $attempt;
 }
 /**
- * Start a normal, new, adaptive quiz attempt.
+ * Start a normal, new, adaptive quiz attempt. Unlike Moodle quizzes, only the first question is
+ * added to the quba.
  *
  * @param adaquiz   $adaquizobj         the adaptive quiz object to start an attempt for.
  * @param question_usage_by_activity $quba
@@ -153,90 +157,29 @@ function adaquiz_create_attempt(adaquiz $adaquizobj, $attemptnumber, $lastattemp
  * @param array     $forcedvariantsbyslot slot number => variant. Used for questions with variants,
  *                                          to force the choice of a particular variant. Intended for testing
  *                                          purposes only.
+ * @param object     $node               first node associated with the adaptive quiz.
  * @throws moodle_exception
  * @return object   modified attempt object
  */
 function adaquiz_start_new_attempt($adaquizobj, $quba, $attempt, $attemptnumber, $timenow,
-                                $questionids = array(), $forcedvariantsbyslot = array()) {
+                                $questionids = array(), $forcedvariantsbyslot = array(), $node) {
     // Fully load all the questions in this adaptive quiz.
     $adaquizobj->preload_questions();
     $adaquizobj->load_questions();
 
-    // Add them all to the $quba.
-    $questionsinuse = array_keys($adaquizobj->get_questions());
-    foreach ($adaquizobj->get_questions() as $questiondata) {
-        if ($questiondata->qtype != 'random') {
-            if (!$adaquizobj->get_adaquiz()->shuffleanswers) {
-                $questiondata->options->shuffleanswers = false;
-            }
-            $question = question_bank::make_question($questiondata);
-
-        } else {
-            if (!isset($questionids[$quba->next_slot_number()])) {
-                $forcequestionid = null;
-            } else {
-                $forcequestionid = $questionids[$quba->next_slot_number()];
-            }
-
-            $question = question_bank::get_qtype('random')->choose_other_question(
-                $questiondata, $questionsinuse, $adaquizobj->get_adaquiz()->shuffleanswers, $forcequestionid);
-            if (is_null($question)) {
-                throw new moodle_exception('notenoughrandomquestions', 'quiz',
-                                           $adaquizobj->view_url(), $questiondata);
-            }
-        }
-
-        $quba->add_question($question, $questiondata->maxmark);
-        $questionsinuse[] = $question->id;
+    $questions = $adaquizobj->get_questions();
+    $firstquestiondata = array_shift($questions);
+    $firstquestion = question_bank::make_question($firstquestiondata);
+    $quba->add_question($firstquestion, $firstquestiondata->maxmark);
+    $variantoffset = null;
+    if ($node->options['commonrandomseed'] == 1){
+        $variantoffset = $attempt->seed;
     }
 
-    // Start all the questions.
-    if ($attempt->preview) {
-        $variantoffset = rand(1, 100);
-    } else {
-        $variantoffset = $attemptnumber;
-    }
-    $variantstrategy = new question_variant_pseudorandom_no_repeats_strategy(
-            $variantoffset, $attempt->userid, $adaquizobj->get_adaquizid());
+    $ss = $quba->get_slots();
+    $lastslot = end($ss);
 
-    if (!empty($forcedvariantsbyslot)) {
-        $forcedvariantsbyseed = question_variant_forced_choices_selection_strategy::prepare_forced_choices_array(
-            $forcedvariantsbyslot, $quba);
-        $variantstrategy = new question_variant_forced_choices_selection_strategy(
-            $forcedvariantsbyseed, $variantstrategy);
-    }
-
-    $quba->start_all_questions($variantstrategy, $timenow);
-
-    // Work out the attempt layout.
-    $layout = array();
-    if ($adaquizobj->get_adaquiz()->shufflequestions) {
-        $slots = $quba->get_slots();
-        shuffle($slots);
-
-        $questionsonthispage = 0;
-        foreach ($slots as $slot) {
-            if ($questionsonthispage && $questionsonthispage == $adaquizobj->get_adaquiz()->questionsperpage) {
-                $layout[] = 0;
-                $questionsonthispage = 0;
-            }
-            $layout[] = $slot;
-            $questionsonthispage += 1;
-        }
-
-    } else {
-        $currentpage = null;
-        foreach ($adaquizobj->get_questions() as $slot) {
-            if ($currentpage !== null && $slot->page != $currentpage) {
-                $layout[] = 0;
-            }
-            $layout[] = $slot->slot;
-            $currentpage = $slot->page;
-        }
-    }
-
-    $layout[] = 0;
-    $attempt->layout = implode(',', $layout);
+    $quba->start_question($lastslot, $variantoffset);
 
     return $attempt;
 }
@@ -361,7 +304,8 @@ function adaquiz_delete_attempt($attempt, $adaquiz) {
 
     question_engine::delete_questions_usage_by_activity($attempt->uniqueid);
     $DB->delete_records('adaquiz_attempts', array('id' => $attempt->id));
-
+    // AdaptiveQuiz
+    $DB->delete_records('adaquiz_node_attempt', array('attempt' => $attempt->id));
     // Log the deletion of the attempt.
     $params = array(
         'objectid' => $attempt->id,
@@ -378,14 +322,16 @@ function adaquiz_delete_attempt($attempt, $adaquiz) {
     // Search adaquiz_attempts for other instances by this user.
     // If none, then delete record for this adaptive quiz, this user from adaquiz_grades
     // else recalculate best grade.
-    $userid = $attempt->userid;
-    if (!$DB->record_exists('adaquiz_attempts', array('userid' => $userid, 'quiz' => $adaquiz->id))) {
-        $DB->delete_records('adaquiz_grades', array('userid' => $userid, 'quiz' => $adaquiz->id));
-    } else {
-        adaquiz_save_best_grade($adaquiz, $userid);
-    }
 
-    adaquiz_update_grades($adaquiz, $userid);
+    // AdaptiveQuiz
+    // $userid = $attempt->userid;
+    // if (!$DB->record_exists('adaquiz_attempts', array('userid' => $userid, 'quiz' => $adaquiz->id))) {
+    //     $DB->delete_records('adaquiz_grades', array('userid' => $userid, 'quiz' => $adaquiz->id));
+    // } else {
+    //     adaquiz_save_best_grade($adaquiz, $userid);
+    // }
+    // Adaptivequiz
+    // adaquiz_update_grades($adaquiz, $userid);
 }
 
 /**
@@ -575,7 +521,7 @@ function adaquiz_update_all_attempt_sumgrades($adaquiz) {
                 )
             WHERE quiz = :adaquizid AND state = :finishedstate";
     $DB->execute($sql, array('timenow' => $timenow, 'adaquizid' => $adaquiz->id,
-            'finishedstate' => adaquiz_attempt::FINISHED));
+            'finishedstate' => \mod_adaquiz\wiris\Attempt::FINISHED));
 }
 
 /**
@@ -748,7 +694,7 @@ function adaquiz_update_all_final_grades($adaquiz) {
         return;
     }
 
-    $param = array('iquizid' => $adaquiz->id, 'istatefinished' => adaquiz_attempt::FINISHED);
+    $param = array('iquizid' => $adaquiz->id, 'istatefinished' => \mod_adaquiz\wiris\Attempt::FINISHED);
     $firstlastattemptjoin = "JOIN (
             SELECT
                 iquiza.userid,
@@ -805,8 +751,8 @@ function adaquiz_update_all_final_grades($adaquiz) {
     $param['adaquizid2'] = $adaquiz->id;
     $param['adaquizid3'] = $adaquiz->id;
     $param['adaquizid4'] = $adaquiz->id;
-    $param['statefinished'] = adaquiz_attempt::FINISHED;
-    $param['statefinished2'] = adaquiz_attempt::FINISHED;
+    $param['statefinished'] = \mod_adaquiz\wiris\Attempt::FINISHED;
+    $param['statefinished2'] = \mod_adaquiz\wiris\Attempt::FINISHED;
     $finalgradesubquery = "
             SELECT quiza.userid, $finalgrade AS newgrade
             FROM {adaquiz_attempts} quiza
@@ -1135,21 +1081,18 @@ function adaquiz_questions_per_page_options() {
 
 /**
  * Get the human-readable name for an adaptive quiz attempt state.
- * @param string $state one of the state constants like {@link adaquiz_attempt::IN_PROGRESS}.
+ * @param string $state one of the state constants like {@link \mod_adaquiz\wiris\Attempt::IN_PROGRESS}.
  * @return string The lang string to describe that state.
  */
 function adaquiz_attempt_state_name($state) {
+    // AdaptiveQuiz: New estates names.
     switch ($state) {
-        case adaquiz_attempt::IN_PROGRESS:
+        case \mod_adaquiz\wiris\Attempt::STATE_ANSWERING:
             return get_string('stateinprogress', 'adaquiz');
-        case adaquiz_attempt::OVERDUE:
-            return get_string('stateoverdue', 'adaquiz');
-        case adaquiz_attempt::FINISHED:
+        case \mod_adaquiz\wiris\Attempt::STATE_FINISHED:
             return get_string('statefinished', 'adaquiz');
-        case adaquiz_attempt::ABANDONED:
-            return get_string('stateabandoned', 'adaquiz');
         default:
-            throw new coding_exception('Unknown adaptive quiz attempt state.');
+            throw new coding_exception('Unknown quiz attempt state.');
     }
 }
 
@@ -1278,7 +1221,7 @@ function adaquiz_get_flag_option($attempt, $context) {
  *      IMMEDIATELY_AFTER, LATER_WHILE_OPEN or AFTER_CLOSE constants.
  */
 function adaquiz_attempt_state($adaquiz, $attempt) {
-    if ($attempt->state == adaquiz_attempt::IN_PROGRESS) {
+    if ($attempt->state == \mod_adaquiz\wiris\Attempt::IN_PROGRESS) {
         return mod_adaquiz_display_options::DURING;
     } else if (time() < $attempt->timefinish + 120) {
         return mod_adaquiz_display_options::IMMEDIATELY_AFTER;
@@ -1310,7 +1253,7 @@ function adaquiz_get_review_options($adaquiz, $attempt, $context) {
     }
 
     // Show a link to the comment box only for closed attempts.
-    if (!empty($attempt->id) && $attempt->state == adaquiz_attempt::FINISHED && !$attempt->preview &&
+    if (!empty($attempt->id) && $attempt->state == \mod_adaquiz\wiris\Attempt::FINISHED && !$attempt->preview &&
             !is_null($context) && has_capability('mod/adaquiz:grade', $context)) {
         $options->manualcomment = question_display_options::VISIBLE;
         $options->manualcommentlink = new moodle_url('/mod/adaquiz/comment.php',
@@ -1644,7 +1587,7 @@ function adaquiz_attempt_submitted_handler($event) {
             context_module::instance($cm->id), $cm);
 }
 
-// Deprecated handlers don't use 
+// Deprecated handlers don't use
 
 // /**
 //  * Handle groups_member_added event
@@ -1838,7 +1781,7 @@ class qubaids_for_adaquiz extends qubaid_join {
 
         if ($onlyfinished) {
             $where .= ' AND state == :statefinished';
-            $params['statefinished'] = adaquiz_attempt::FINISHED;
+            $params['statefinished'] = \mod_adaquiz\wiris\Attempt::FINISHED;
         }
 
         parent::__construct('{adaquiz_attempts} quiza', 'quiza.uniqueid', $where, $params);
@@ -2042,4 +1985,48 @@ function adaquiz_add_random_questions($adaquiz, $addonpage, $categoryid, $number
         }
         adaquiz_add_adaquiz_question($question->id, $adaquiz, $addonpage);
     }
+}
+
+//Used when a student leave the quiz before finishing it
+//To continue from the same point
+function adaquiz_get_last_attempted_page_data($aid){
+    global $DB;
+    $recs = $DB->get_records(\mod_adaquiz\wiris\NodeAttempt::TABLE, array('attempt' => $aid), 'id DESC', '*');
+    $recs = array_shift($recs);
+    if (is_null($recs->jump)){
+        return array($recs->position, null);
+    }else if ($recs->jump == 0){
+        return array($recs->position, -1);
+    }else{
+        $nextnode = $DB->get_records_sql("SELECT j.id, n.position
+            FROM {" . \mod_adaquiz\wiris\Node::TABLE . "} n JOIN {" . \mod_adaquiz\wiris\Jump::TABLE .
+            "} j ON n.id = j.nodeto WHERE j.id = ?" , array($recs->jump));
+        return array($recs->position, $nextnode[$recs->jump]->position);
+    }
+}
+
+function adaquiz_get_full_route($attemptid){
+    global $DB;
+
+    $nodeattempts = $DB->get_records(\mod_adaquiz\wiris\NodeAttempt::TABLE, array('attempt' => $attemptid), '', 'position');
+    $position = array_keys($nodeattempts);
+
+    foreach ($position as $key => $value){
+        $slots[$key] = $value+1;
+    }
+
+    return $slots;
+}
+
+function adaquiz_get_real_sumgrades($aid, $qid, $route){
+
+    global $DB;
+    $grades=0;
+    $noderecs = $DB->get_records(\mod_adaquiz\wiris\Node::TABLE, array('adaquiz' => $qid), '', 'id, grade');
+    $recs = $DB->get_records(\mod_adaquiz\wiris\NodeAttempt::TABLE, array('attempt' => $aid));
+    foreach($recs as $key => $value){
+        $grades += $noderecs[$value->node]->grade;
+    }
+
+    return $grades;
 }
