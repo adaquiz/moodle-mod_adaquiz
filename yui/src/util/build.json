@@ -1,0 +1,21 @@
+{
+  "name": "moodle-mod_adaquiz-util",
+  "builds": {
+    "moodle-mod_adaquiz-util-base": {
+      "jsfiles": [
+        "base.js"
+      ]
+    },
+    "moodle-mod_adaquiz-util-slot": {
+      "jsfiles": [
+        "slot.js"
+      ]
+    }
+    ,
+    "moodle-mod_adaquiz-util-page": {
+      "jsfiles": [
+        "page.js"
+      ]
+    }
+  }
+}

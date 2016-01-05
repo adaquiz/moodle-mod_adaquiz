@@ -1,0 +1,10 @@
+{
+    "name": "moodle-mod_adaquiz-adaquizbase",
+    "builds": {
+        "moodle-mod_adaquiz-adaquizbase": {
+            "jsfiles": [
+                "adaquizbase.js"
+            ]
+        }
+    }
+}

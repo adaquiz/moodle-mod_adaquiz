@@ -1,0 +1,12 @@
+{
+    "name": "moodle-mod_adaquiz-toolboxes",
+    "builds": {
+        "moodle-mod_adaquiz-toolboxes": {
+            "jsfiles": [
+                "toolbox.js",
+                "resource.js",
+                "section.js"
+            ]
+        }
+    }
+}

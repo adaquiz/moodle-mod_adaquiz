@@ -1,0 +1,12 @@
+{
+    "moodle-mod_adaquiz-autosave": {
+        "requires": [
+            "base",
+            "node",
+            "event",
+            "event-valuechange",
+            "node-event-delegate",
+            "io-form"
+        ]
+    }
+}

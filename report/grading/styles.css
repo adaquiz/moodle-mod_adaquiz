@@ -1,0 +1,4 @@
+#page-mod-adaquiz-report #manualgradingform {width: 100%;}
+#page-mod-adaquiz-report #manualgradingform.mform br {clear: none;}
+#page-mod-adaquiz-report #manualgradingform.mform .clearfix:after {clear: none;}
+#page-mod-adaquiz-report #manualgradingform .que {margin-bottom: 0.7em;}

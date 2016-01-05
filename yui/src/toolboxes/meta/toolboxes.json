@@ -1,0 +1,14 @@
+{
+    "moodle-mod_adaquiz-toolboxes": {
+        "requires": [
+            "base",
+            "node",
+            "event",
+            "event-key",
+            "io",
+            "moodle-mod_adaquiz-adaquizbase",
+            "moodle-mod_adaquiz-util-slot",
+            "moodle-core-notification-ajaxexception"
+        ]
+    }
+}

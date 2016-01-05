@@ -1,0 +1,19 @@
+{
+    "moodle-mod_adaquiz-dragdrop": {
+        "requires": [
+            "base",
+            "node",
+            "io",
+            "dom",
+            "dd",
+            "dd-scroll",
+            "moodle-core-dragdrop",
+            "moodle-core-notification",
+            "moodle-mod_adaquiz-adaquizbase",
+            "moodle-mod_adaquiz-util-base",
+            "moodle-mod_adaquiz-util-page",
+            "moodle-mod_adaquiz-util-slot",
+            "moodle-course-util"
+        ]
+    }
+}
