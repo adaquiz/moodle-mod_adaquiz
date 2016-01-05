@@ -1,0 +1,8 @@
+{
+    "moodle-mod_adaquiz-adaquizbase": {
+        "requires": [
+            "base",
+            "node"
+        ]
+    }
+}

@@ -1,0 +1,10 @@
+{
+    "name": "moodle-mod_adaquiz-modform",
+    "builds": {
+        "moodle-mod_adaquiz-modform": {
+            "jsfiles": [
+                "modform.js"
+            ]
+        }
+    }
+}

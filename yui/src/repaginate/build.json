@@ -1,0 +1,10 @@
+{
+    "name": "moodle-mod_adaquiz-repaginate",
+    "builds": {
+        "moodle-mod_adaquiz-repaginate": {
+            "jsfiles": [
+                "repaginate.js"
+            ]
+        }
+    }
+}

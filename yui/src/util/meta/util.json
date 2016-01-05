@@ -1,0 +1,26 @@
+{
+  "moodle-mod_adaquiz-util": {
+    "requires": [
+        "node"
+    ],
+    "use": [
+        "moodle-mod_adaquiz-util-base"
+    ],
+    "submodules": {
+        "moodle-mod_adaquiz-util-base": {
+        },
+        "moodle-mod_adaquiz-util-slot": {
+            "requires": [
+                "node",
+                "moodle-mod_adaquiz-util-base"
+            ]
+        },
+        "moodle-mod_adaquiz-util-page": {
+            "requires": [
+                "node",
+                "moodle-mod_adaquiz-util-base"
+            ]
+        }
+    }
+  }
+}

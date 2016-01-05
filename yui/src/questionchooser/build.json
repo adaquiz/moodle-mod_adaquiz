@@ -1,0 +1,10 @@
+{
+    "name": "moodle-mod_adaquiz-questionchooser",
+    "builds": {
+        "moodle-mod_adaquiz-questionchooser": {
+            "jsfiles": [
+                "questionchooser.js"
+            ]
+        }
+    }
+}

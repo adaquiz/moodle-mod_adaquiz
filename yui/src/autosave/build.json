@@ -1,0 +1,10 @@
+{
+    "name": "moodle-mod_adaquiz-autosave",
+    "builds": {
+        "moodle-mod_adaquiz-autosave": {
+            "jsfiles": [
+                "autosave.js"
+            ]
+        }
+    }
+}
